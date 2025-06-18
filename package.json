@@ -46,6 +46,9 @@
     "topics": {
       "app:state": {
         "description": "Manage your App Builder State storage"
+      },
+      "app:db": {
+        "description": "Manage your App Builder Database"
       }
     },
     "bin": "aio",
