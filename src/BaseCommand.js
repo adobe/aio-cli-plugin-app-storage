@@ -11,12 +11,8 @@ governing permissions and limitations under the License.
 */
 
 import { Command, Flags } from '@oclif/core'
-import config from '@adobe/aio-lib-core-config'
 import AioLogger from '@adobe/aio-lib-core-logging'
-
-import { CONFIG_STATE_REGION } from './constants.js'
 import chalk from 'chalk'
-import semver from 'semver'
 
 export class BaseCommand extends Command {
   async init () {
@@ -38,50 +34,6 @@ export class BaseCommand extends Command {
     this.flags = flags
     this.args = args
     this.debugLogger.debug(`${command} args=${JSON.stringify(this.args)} flags=${JSON.stringify(this.flags)}`)
-
-    // check application dependencies
-    let packageJson
-    try {
-      const file = await readFile('package.json')
-      packageJson = JSON.parse(file.toString())
-    } catch (e) {
-      this.debugLogger.debug('package.json not found, skipping dependency check')
-    }
-    if (packageJson) {
-      const aioLibStateVersion = packageJson.dependencies?.['@adobe/aio-lib-state']
-      const aioSdkVersion = packageJson.dependencies?.['@adobe/aio-sdk']
-      if ((aioLibStateVersion && semver.lt(semver.coerce(aioLibStateVersion), '4.0.0')) ||
-        (aioSdkVersion && semver.lt(semver.coerce(aioSdkVersion), '6.0.0'))) {
-        this.error('State commands are not available for legacy State, please migrate to the latest "@adobe/aio-lib-state" (or "@adobe/aio-sdk" >= 6.0.0).')
-      }
-    }
-
-    // init state client
-    const owOptions = {
-      namespace: config.get('runtime.namespace'),
-      auth: config.get('runtime.auth')
-    }
-    if (!(owOptions.namespace && owOptions.auth)) {
-      this.error(
-`This command is expected to be run in the root of a App Builder app project.
-  Please make sure the 'AIO_RUNTIME_NAMESPACE' and 'AIO_RUNTIME_AUTH' environment variables are configured.`
-      )
-    }
-    const region = flags.region || config.get(CONFIG_STATE_REGION) || 'amer'
-    this.debugLogger.info('using state region: %s', region)
-
-    if (config.get('state.endpoint')) {
-      process.env.AIO_STATE_ENDPOINT = config.get('state.endpoint')
-      this.debugLogger.info('using custom endpoint: %s', process.env.AIO_STATE_ENDPOINT)
-    }
-    // dynamic import to be able to reload the AIO_STATE_ENDPOINT var
-    // eslint-disable-next-line node/no-unsupported-features/es-syntax
-    const State = await import('@adobe/aio-lib-state')
-
-    /** @type {import('@adobe/aio-lib-state').AdobeState} */
-    this.state = await State.init({ region, ow: owOptions })
-
-    this.rtNamespace = owOptions.namespace
   }
 
   async catch (error) {

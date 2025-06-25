@@ -9,14 +9,14 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { BaseCommand } from '../../../BaseCommand.js'
+import { StateBaseCommand } from '../../../StateBaseCommand.js'
 import { Flags } from '@oclif/core'
 import chalk from 'chalk'
 
 const MAX_KEYS = 5000
 const COUNT_HINT = 500 // per iteration
 
-export class List extends BaseCommand {
+export class List extends StateBaseCommand {
   async run () {
     const allKeys = []
 
@@ -55,7 +55,7 @@ List.examples = [
 ]
 
 List.flags = {
-  ...BaseCommand.flags,
+  ...StateBaseCommand.flags,
   match: Flags.string({
     name: 'match',
     char: 'm',

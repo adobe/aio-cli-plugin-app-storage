@@ -9,24 +9,8 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { StateBaseCommand } from '../../../StateBaseCommand.js'
 
-export class Stats extends StateBaseCommand {
-  async run () {
-    const ret = await this.state.stats()
-    this.log(
-`stored in '${this.rtNamespace}'
-  keys:          ${ret.keys}
-  bytes keys:    ${ret.bytesKeys}
-  bytes values:  ${ret.bytesValues}`
-    )
+// state.region is a new configuration (env=AIO_STATE_REGION)
+export const CONFIG_STATE_REGION = 'state.region'
 
-    return ret // --json
-  }
-}
-
-Stats.description = 'Display stats'
-Stats.examples = [
-  '$ aio app state stats',
-  '$ aio app state stats --json'
-]
+export const DEFAULT_TTL_SECONDS = 60 * 60 * 24 // 24 hours
