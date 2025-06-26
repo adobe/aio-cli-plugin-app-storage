@@ -10,7 +10,6 @@
     "@oclif/core": "^4",
     "@oclif/plugin-help": "^6",
     "chalk": "^5",
-    "dotenv": "^16.5.0",
     "semver": "^7.6.3"
   },
   "devDependencies": {
