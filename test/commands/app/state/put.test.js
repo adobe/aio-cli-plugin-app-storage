@@ -12,8 +12,8 @@ governing permissions and limitations under the License.
 import { Put } from '../../../../src/commands/app/state/put.js'
 import { expect, jest } from '@jest/globals'
 import { stdout, stderr } from 'stdout-stderr'
-import { DEFAULT_TTL_SECONDS } from '../../../../src/constants.js'
-import { BaseCommand } from '../../../../src/BaseCommand.js'
+import { DEFAULT_TTL_SECONDS } from '../../../../src/constants/state.js'
+import { StateBaseCommand } from '../../../../src/StateBaseCommand.js'
 
 /** @type {import('@jest/globals').jest.Mock} */
 const mockStatePut = global.getStateInstanceMock().put
@@ -22,7 +22,7 @@ const getDateString = (ttl) => (new Date(ttl * 1000 + Date.now())).toISOString()
 
 describe('prototype', () => {
   test('extends', () => {
-    expect(Put.prototype instanceof BaseCommand).toBe(true)
+    expect(Put.prototype instanceof StateBaseCommand).toBe(true)
   })
   test('args', () => {
     expect(Object.keys(Put.args)).toEqual(['key', 'value'])
