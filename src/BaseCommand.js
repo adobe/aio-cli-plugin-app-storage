@@ -17,13 +17,12 @@ import chalk from 'chalk'
 export class BaseCommand extends Command {
   async init () {
     await super.init()
-    // eslint-disable-next-line node/no-unsupported-features/es-syntax
-    const { readFile } = await import('fs/promises') // dynamic import to be able to mock fs, ESM and Jest are not friends
 
     // setup debug logger
     const command = this.constructor.name.toLowerCase() // hacky but convenient
+    const serviceName = this.getServiceName() // Get service name dynamically
     this.debugLogger = AioLogger(
-      `aio:app:state:${command}`,
+      `aio:app:${serviceName}:${command}`,
       { provider: 'debug' }
     )
     // override warn to stderr
@@ -34,6 +33,14 @@ export class BaseCommand extends Command {
     this.flags = flags
     this.args = args
     this.debugLogger.debug(`${command} args=${JSON.stringify(this.args)} flags=${JSON.stringify(this.flags)}`)
+  }
+
+  /**
+   * Get the service name for logging namespace
+   * Override in subclasses to provide service-specific namespaces
+   */
+  getServiceName() {
+    return 'app' // Default fallback
   }
 
   async catch (error) {

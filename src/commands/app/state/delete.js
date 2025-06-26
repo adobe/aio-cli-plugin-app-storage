@@ -100,7 +100,7 @@ Delete.args = {
 }
 
 Delete.flags = {
-  ...BaseCommand.flags,
+  ...StateBaseCommand.flags,
   match: Flags.string({
     description: '[use with caution!] deletes ALL key-values matching the provided glob-like pattern',
     required: false

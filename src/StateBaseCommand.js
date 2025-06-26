@@ -13,7 +13,6 @@ governing permissions and limitations under the License.
 import { BaseCommand } from './BaseCommand.js'
 import config from '@adobe/aio-lib-core-config'
 import { CONFIG_STATE_REGION } from './constants/state.js'
-import chalk from 'chalk'
 import semver from 'semver'
 
 export class StateBaseCommand extends BaseCommand {
@@ -63,5 +62,12 @@ export class StateBaseCommand extends BaseCommand {
     this.state = await State.init({ region, ow: owOptions })
 
     this.rtNamespace = owOptions.namespace
+  }
+
+  /**
+   * Get the service name for logging
+   */
+  getServiceName() {
+    return 'state'
   }
 }
