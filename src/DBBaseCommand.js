@@ -26,9 +26,10 @@ export class DBBaseCommand extends BaseCommand {
   /**
    * Initialize the database client using aio-lib-db
    */
-  async initializeDBClient() {
+  async initializeDBClient () {
     try {
       // Dynamic import of aio-lib-db (CommonJS module)
+      // eslint-disable-next-line node/no-unsupported-features/es-syntax
       const aioLibDb = await import('@adobe/aio-lib-db')
       const { init } = aioLibDb.default || aioLibDb
 
@@ -61,7 +62,6 @@ Please make sure the 'AIO_RUNTIME_NAMESPACE' and 'AIO_RUNTIME_AUTH' environment 
       this.rtNamespace = dbConfig.namespace
 
       this.debugLogger?.info?.('DB client initialized successfully')
-
     } catch (error) {
       this.debugLogger?.error?.('Failed to initialize DB client:', error.message)
       this.error(`Failed to initialize database client: ${error.message}`)
@@ -70,8 +70,9 @@ Please make sure the 'AIO_RUNTIME_NAMESPACE' and 'AIO_RUNTIME_AUTH' environment 
 
   /**
    * Get the service name for logging
+   * @returns {string} The service name
    */
-  getServiceName() {
+  getServiceName () {
     return 'db'
   }
 }

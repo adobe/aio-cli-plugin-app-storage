@@ -21,6 +21,7 @@ export class StateBaseCommand extends BaseCommand {
     // check application dependencies
     let packageJson
     try {
+      // eslint-disable-next-line node/no-unsupported-features/es-syntax
       const { readFile } = await import('fs/promises')
       const file = await readFile('package.json')
       packageJson = JSON.parse(file.toString())
@@ -56,18 +57,19 @@ export class StateBaseCommand extends BaseCommand {
     }
     // dynamic import to be able to reload the AIO_STATE_ENDPOINT var
     // eslint-disable-next-line node/no-unsupported-features/es-syntax
-    const State = await import('@adobe/aio-lib-state')
+    const aioLibState = await import('@adobe/aio-lib-state')
 
     /** @type {import('@adobe/aio-lib-state').AdobeState} */
-    this.state = await State.init({ region, ow: owOptions })
+    this.state = await aioLibState.init({ region, ow: owOptions })
 
     this.rtNamespace = owOptions.namespace
   }
 
   /**
    * Get the service name for logging
+   * @returns {string} The service name
    */
-  getServiceName() {
+  getServiceName () {
     return 'state'
   }
 }

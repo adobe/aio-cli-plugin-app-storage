@@ -49,6 +49,19 @@ jest.unstable_mockModule('@adobe/aio-lib-state', () => ({
 }))
 global.getStateInstanceMock = () => mockInstance
 
+// mock db
+const mockDBInit = jest.fn()
+const mockDBInstance = {
+  ping: jest.fn(),
+  provisionStatus: jest.fn(),
+  provisionRequest: jest.fn()
+}
+jest.unstable_mockModule('@adobe/aio-lib-db', () => ({
+  init: mockDBInit
+}))
+global.getDBInstanceMock = () => mockDBInstance
+global.mockDBInstance = mockDBInstance
+
 // mock prompt
 const mockPrompt = {
   input: jest.fn()
@@ -66,7 +79,7 @@ beforeEach(() => {
   // config fakes
   global.fakeConfig = {
     'state.region': null,
-    'runtime.namespace': '11111-ns',
+    'runtime.namespace': 'test-namespace',
     'runtime.auth': 'auth',
     'state.endpoint': null
   }
@@ -75,6 +88,10 @@ beforeEach(() => {
   mockInit.mockReset()
   mockInit.mockResolvedValue(mockInstance)
   Object.values(mockInstance).forEach(mock => mock.mockReset())
+
+  mockDBInit.mockReset()
+  mockDBInit.mockResolvedValue(mockDBInstance)
+  Object.values(mockDBInstance).forEach(mock => mock.mockReset())
 
   Object.values(mockPrompt).forEach(mock => mock.mockReset())
 })

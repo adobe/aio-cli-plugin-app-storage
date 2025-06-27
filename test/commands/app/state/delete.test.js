@@ -75,7 +75,7 @@ describe('run', () => {
     command.argv = ['key']
     await command.init()
     mockStateAny.mockResolvedValue(false)
-    await expect(command.run()).rejects.toThrow('there are no keys stored in \'11111-ns\'!')
+    await expect(command.run()).rejects.toThrow('there are no keys stored in \'test-namespace\'!')
   })
 
   test('--match and args', async () => {

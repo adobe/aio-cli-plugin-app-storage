@@ -27,7 +27,7 @@ export class Status extends DBBaseCommand {
     }
   }
 
-  async checkStatus() {
+  async checkStatus () {
     try {
       this.log(chalk.blue('Checking database provisioning status...'))
 
@@ -43,14 +43,13 @@ export class Status extends DBBaseCommand {
       }
 
       return result
-
     } catch (error) {
       this.debugLogger?.error?.('Status command error:', error)
 
       if (error.message.includes('not found') || error.message.includes('404')) {
         this.log(chalk.yellow('No database has been provisioned for this workspace'))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Status: NOT_PROVISIONED`))
+        this.log(chalk.dim('   Status: NOT_PROVISIONED'))
 
         return {
           status: 'NOT_PROVISIONED',
@@ -71,7 +70,7 @@ export class Status extends DBBaseCommand {
     }
   }
 
-  async watchStatus() {
+  async watchStatus () {
     this.log(chalk.blue('Watching database provisioning status (press Ctrl+C to stop)...'))
 
     let previousStatus = null
@@ -97,7 +96,6 @@ export class Status extends DBBaseCommand {
 
         // Schedule next check
         setTimeout(watchLoop, checkInterval)
-
       } catch (error) {
         this.debugLogger?.error?.('Watch status error:', error)
         this.log(chalk.red(`\n[${new Date().toLocaleTimeString()}] Error: ${error.message}`))
@@ -111,7 +109,7 @@ export class Status extends DBBaseCommand {
     return watchLoop()
   }
 
-  displayStatus(provisionStatusResponse, showTimestamp = true) {
+  displayStatus (provisionStatusResponse, showTimestamp = true) {
     const currentStatus = provisionStatusResponse.status.toUpperCase()
     const statusColor = this.getStatusColor(currentStatus)
 
@@ -145,7 +143,7 @@ export class Status extends DBBaseCommand {
     }
   }
 
-  getStatusColor(statusValue) {
+  getStatusColor (statusValue) {
     const status = statusValue.toUpperCase()
     switch (status) {
       case 'PROVISIONED':
@@ -162,7 +160,7 @@ export class Status extends DBBaseCommand {
     }
   }
 
-  getStatusDescription(statusValue) {
+  getStatusDescription (statusValue) {
     const status = statusValue.toUpperCase()
     switch (status) {
       case 'NOT_PROVISIONED':
@@ -179,8 +177,6 @@ export class Status extends DBBaseCommand {
         return null
     }
   }
-
-
 }
 
 Status.description = 'Check the provisioning status of your App Builder database'

@@ -36,10 +36,10 @@ export class BaseCommand extends Command {
   }
 
   /**
-   * Get the service name for logging namespace
-   * Override in subclasses to provide service-specific namespaces
+   * Get the service name for logging
+   * @returns {string} The service name
    */
-  getServiceName() {
+  getServiceName () {
     return 'app' // Default fallback
   }
 

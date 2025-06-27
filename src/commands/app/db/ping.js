@@ -38,7 +38,7 @@ export class Ping extends DBBaseCommand {
       const result = {
         status: 'success',
         namespace: this.rtNamespace,
-        responseTime: responseTime,
+        responseTime,
         response: pingResult,
         timestamp: new Date().toISOString()
       }
@@ -48,7 +48,6 @@ export class Ping extends DBBaseCommand {
       }
 
       return result
-
     } catch (error) {
       this.debugLogger?.error?.('Ping command error:', error)
 
@@ -62,8 +61,6 @@ export class Ping extends DBBaseCommand {
         error: error.message,
         timestamp: new Date().toISOString()
       }
-
-
 
       return result
     }

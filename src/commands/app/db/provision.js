@@ -127,7 +127,6 @@ export class Provision extends DBBaseCommand {
       }
 
       return result
-
     } catch (error) {
       this.debugLogger?.error?.('Provision command error:', error)
       this.error(`Database provisioning failed: ${error.message}`)
