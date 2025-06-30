@@ -292,7 +292,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result.status).toBe('new_unknown_status')
-      expect(stderr.output).toContain('Database provisioning request returned unrecognized status \'NEW_UNKNOWN_STATUS\'')
+      expect(stderr.output).toContain('Database provisioning request returned unexpected status \'NEW_UNKNOWN_STATUS\'')
       expect(stderr.output).toContain('If the issue persists, please contact the App Builder team')
     })
   })

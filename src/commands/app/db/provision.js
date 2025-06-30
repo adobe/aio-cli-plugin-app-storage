@@ -68,6 +68,7 @@ export class Provision extends DBBaseCommand {
           this.log(chalk.dim(`   Region: ${provisionStatusResponse.region || DEFAULT_REGION}`))
           this.log(chalk.dim(`   Status: ${currentStatus}`))
           this.log(chalk.dim('\nUse "aio app db status --watch" to monitor progress'))
+          this.log(chalk.red('If provisioning takes unusually long, please contact the App Builder team'))
 
           return {
             status: 'in_progress',
@@ -85,12 +86,13 @@ export class Provision extends DBBaseCommand {
           this.log(chalk.red('Previous database provisioning request was rejected'))
           this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
           this.log(chalk.dim(`   Status: ${currentStatus}`))
-          this.log(chalk.yellow('\nAttempting to provision again...'))
-          this.log(chalk.red('If the problem persists, please contact the App Builder team'))
+          this.log(chalk.yellow('\nYou can attempt to provision again, but the request may be rejected again'))
+          this.log(chalk.red('If the problem persists, please contact the App Builder team for assistance'))
         } else if (currentStatus !== DB_STATUS.NOT_PROVISIONED) {
           this.log(chalk.yellow(`Database status is '${currentStatus}' - attempting to provision...`))
           this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
           this.log(chalk.dim(`   Status: ${currentStatus}`))
+          this.log(chalk.red('If you encounter issues, please contact the App Builder team'))
         }
       }
 
@@ -132,8 +134,11 @@ export class Provision extends DBBaseCommand {
         this.error(`Database provisioning failed: ${provisionResult.message || 'Unknown error'}`)
       } else if (resultStatus === DB_STATUS.REJECTED) {
         this.error(`Database provisioning request was rejected: ${provisionResult.message || 'Unknown reason'}`)
+      } else if (resultStatus === DB_STATUS.UNKNOWN) {
+        this.warn(`Database provisioning request returned unrecognized status '${provisionResult.status || 'undefined'}', an update to the aio cli tool may be necessary.`)
+        this.warn('If the issue persists, please contact the App Builder team.')
       } else {
-        this.warn(`Database provisioning request returned unrecognized status '${resultStatus}', an update to the aio cli tool may be necessary.`)
+        this.warn(`Database provisioning request returned unexpected status '${resultStatus}', an update to the aio cli tool may be necessary.`)
         this.warn('If the issue persists, please contact the App Builder team.')
       }
 

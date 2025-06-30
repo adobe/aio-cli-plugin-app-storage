@@ -71,7 +71,6 @@ describe('run', () => {
         timestamp: expect.any(String)
       })
       expect(stdout.output).toContain('Database Status: PROVISIONED')
-      expect(stdout.output).toContain('A Database has been provisioned for this Workspace and is ready for use')
     })
 
     test('database processing', async () => {
@@ -88,7 +87,6 @@ describe('run', () => {
 
       expect(result.status).toBe('PROCESSING')
       expect(stdout.output).toContain('Database Status: PROCESSING')
-      expect(stdout.output).toContain('A Database is being provisioned for this Workspace')
     })
 
     test('database requested', async () => {
@@ -105,7 +103,6 @@ describe('run', () => {
 
       expect(result.status).toBe('REQUESTED')
       expect(stdout.output).toContain('Database Status: REQUESTED')
-      expect(stdout.output).toContain('A Database has been requested for this Workspace')
     })
 
     test('database failed', async () => {
@@ -123,7 +120,6 @@ describe('run', () => {
 
       expect(result.status).toBe('FAILED')
       expect(stdout.output).toContain('Database Status: FAILED')
-      expect(stdout.output).toContain('Failed to provision a Database for this Workspace')
       expect(stdout.output).toContain('Message: Quota exceeded')
     })
 
@@ -142,7 +138,6 @@ describe('run', () => {
 
       expect(result.status).toBe('REJECTED')
       expect(stdout.output).toContain('Database Status: REJECTED')
-      expect(stdout.output).toContain('Database provisioning request was rejected for this Workspace')
       expect(stdout.output).toContain('Message: Policy violation')
     })
 
@@ -168,15 +163,7 @@ describe('run', () => {
 
       mockProvisionStatus.mockRejectedValue(new Error('Network error'))
 
-      const result = await command.run()
-
-      expect(result).toEqual({
-        status: 'error',
-        namespace: 'test-namespace',
-        error: 'Network error',
-        timestamp: expect.any(String)
-      })
-      expect(stdout.output).toContain('Failed to check database status')
+      await expect(command.run()).rejects.toThrow('Failed to check database status: Network error')
     })
   })
 
@@ -224,7 +211,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result.status).toBe('PROVISIONED')
-      expect(stdout.output).toContain('Provisioning completed. Stopping watch mode.')
+      expect(stdout.output).toContain('Stopping watch mode.')
     })
 
     test('watch stops on failed status', async () => {
@@ -240,7 +227,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result.status).toBe('FAILED')
-      expect(stdout.output).toContain('Provisioning completed. Stopping watch mode.')
+      expect(stdout.output).toContain('Stopping watch mode.')
     })
 
     test('watch stops on rejected status', async () => {
@@ -256,7 +243,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result.status).toBe('REJECTED')
-      expect(stdout.output).toContain('Provisioning completed. Stopping watch mode.')
+      expect(stdout.output).toContain('Stopping watch mode.')
     })
   })
 
@@ -267,9 +254,8 @@ describe('run', () => {
 
       const statusResponse = {
         status: DB_STATUS.PROVISIONED,
-        region: 'emea',
         message: 'Database ready',
-        created: '2024-01-01T00:00:00Z',
+        submitted: '2024-01-01T00:00:00Z',
         updated: '2024-01-02T00:00:00Z'
       }
       mockProvisionStatus.mockResolvedValue(statusResponse)
@@ -278,10 +264,8 @@ describe('run', () => {
 
       expect(stdout.output).toContain('Database Status: PROVISIONED')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Region: emea')
-      expect(stdout.output).toContain('Description: A Database has been provisioned for this Workspace and is ready for use')
       expect(stdout.output).toContain('Message: Database ready')
-      expect(stdout.output).toContain('Created:')
+      expect(stdout.output).toContain('Submitted:')
       expect(stdout.output).toContain('Updated:')
       expect(stdout.output).toContain('Checked:')
     })
@@ -300,20 +284,6 @@ describe('run', () => {
 
       expect(stdout.output).toContain('Database Status: PROCESSING')
       expect(stdout.output).not.toContain('Checked:')
-    })
-  })
-
-  describe('getStatusDescription', () => {
-    test('returns correct descriptions for each status', () => {
-      const command = new Status([])
-
-      expect(command.getStatusDescription(DB_STATUS.NOT_PROVISIONED)).toBe('No Database has been provisioned for this Workspace')
-      expect(command.getStatusDescription(DB_STATUS.REQUESTED)).toBe('A Database has been requested for this Workspace')
-      expect(command.getStatusDescription(DB_STATUS.PROCESSING)).toBe('A Database is being provisioned for this Workspace')
-      expect(command.getStatusDescription(DB_STATUS.FAILED)).toBe('Failed to provision a Database for this Workspace')
-      expect(command.getStatusDescription(DB_STATUS.REJECTED)).toBe('Database provisioning request was rejected for this Workspace')
-      expect(command.getStatusDescription(DB_STATUS.PROVISIONED)).toBe('A Database has been provisioned for this Workspace and is ready for use')
-      expect(command.getStatusDescription('UNKNOWN')).toBe(null)
     })
   })
 

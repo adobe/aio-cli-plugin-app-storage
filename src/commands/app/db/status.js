@@ -47,7 +47,7 @@ export class Status extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Status command error:', error)
 
-      if (error.message.includes('not found') || error.message.includes('404')) {
+      if (error.message?.toLowerCase().includes('not found') || error.message?.includes('404')) {
         this.log(chalk.yellow('No database has been provisioned for this workspace'))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
         this.log(chalk.dim(`   Status: ${DB_STATUS.NOT_PROVISIONED}`))
@@ -59,15 +59,7 @@ export class Status extends DBBaseCommand {
         }
       }
 
-      this.log(chalk.red('Failed to check database status'))
-      this.log(chalk.dim(`   Error: ${error.message}`))
-
-      return {
-        status: 'error',
-        namespace: this.rtNamespace,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      }
+      this.error(`Failed to check database status: ${error.message}`)
     }
   }
 
@@ -82,15 +74,15 @@ export class Status extends DBBaseCommand {
         const provisionStatusResponse = await this.db.provisionStatus()
 
         // Only display if status changed
-        if (!previousStatus || previousStatus.status !== provisionStatusResponse.status) {
+        if (previousStatus?.status !== provisionStatusResponse?.status) {
           this.log(chalk.dim(`\n[${new Date().toLocaleTimeString()}]`))
           this.displayStatus(provisionStatusResponse, false) // Don't show timestamp in watch mode
           previousStatus = provisionStatusResponse
 
           // Stop watching if provisioning is complete or failed
           const currentStatus = provisionStatusResponse.status.toUpperCase()
-          if (currentStatus === DB_STATUS.PROVISIONED || currentStatus === DB_STATUS.FAILED || currentStatus === DB_STATUS.REJECTED) {
-            this.log(chalk.dim('\nProvisioning completed. Stopping watch mode.'))
+          if (currentStatus !== DB_STATUS.REQUESTED && currentStatus !== DB_STATUS.PROCESSING) {
+            this.log(chalk.dim('\nStopping watch mode.'))
             return provisionStatusResponse
           }
         }
@@ -117,22 +109,12 @@ export class Status extends DBBaseCommand {
     this.log(statusColor(`Database Status: ${currentStatus}`))
     this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
-    if (provisionStatusResponse.region) {
-      this.log(chalk.dim(`   Region: ${provisionStatusResponse.region}`))
-    }
-
-    // Display status-specific descriptions
-    const statusDescription = this.getStatusDescription(currentStatus)
-    if (statusDescription) {
-      this.log(chalk.dim(`   Description: ${statusDescription}`))
-    }
-
     if (provisionStatusResponse.message) {
       this.log(chalk.dim(`   Message: ${provisionStatusResponse.message}`))
     }
 
-    if (provisionStatusResponse.created) {
-      this.log(chalk.dim(`   Created: ${new Date(provisionStatusResponse.created).toLocaleString()}`))
+    if (provisionStatusResponse.submitted) {
+      this.log(chalk.dim(`   Submitted: ${new Date(provisionStatusResponse.submitted).toLocaleString()}`))
     }
 
     if (provisionStatusResponse.updated) {
@@ -159,26 +141,6 @@ export class Status extends DBBaseCommand {
         return chalk.blue
       default:
         return chalk.gray
-    }
-  }
-
-  getStatusDescription (statusValue) {
-    const status = statusValue.toUpperCase()
-    switch (status) {
-      case DB_STATUS.NOT_PROVISIONED:
-        return 'No Database has been provisioned for this Workspace'
-      case DB_STATUS.REQUESTED:
-        return 'A Database has been requested for this Workspace'
-      case DB_STATUS.PROCESSING:
-        return 'A Database is being provisioned for this Workspace'
-      case DB_STATUS.FAILED:
-        return 'Failed to provision a Database for this Workspace'
-      case DB_STATUS.REJECTED:
-        return 'Database provisioning request was rejected for this Workspace'
-      case DB_STATUS.PROVISIONED:
-        return 'A Database has been provisioned for this Workspace and is ready for use'
-      default:
-        return null
     }
   }
 }

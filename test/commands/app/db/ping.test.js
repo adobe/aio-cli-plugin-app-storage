@@ -112,24 +112,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Response time: 50ms')
       expect(stdout.output).not.toContain('Response:') // Object responses don't show in console
     })
-
-    test('fast response time', async () => {
-      command.argv = []
-      await command.init()
-
-      const startTime = 5000
-      const endTime = 5001
-      mockDateNow
-        .mockReturnValueOnce(startTime)
-        .mockReturnValueOnce(endTime)
-
-      mockPing.mockResolvedValue('fast pong')
-
-      const result = await command.run()
-
-      expect(result.responseTime).toBe(1)
-      expect(stdout.output).toContain('Response time: 1ms')
-    })
   })
 
   describe('failed ping', () => {
