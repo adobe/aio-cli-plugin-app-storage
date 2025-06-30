@@ -117,9 +117,9 @@ export class Status extends DBBaseCommand {
       this.log(chalk.dim(`   Submitted: ${new Date(provisionStatusResponse.submitted).toLocaleString()}`))
     }
 
-    if (provisionStatusResponse.updated) {
-      this.log(chalk.dim(`   Updated: ${new Date(provisionStatusResponse.updated).toLocaleString()}`))
-    }
+    // if (provisionStatusResponse.updated) {
+    //   this.log(chalk.dim(`   Updated: ${new Date(provisionStatusResponse.updated).toLocaleString()}`))
+    // }
 
     if (showTimestamp) {
       this.log(chalk.dim(`   Checked: ${new Date().toLocaleString()}`))
