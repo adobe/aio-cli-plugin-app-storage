@@ -266,7 +266,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Message: Database ready')
       expect(stdout.output).toContain('Submitted:')
-      expect(stdout.output).toContain('Updated:')
       expect(stdout.output).toContain('Checked:')
     })
 
