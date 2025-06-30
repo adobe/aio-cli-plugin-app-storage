@@ -13,6 +13,7 @@ import { expect, jest } from '@jest/globals'
 import { StateBaseCommand } from '../src/StateBaseCommand.js'
 import { BaseCommand } from '../src/BaseCommand.js'
 import { init } from '@adobe/aio-lib-state'
+import { AVAILABLE_REGIONS, DEFAULT_REGION } from '../src/constants/db.js'
 
 describe('prototype', () => {
   test('extends BaseCommand', () => {
@@ -23,7 +24,7 @@ describe('prototype', () => {
   })
   test('flags', () => {
     expect(Object.keys(StateBaseCommand.flags).sort()).toEqual(['region'])
-    expect(StateBaseCommand.flags.region.options).toEqual(['amer', 'emea', 'apac'])
+    expect(StateBaseCommand.flags.region.options).toEqual(AVAILABLE_REGIONS)
     expect(StateBaseCommand.enableJsonFlag).toEqual(true)
   })
   test('getServiceName', () => {
@@ -105,7 +106,7 @@ describe('init', () => {
     command.argv = []
     await command.init()
     expect(init).toHaveBeenCalledWith({
-      region: 'amer',
+      region: DEFAULT_REGION,
       ow: { namespace: global.fakeConfig['runtime.namespace'], auth: global.fakeConfig['runtime.auth'] }
     })
   })

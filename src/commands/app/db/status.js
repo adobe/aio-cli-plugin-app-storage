@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../DBBaseCommand.js'
 import { Flags } from '@oclif/core'
 import chalk from 'chalk'
+import { DB_STATUS } from '../../../constants/db.js'
 
 export class Status extends DBBaseCommand {
   async run () {
@@ -49,10 +50,10 @@ export class Status extends DBBaseCommand {
       if (error.message.includes('not found') || error.message.includes('404')) {
         this.log(chalk.yellow('No database has been provisioned for this workspace'))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim('   Status: NOT_PROVISIONED'))
+        this.log(chalk.dim(`   Status: ${DB_STATUS.NOT_PROVISIONED}`))
 
         return {
-          status: 'NOT_PROVISIONED',
+          status: DB_STATUS.NOT_PROVISIONED,
           namespace: this.rtNamespace,
           timestamp: new Date().toISOString()
         }
@@ -88,7 +89,7 @@ export class Status extends DBBaseCommand {
 
           // Stop watching if provisioning is complete or failed
           const currentStatus = provisionStatusResponse.status.toUpperCase()
-          if (currentStatus === 'PROVISIONED' || currentStatus === 'FAILED') {
+          if (currentStatus === DB_STATUS.PROVISIONED || currentStatus === DB_STATUS.FAILED || currentStatus === DB_STATUS.REJECTED) {
             this.log(chalk.dim('\nProvisioning completed. Stopping watch mode.'))
             return provisionStatusResponse
           }
@@ -146,14 +147,15 @@ export class Status extends DBBaseCommand {
   getStatusColor (statusValue) {
     const status = statusValue.toUpperCase()
     switch (status) {
-      case 'PROVISIONED':
+      case DB_STATUS.PROVISIONED:
         return chalk.green
-      case 'REQUESTED':
-      case 'PROCESSING':
+      case DB_STATUS.REQUESTED:
+      case DB_STATUS.PROCESSING:
         return chalk.yellow
-      case 'FAILED':
+      case DB_STATUS.FAILED:
+      case DB_STATUS.REJECTED:
         return chalk.red
-      case 'NOT_PROVISIONED':
+      case DB_STATUS.NOT_PROVISIONED:
         return chalk.blue
       default:
         return chalk.gray
@@ -163,15 +165,17 @@ export class Status extends DBBaseCommand {
   getStatusDescription (statusValue) {
     const status = statusValue.toUpperCase()
     switch (status) {
-      case 'NOT_PROVISIONED':
+      case DB_STATUS.NOT_PROVISIONED:
         return 'No Database has been provisioned for this Workspace'
-      case 'REQUESTED':
+      case DB_STATUS.REQUESTED:
         return 'A Database has been requested for this Workspace'
-      case 'PROCESSING':
+      case DB_STATUS.PROCESSING:
         return 'A Database is being provisioned for this Workspace'
-      case 'FAILED':
+      case DB_STATUS.FAILED:
         return 'Failed to provision a Database for this Workspace'
-      case 'PROVISIONED':
+      case DB_STATUS.REJECTED:
+        return 'Database provisioning request was rejected for this Workspace'
+      case DB_STATUS.PROVISIONED:
         return 'A Database has been provisioned for this Workspace and is ready for use'
       default:
         return null

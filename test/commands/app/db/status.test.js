@@ -13,6 +13,7 @@ import { Status } from '../../../../src/commands/app/db/status.js'
 import { expect, jest } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../src/DBBaseCommand.js'
+import { DB_STATUS } from '../../../../src/constants/db.js'
 
 // Use the global DB mock
 const mockProvisionStatus = global.mockDBInstance.provisionStatus
@@ -55,7 +56,7 @@ describe('run', () => {
       await command.init()
 
       const statusResponse = {
-        status: 'PROVISIONED',
+        status: DB_STATUS.PROVISIONED,
         region: 'amer',
         created: '2024-01-01T00:00:00Z',
         updated: '2024-01-01T00:00:00Z'
@@ -78,7 +79,7 @@ describe('run', () => {
       await command.init()
 
       const statusResponse = {
-        status: 'PROCESSING',
+        status: DB_STATUS.PROCESSING,
         region: 'amer'
       }
       mockProvisionStatus.mockResolvedValue(statusResponse)
@@ -95,7 +96,7 @@ describe('run', () => {
       await command.init()
 
       const statusResponse = {
-        status: 'REQUESTED',
+        status: DB_STATUS.REQUESTED,
         region: 'amer'
       }
       mockProvisionStatus.mockResolvedValue(statusResponse)
@@ -112,7 +113,7 @@ describe('run', () => {
       await command.init()
 
       const statusResponse = {
-        status: 'FAILED',
+        status: DB_STATUS.FAILED,
         region: 'amer',
         message: 'Quota exceeded'
       }
@@ -126,6 +127,25 @@ describe('run', () => {
       expect(stdout.output).toContain('Message: Quota exceeded')
     })
 
+    test('database rejected', async () => {
+      command.argv = []
+      await command.init()
+
+      const statusResponse = {
+        status: DB_STATUS.REJECTED,
+        region: 'amer',
+        message: 'Policy violation'
+      }
+      mockProvisionStatus.mockResolvedValue(statusResponse)
+
+      const result = await command.run()
+
+      expect(result.status).toBe('REJECTED')
+      expect(stdout.output).toContain('Database Status: REJECTED')
+      expect(stdout.output).toContain('Database provisioning request was rejected for this Workspace')
+      expect(stdout.output).toContain('Message: Policy violation')
+    })
+
     test('database not found (404)', async () => {
       command.argv = []
       await command.init()
@@ -135,7 +155,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        status: 'NOT_PROVISIONED',
+        status: DB_STATUS.NOT_PROVISIONED,
         namespace: 'test-namespace',
         timestamp: expect.any(String)
       })
@@ -174,7 +194,7 @@ describe('run', () => {
       await command.init()
 
       const statusResponse = {
-        status: 'PROVISIONED',
+        status: DB_STATUS.PROVISIONED,
         region: 'amer'
       }
       mockProvisionStatus.mockResolvedValue(statusResponse)
@@ -196,7 +216,7 @@ describe('run', () => {
       await command.init()
 
       const statusResponse = {
-        status: 'PROVISIONED',
+        status: DB_STATUS.PROVISIONED,
         region: 'amer'
       }
       mockProvisionStatus.mockResolvedValue(statusResponse)
@@ -212,7 +232,7 @@ describe('run', () => {
       await command.init()
 
       const statusResponse = {
-        status: 'FAILED',
+        status: DB_STATUS.FAILED,
         region: 'amer'
       }
       mockProvisionStatus.mockResolvedValue(statusResponse)
@@ -220,6 +240,22 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result.status).toBe('FAILED')
+      expect(stdout.output).toContain('Provisioning completed. Stopping watch mode.')
+    })
+
+    test('watch stops on rejected status', async () => {
+      command.argv = ['--watch']
+      await command.init()
+
+      const statusResponse = {
+        status: DB_STATUS.REJECTED,
+        region: 'amer'
+      }
+      mockProvisionStatus.mockResolvedValue(statusResponse)
+
+      const result = await command.run()
+
+      expect(result.status).toBe('REJECTED')
       expect(stdout.output).toContain('Provisioning completed. Stopping watch mode.')
     })
   })
@@ -230,7 +266,7 @@ describe('run', () => {
       await command.init()
 
       const statusResponse = {
-        status: 'PROVISIONED',
+        status: DB_STATUS.PROVISIONED,
         region: 'emea',
         message: 'Database ready',
         created: '2024-01-01T00:00:00Z',
@@ -255,7 +291,7 @@ describe('run', () => {
       await command.init()
 
       const statusResponse = {
-        status: 'PROCESSING',
+        status: DB_STATUS.PROCESSING,
         region: 'amer'
       }
 
@@ -271,11 +307,12 @@ describe('run', () => {
     test('returns correct descriptions for each status', () => {
       const command = new Status([])
 
-      expect(command.getStatusDescription('NOT_PROVISIONED')).toBe('No Database has been provisioned for this Workspace')
-      expect(command.getStatusDescription('REQUESTED')).toBe('A Database has been requested for this Workspace')
-      expect(command.getStatusDescription('PROCESSING')).toBe('A Database is being provisioned for this Workspace')
-      expect(command.getStatusDescription('FAILED')).toBe('Failed to provision a Database for this Workspace')
-      expect(command.getStatusDescription('PROVISIONED')).toBe('A Database has been provisioned for this Workspace and is ready for use')
+      expect(command.getStatusDescription(DB_STATUS.NOT_PROVISIONED)).toBe('No Database has been provisioned for this Workspace')
+      expect(command.getStatusDescription(DB_STATUS.REQUESTED)).toBe('A Database has been requested for this Workspace')
+      expect(command.getStatusDescription(DB_STATUS.PROCESSING)).toBe('A Database is being provisioned for this Workspace')
+      expect(command.getStatusDescription(DB_STATUS.FAILED)).toBe('Failed to provision a Database for this Workspace')
+      expect(command.getStatusDescription(DB_STATUS.REJECTED)).toBe('Database provisioning request was rejected for this Workspace')
+      expect(command.getStatusDescription(DB_STATUS.PROVISIONED)).toBe('A Database has been provisioned for this Workspace and is ready for use')
       expect(command.getStatusDescription('UNKNOWN')).toBe(null)
     })
   })
@@ -286,7 +323,7 @@ describe('run', () => {
       await command.init()
 
       const statusResponse = {
-        status: 'PROVISIONED',
+        status: DB_STATUS.PROVISIONED,
         region: 'amer'
       }
       mockProvisionStatus.mockResolvedValue(statusResponse)

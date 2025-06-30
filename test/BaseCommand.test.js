@@ -13,6 +13,7 @@ import { expect, jest } from '@jest/globals'
 import { BaseCommand } from '../src/BaseCommand.js'
 import { Command } from '@oclif/core'
 import { stderr } from 'stdout-stderr'
+import { AVAILABLE_REGIONS } from '../src/constants/db.js'
 
 describe('prototype', () => {
   test('extends Command', () => {
@@ -23,7 +24,7 @@ describe('prototype', () => {
   })
   test('flags', () => {
     expect(Object.keys(BaseCommand.flags).sort()).toEqual(['region'])
-    expect(BaseCommand.flags.region.options).toEqual(['amer', 'emea', 'apac'])
+    expect(BaseCommand.flags.region.options).toEqual(AVAILABLE_REGIONS)
     expect(BaseCommand.enableJsonFlag).toEqual(true)
   })
   test('getServiceName', () => {

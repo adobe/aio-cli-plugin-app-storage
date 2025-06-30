@@ -12,6 +12,7 @@ governing permissions and limitations under the License.
 import { expect, jest } from '@jest/globals'
 import { DBBaseCommand } from '../src/DBBaseCommand.js'
 import { BaseCommand } from '../src/BaseCommand.js'
+import { AVAILABLE_REGIONS, DEFAULT_REGION } from '../src/constants/db.js'
 
 // Mock aio-lib-db
 const mockInit = jest.fn()
@@ -37,7 +38,7 @@ describe('prototype', () => {
   })
   test('flags', () => {
     expect(Object.keys(DBBaseCommand.flags).sort()).toEqual(['region'])
-    expect(DBBaseCommand.flags.region.options).toEqual(['amer', 'emea', 'apac'])
+    expect(DBBaseCommand.flags.region.options).toEqual(AVAILABLE_REGIONS)
     expect(DBBaseCommand.enableJsonFlag).toEqual(true)
   })
   test('getServiceName', () => {
@@ -81,7 +82,7 @@ describe('init', () => {
     command.argv = []
     await command.init()
 
-    expect(command.dbConfig.region).toBe('amer')
+    expect(command.dbConfig.region).toBe(DEFAULT_REGION)
   })
 
   test('initialization with config region', async () => {

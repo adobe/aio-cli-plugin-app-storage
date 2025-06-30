@@ -9,3 +9,17 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
+
+export const DB_STATUS = {
+  PROVISIONED: 'PROVISIONED',
+  REQUESTED: 'REQUESTED',
+  PROCESSING: 'PROCESSING',
+  FAILED: 'FAILED',
+  REJECTED: 'REJECTED',
+  NOT_PROVISIONED: 'NOT_PROVISIONED',
+  UNKNOWN: 'UNKNOWN'
+}
+
+export const DEFAULT_REGION = 'amer'
+
+export const AVAILABLE_REGIONS = ['amer', 'emea', 'apac']

@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { BaseCommand } from './BaseCommand.js'
 import config from '@adobe/aio-lib-core-config'
 import { CONFIG_STATE_REGION } from './constants/state.js'
+import { DEFAULT_REGION } from './constants/db.js'
 import semver from 'semver'
 
 export class StateBaseCommand extends BaseCommand {
@@ -48,7 +49,7 @@ export class StateBaseCommand extends BaseCommand {
   Please make sure the 'AIO_RUNTIME_NAMESPACE' and 'AIO_RUNTIME_AUTH' environment variables are configured.`
       )
     }
-    const region = this.flags.region || config.get(CONFIG_STATE_REGION) || 'amer'
+    const region = this.flags.region || config.get(CONFIG_STATE_REGION) || DEFAULT_REGION
     this.debugLogger?.info?.('using state region: %s', region)
 
     if (config.get('state.endpoint')) {

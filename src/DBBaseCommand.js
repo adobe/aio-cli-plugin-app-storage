@@ -12,6 +12,7 @@ governing permissions and limitations under the License.
 
 import { BaseCommand } from './BaseCommand.js'
 import config from '@adobe/aio-lib-core-config'
+import { DEFAULT_REGION } from './constants/db.js'
 
 export class DBBaseCommand extends BaseCommand {
   async init () {
@@ -37,7 +38,7 @@ export class DBBaseCommand extends BaseCommand {
       const dbConfig = {
         namespace: config.get('runtime.namespace'),
         auth: config.get('runtime.auth'),
-        region: this.flags?.region || config.get('db.region') || 'amer',
+        region: this.flags?.region || config.get('db.region') || DEFAULT_REGION,
         endpoint: config.get('db.endpoint') || process.env.AIO_DB_ENDPOINT
       }
 

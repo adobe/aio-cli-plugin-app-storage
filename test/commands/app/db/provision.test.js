@@ -11,8 +11,9 @@ governing permissions and limitations under the License.
 */
 import { Provision } from '../../../../src/commands/app/db/provision.js'
 import { expect, jest } from '@jest/globals'
-import { stdout } from 'stdout-stderr'
+import { stdout, stderr } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../src/DBBaseCommand.js'
+import { DB_STATUS, DEFAULT_REGION, AVAILABLE_REGIONS } from '../../../../src/constants/db.js'
 
 // Use the global DB mock
 const mockProvisionStatus = global.mockDBInstance.provisionStatus
@@ -33,8 +34,8 @@ describe('prototype', () => {
   })
   test('flags', () => {
     expect(Object.keys(Provision.flags).sort()).toEqual(['region'])
-    expect(Provision.flags.region.options).toEqual(['amer', 'emea', 'apac'])
-    expect(Provision.flags.region.default).toBe('amer')
+    expect(Provision.flags.region.options).toEqual(AVAILABLE_REGIONS)
+    expect(Provision.flags.region.default).toBe(DEFAULT_REGION)
     expect(Provision.enableJsonFlag).toEqual(true)
   })
 })
@@ -59,7 +60,7 @@ describe('run', () => {
       await command.init()
 
       const existingStatus = {
-        status: 'PROVISIONED',
+        status: DB_STATUS.PROVISIONED,
         region: 'amer',
         created: '2024-01-01T00:00:00Z'
       }
@@ -81,7 +82,7 @@ describe('run', () => {
       await command.init()
 
       const inProgressStatus = {
-        status: 'PROCESSING',
+        status: DB_STATUS.PROCESSING,
         region: 'amer'
       }
       mockProvisionStatus.mockResolvedValue(inProgressStatus)
@@ -102,13 +103,13 @@ describe('run', () => {
       await command.init()
 
       const failedStatus = {
-        status: 'FAILED',
+        status: DB_STATUS.FAILED,
         region: 'amer'
       }
       mockProvisionStatus.mockResolvedValue(failedStatus)
       mockConfirm.mockResolvedValue(true)
       mockProvisionRequest.mockResolvedValue({
-        status: 'REQUESTED',
+        status: DB_STATUS.REQUESTED,
         region: 'amer'
       })
 
@@ -116,6 +117,29 @@ describe('run', () => {
 
       expect(result.status).toBe('requested')
       expect(mockProvisionRequest).toHaveBeenCalledWith({ region: 'amer' })
+    })
+
+    test('previous provision rejected, continues with new attempt', async () => {
+      command.argv = []
+      await command.init()
+
+      const rejectedStatus = {
+        status: DB_STATUS.REJECTED,
+        region: 'amer'
+      }
+      mockProvisionStatus.mockResolvedValue(rejectedStatus)
+      mockConfirm.mockResolvedValue(true)
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.REQUESTED,
+        region: 'amer'
+      })
+
+      const result = await command.run()
+
+      expect(result.status).toBe('requested')
+      expect(mockProvisionRequest).toHaveBeenCalledWith({ region: 'amer' })
+      expect(stdout.output).toContain('Previous database provisioning request was rejected')
+      expect(stdout.output).toContain('If the problem persists, please contact the App Builder team')
     })
   })
 
@@ -127,7 +151,7 @@ describe('run', () => {
       mockProvisionStatus.mockRejectedValue(new Error('not found'))
       mockConfirm.mockResolvedValue(true)
       mockProvisionRequest.mockResolvedValue({
-        status: 'REQUESTED',
+        status: DB_STATUS.REQUESTED,
         region: 'amer'
       })
 
@@ -144,7 +168,7 @@ describe('run', () => {
         region: 'amer',
         timestamp: expect.any(String),
         details: {
-          status: 'REQUESTED',
+          status: DB_STATUS.REQUESTED,
           region: 'amer'
         }
       })
@@ -170,7 +194,7 @@ describe('run', () => {
       mockProvisionStatus.mockRejectedValue(new Error('not found'))
       mockConfirm.mockResolvedValue(true)
       mockProvisionRequest.mockResolvedValue({
-        status: 'PROVISIONED',
+        status: DB_STATUS.PROVISIONED,
         region: 'emea'
       })
 
@@ -192,7 +216,7 @@ describe('run', () => {
       await command.init()
 
       mockProvisionRequest.mockResolvedValue({
-        status: 'PROVISIONED',
+        status: DB_STATUS.PROVISIONED,
         region: 'amer'
       })
 
@@ -207,7 +231,7 @@ describe('run', () => {
       await command.init()
 
       mockProvisionRequest.mockResolvedValue({
-        status: 'REQUESTED',
+        status: DB_STATUS.REQUESTED,
         region: 'amer'
       })
 
@@ -222,7 +246,7 @@ describe('run', () => {
       await command.init()
 
       mockProvisionRequest.mockResolvedValue({
-        status: 'PROCESSING',
+        status: DB_STATUS.PROCESSING,
         region: 'amer'
       })
 
@@ -237,11 +261,39 @@ describe('run', () => {
       await command.init()
 
       mockProvisionRequest.mockResolvedValue({
-        status: 'FAILED',
+        status: DB_STATUS.FAILED,
         message: 'Provisioning failed due to quota limits'
       })
 
       await expect(command.run()).rejects.toThrow('Database provisioning failed: Provisioning failed due to quota limits')
+    })
+
+    test('provision rejected', async () => {
+      command.argv = []
+      await command.init()
+
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.REJECTED,
+        message: 'Request rejected due to policy violation'
+      })
+
+      await expect(command.run()).rejects.toThrow('Database provisioning request was rejected: Request rejected due to policy violation')
+    })
+
+    test('provision unknown status', async () => {
+      command.argv = []
+      await command.init()
+
+      mockProvisionRequest.mockResolvedValue({
+        status: 'NEW_UNKNOWN_STATUS',
+        region: 'amer'
+      })
+
+      const result = await command.run()
+
+      expect(result.status).toBe('new_unknown_status')
+      expect(stderr.output).toContain('Database provisioning request returned unrecognized status \'NEW_UNKNOWN_STATUS\'')
+      expect(stderr.output).toContain('If the issue persists, please contact the App Builder team')
     })
   })
 
@@ -266,7 +318,7 @@ describe('run', () => {
       mockProvisionStatus.mockRejectedValue(new Error('not found'))
       mockConfirm.mockResolvedValue(true)
       mockProvisionRequest.mockResolvedValue({
-        status: 'PROVISIONED',
+        status: DB_STATUS.PROVISIONED,
         region: 'amer'
       })
 

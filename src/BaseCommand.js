@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { Command, Flags } from '@oclif/core'
 import AioLogger from '@adobe/aio-lib-core-logging'
 import chalk from 'chalk'
+import { AVAILABLE_REGIONS } from './constants/db.js'
 
 export class BaseCommand extends Command {
   async init () {
@@ -68,7 +69,7 @@ BaseCommand.flags = {
   region: Flags.string({
     description: 'State region. Defaults to \'AIO_STATE_REGION\' env or \'amer\' if neither is set.',
     required: false,
-    options: ['amer', 'emea', 'apac']
+    options: AVAILABLE_REGIONS
   })
 }
 
