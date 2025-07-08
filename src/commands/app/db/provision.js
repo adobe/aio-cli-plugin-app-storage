@@ -86,7 +86,7 @@ export class Provision extends DBBaseCommand {
           this.log(chalk.red('Previous database provisioning request was rejected'))
           this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
           this.log(chalk.dim(`   Status: ${currentStatus}`))
-          this.log(chalk.yellow('\nYou can attempt to provision again, but the request may be rejected again'))
+          this.log(chalk.yellow('\nAttempting to provision again...'))
           this.log(chalk.red('If the problem persists, please contact the App Builder team for assistance'))
         } else if (currentStatus !== DB_STATUS.NOT_PROVISIONED) {
           this.log(chalk.yellow(`Database status is '${currentStatus}' - attempting to provision...`))
