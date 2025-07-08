@@ -16,6 +16,9 @@ import { expect, jest } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
 
+// Use the global DB mock
+const mockListCollections = jest.fn()
+
 describe('prototype', () => {
   test('extends GetCollectionNames', () => {
     expect(Collections.prototype instanceof GetCollectionNames).toBe(true)
@@ -33,28 +36,33 @@ describe('run', () => {
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
+
+    // Reset mocks
+    mockListCollections.mockReset()
+
+    // Mock the db client connection
+    global.mockDBInstance.connect = jest.fn().mockResolvedValue({
+      listCollections: mockListCollections
+    })
   })
 
   describe('alias behavior', () => {
     test('delegates to GetCollectionNames implementation', async () => {
-      // Mock the database connection and collection info
-      const mockClient = {
-        listCollections: jest.fn().mockResolvedValue([
-          { name: 'collection1' },
-          { name: 'collection2' }
-        ])
-      }
-
-      command.db = {
-        connect: jest.fn().mockResolvedValue(mockClient)
-      }
-
       command.argv = []
       await command.init()
 
+      const collectionInfo = [
+        { name: 'collection1', documentCount: 100 },
+        { name: 'collection2', documentCount: 50 }
+      ]
+      mockListCollections.mockResolvedValue(collectionInfo)
+
       const result = await command.run()
 
+      expect(global.mockDBInstance.connect).toHaveBeenCalled()
+      expect(mockListCollections).toHaveBeenCalled()
       expect(result).toEqual(['collection1', 'collection2'])
+
       expect(stdout.output).toContain('Fetching collection names...')
       expect(stdout.output).toContain('Collection names:')
       expect(stdout.output).toContain('collection1')
