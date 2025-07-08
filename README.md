@@ -1,9 +1,12 @@
 # aio-cli-plugin-app-storage
 
-The CLI Plugin to manage your App Builder State storage.
+The CLI Plugin to manage your App Builder State storage and Database services.
 
 If you need to access State programmatically, check the
 [@adobe/aio-lib-state](https://github.com/adobe/aio-lib-state) library.
+
+If you need to access Database programmatically, check the
+[@adobe/aio-lib-db](https://github.com/adobe/aio-lib-db) library.
 
 ---
 <!-- toc -->
@@ -19,10 +22,14 @@ $ aio plugins:install @adobe/aio-cli-plugin-app-storage
 $ # OR
 $ aio discover -i
 $ aio app state --help
+$ aio app db --help
 ```
 
 # Commands
 <!-- commands -->
+* [`aio app db ping`](#aio-app-db-ping)
+* [`aio app db provision`](#aio-app-db-provision)
+* [`aio app db status`](#aio-app-db-status)
 * [`aio app state delete [KEYS]`](#aio-app-state-delete-keys)
 * [`aio app state get KEY`](#aio-app-state-get-key)
 * [`aio app state list`](#aio-app-state-list)
@@ -188,6 +195,77 @@ EXAMPLES
   $ aio app state stats
 
   $ aio app state stats --json
+```
+
+## `aio app db ping`
+
+Test connectivity to your App Builder database
+
+```
+USAGE
+  $ aio app db ping [--json]
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Test connectivity to your App Builder database
+
+EXAMPLES
+  $ aio app db ping
+
+  $ aio app db ping --json
+```
+
+## `aio app db provision`
+
+Provision a new database for your App Builder application
+
+```
+USAGE
+  $ aio app db provision [--json] [--region amer|emea|apac]
+
+FLAGS
+  --region=<option>  Region in which database is to be provisioned
+                     <options: amer|emea|apac>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Provision a new database for your App Builder application
+
+EXAMPLES
+  $ aio app db provision
+
+  $ aio app db provision --region amer
+
+  $ aio app db provision --json
+```
+
+## `aio app db status`
+
+Check the provisioning status of your App Builder database
+
+```
+USAGE
+  $ aio app db status [--json] [--watch]
+
+FLAGS
+  --watch  Watch for status changes (press Ctrl+C to stop)
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Check the provisioning status of your App Builder database
+
+EXAMPLES
+  $ aio app db status
+
+  $ aio app db status --watch
+
+  $ aio app db status --json
 ```
 
 ## `aio help [COMMAND]`

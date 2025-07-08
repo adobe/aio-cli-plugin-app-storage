@@ -9,12 +9,12 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { BaseCommand } from '../../../BaseCommand.js'
+import { StateBaseCommand } from '../../../StateBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
-import { DEFAULT_TTL_SECONDS } from '../../../constants.js'
+import { DEFAULT_TTL_SECONDS } from '../../../constants/state.js'
 import chalk from 'chalk'
 
-export class Put extends BaseCommand {
+export class Put extends StateBaseCommand {
   async run () {
     const { key, value } = this.args
     const { json, ttl } = this.flags
@@ -55,7 +55,7 @@ Put.args = {
 }
 
 Put.flags = {
-  ...BaseCommand.flags,
+  ...StateBaseCommand.flags,
   ttl: Flags.integer({
     char: 't',
     description: 'Time to live in seconds. Default is 86400 (24 hours), max is 31536000 (1 year).',

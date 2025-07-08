@@ -4,11 +4,13 @@
   "dependencies": {
     "@adobe/aio-lib-core-config": "^5",
     "@adobe/aio-lib-core-logging": "^3",
+    "@adobe/aio-lib-db": "file:../aio-lib-db",
     "@adobe/aio-lib-state": "^5",
     "@inquirer/prompts": "^5",
     "@oclif/core": "^4",
     "@oclif/plugin-help": "^6",
     "chalk": "^5",
+    "dotenv": "^16.5.0",
     "semver": "^7.6.3"
   },
   "devDependencies": {
@@ -71,6 +73,7 @@
   "jest": {
     "collectCoverage": true,
     "testEnvironment": "node",
-    "transform": {}
+    "transform": {},
+    "setupFiles": ["<rootDir>/test/jest.env.js"]
   }
 }

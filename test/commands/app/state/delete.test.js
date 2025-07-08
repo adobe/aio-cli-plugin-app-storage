@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { Delete } from '../../../../src/commands/app/state/delete.js'
 import { expect, jest } from '@jest/globals'
 import { stdout, stderr } from 'stdout-stderr'
-import { BaseCommand } from '../../../../src/BaseCommand.js'
+import { StateBaseCommand } from '../../../../src/StateBaseCommand.js'
 
 // mock state
 const mockStateInstance = global.getStateInstanceMock()
@@ -28,7 +28,7 @@ const mockPromptInput = global.getPromptInstanceMock().input
 
 describe('prototype', () => {
   test('extends', () => {
-    expect(Delete.prototype instanceof BaseCommand).toBe(true)
+    expect(Delete.prototype instanceof StateBaseCommand).toBe(true)
   })
   test('args', () => {
     expect(Object.keys(Delete.args)).toEqual(['keys'])
@@ -75,7 +75,7 @@ describe('run', () => {
     command.argv = ['key']
     await command.init()
     mockStateAny.mockResolvedValue(false)
-    await expect(command.run()).rejects.toThrow('there are no keys stored in \'11111-ns\'!')
+    await expect(command.run()).rejects.toThrow('there are no keys stored in \'test-namespace\'!')
   })
 
   test('--match and args', async () => {

@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { Stats } from '../../../../src/commands/app/state/stats.js'
 import { expect, jest } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
-import { BaseCommand } from '../../../../src/BaseCommand.js'
+import { StateBaseCommand } from '../../../../src/StateBaseCommand.js'
 
 // mock state
 /** @type {import('@jest/globals').jest.Mock} */
@@ -20,7 +20,7 @@ const mockStateStats = global.getStateInstanceMock().stats
 
 describe('prototype', () => {
   test('extends', () => {
-    expect(Stats.prototype instanceof BaseCommand).toBe(true)
+    expect(Stats.prototype instanceof StateBaseCommand).toBe(true)
   })
   test('args', () => {
     expect(Object.keys(Stats.args)).toEqual([])

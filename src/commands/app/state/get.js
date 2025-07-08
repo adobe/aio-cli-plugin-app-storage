@@ -10,10 +10,10 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import chalk from 'chalk'
-import { BaseCommand } from '../../../BaseCommand.js'
+import { StateBaseCommand } from '../../../StateBaseCommand.js'
 import { Args } from '@oclif/core'
 
-export class Get extends BaseCommand {
+export class Get extends StateBaseCommand {
   async run () {
     const ret = await this.state.get(this.args.key)
 

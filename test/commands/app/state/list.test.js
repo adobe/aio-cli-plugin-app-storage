@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { List } from '../../../../src/commands/app/state/list.js'
 import { expect, jest, test } from '@jest/globals'
 import { stdout, stderr } from 'stdout-stderr'
-import { BaseCommand } from '../../../../src/BaseCommand.js'
+import { StateBaseCommand } from '../../../../src/StateBaseCommand.js'
 
 // mock state
 /** @type {import('@jest/globals').jest.Mock} */
@@ -39,7 +39,7 @@ const mockStateListKeys = (keysIter = []) => {
 
 describe('prototype', () => {
   test('extends', () => {
-    expect(List.prototype instanceof BaseCommand).toBe(true)
+    expect(List.prototype instanceof StateBaseCommand).toBe(true)
   })
   test('args', () => {
     expect(Object.keys(List.args)).toEqual([])

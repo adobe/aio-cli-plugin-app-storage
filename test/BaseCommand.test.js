@@ -11,24 +11,27 @@ governing permissions and limitations under the License.
 */
 import { expect, jest } from '@jest/globals'
 import { BaseCommand } from '../src/BaseCommand.js'
-import { init } from '@adobe/aio-lib-state'
+import { Command } from '@oclif/core'
 import { stderr } from 'stdout-stderr'
+import { AVAILABLE_REGIONS } from '../src/constants/db.js'
 
 describe('prototype', () => {
+  test('extends Command', () => {
+    expect(BaseCommand.prototype instanceof Command).toBe(true)
+  })
   test('args', () => {
     expect(Object.keys(BaseCommand.args)).toEqual([])
   })
   test('flags', () => {
     expect(Object.keys(BaseCommand.flags).sort()).toEqual(['region'])
-    expect(BaseCommand.flags.region.options).toEqual(['amer', 'emea', 'apac'])
+    expect(BaseCommand.flags.region.options).toEqual(AVAILABLE_REGIONS)
     expect(BaseCommand.enableJsonFlag).toEqual(true)
   })
+  test('getServiceName', () => {
+    const command = new BaseCommand([])
+    expect(command.getServiceName()).toBe('app')
+  })
 })
-
-const mockReadFile = jest.fn()
-jest.unstable_mockModule('fs/promises', async () => ({
-  readFile: mockReadFile
-}))
 
 describe('init', () => {
   let command
@@ -37,110 +40,33 @@ describe('init', () => {
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
-    mockReadFile.mockReset()
-    mockReadFile.mockResolvedValue(JSON.stringify({
-      dependencies: {
-        '@adobe/aio-lib-state': '^4',
-        '@adobe/aio-sdk': '^6'
-      }
-    }))
   })
 
-  test('dependencies not declared', async () => {
+  test('basic initialization', async () => {
     command.argv = []
-    mockReadFile.mockResolvedValue(JSON.stringify({
-      dependencies: {}
-    }))
-    // ignores
     await expect(command.init()).resolves.toBeUndefined()
-
-    mockReadFile.mockResolvedValue(JSON.stringify({}))
-    // ignores
-    await expect(command.init()).resolves.toBeUndefined()
+    expect(command.debugLogger).toBeDefined()
+    expect(command.flags).toBeDefined()
+    expect(command.args).toBeDefined()
   })
 
-  test('package.json not exist', async () => {
-    command.argv = []
-    mockReadFile.mockRejectedValue('some error')
-    // ignores
-    await expect(command.init()).resolves.toBeUndefined()
-  })
-
-  test('aio-lib-state dependency < 4', async () => {
-    command.argv = []
-    mockReadFile.mockResolvedValue(JSON.stringify({
-      dependencies: { '@adobe/aio-lib-state': '^3' }
-    }))
-    await expect(command.init()).rejects.toThrow('State commands are not available for legacy State, please migrate to the latest "@adobe/aio-lib-state" (or "@adobe/aio-sdk" >= 6.0.0).')
-  })
-
-  test('aio-sdk dependency < 6', async () => {
-    command.argv = []
-    mockReadFile.mockResolvedValue(JSON.stringify({
-      dependencies: { '@adobe/aio-sdk': '^5' }
-    }))
-    await expect(command.init()).rejects.toThrow('State commands are not available for legacy State, please migrate to the latest "@adobe/aio-lib-state" (or "@adobe/aio-sdk" >= 6.0.0).')
-  })
-
-  test('missing namespace', async () => {
-    command.argv = []
-    global.fakeConfig['runtime.namespace'] = null
-    await expect(command.init()).rejects.toThrow('This command is expected to be run in the root of a App Builder app project.\n  Please make sure the \'AIO_RUNTIME_NAMESPACE\' and \'AIO_RUNTIME_AUTH\' environment variables are configured.')
-  })
-
-  test('missing auth', async () => {
-    command.argv = []
-    global.fakeConfig['runtime.auth'] = null
-    await expect(command.init()).rejects.toThrow('This command is expected to be run in the root of a App Builder app project.\n  Please make sure the \'AIO_RUNTIME_NAMESPACE\' and \'AIO_RUNTIME_AUTH\' environment variables are configured.')
-  })
-
-  test('default', async () => {
+  test('debug logger namespace', async () => {
     command.argv = []
     await command.init()
-    expect(init).toHaveBeenCalledWith({
-      region: 'amer',
-      ow: { namespace: global.fakeConfig['runtime.namespace'], auth: global.fakeConfig['runtime.auth'] }
-    })
-  })
-
-  test('config state.region=emea', async () => {
-    global.fakeConfig['state.region'] = 'emea'
-    command.argv = []
-    await command.init()
-    expect(init).toHaveBeenCalledWith({
-      region: 'emea',
-      ow: { namespace: global.fakeConfig['runtime.namespace'], auth: global.fakeConfig['runtime.auth'] }
-    })
-  })
-
-  test('--region emea', async () => {
-    command.argv = ['--region', 'emea']
-    await command.init()
-    expect(init).toHaveBeenCalledWith({
-      region: 'emea',
-      ow: { namespace: global.fakeConfig['runtime.namespace'], auth: global.fakeConfig['runtime.auth'] }
-    })
-  })
-
-  test('config state.endpoint=https://fake.endpoint', async () => {
-    global.fakeConfig['state.endpoint'] = 'https://fake.endpoint'
-    command.argv = []
-    await command.init()
-    expect(process.env.AIO_STATE_ENDPOINT).toBe('https://fake.endpoint')
-    expect(init).toHaveBeenCalledWith({
-      region: 'amer',
-      ow: { namespace: global.fakeConfig['runtime.namespace'], auth: global.fakeConfig['runtime.auth'] }
-    })
+    // BaseCommand should use 'app' service name
+    expect(command.debugLogger).toBeDefined()
   })
 
   test('catch error', async () => {
     await command.init()
     await expect(command.catch(new Error('fake error'))).rejects.toThrow('fake error')
   })
+
   test('catch prompt interrupt', async () => {
     await command.init()
     await expect(command.catch(new Error('jfdsl User force closed the prompt fadsdljf'))).rejects.toThrow('EEXIT: 2')
   })
+
   test('catch error --json', async () => {
     command.argv = ['--json']
     await command.init()
