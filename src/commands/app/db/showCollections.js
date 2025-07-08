@@ -18,3 +18,17 @@ export class ShowCollections extends DBBaseCommand {
     this.log(chalk.green('ShowCollections command not implemented yet'))
   }
 }
+
+ShowCollections.description = 'Get details about your App Builder database'
+
+ShowCollections.examples = [
+  '$ aio app db showCollections',
+  '$ aio app db showCollections --json'
+]
+
+ShowCollections.flags = {
+  ...DBBaseCommand.flags
+}
+
+ShowCollections.args = {}
+

@@ -43,7 +43,7 @@ export class GetCollectionNames extends DBBaseCommand {
   }
 }
 
-GetCollectionNames.description = 'Get collection names from your App Builder database'
+GetCollectionNames.description = 'Get collection names of your App Builder database'
 
 GetCollectionNames.examples = [
   '$ aio app db GetCollectionNames',

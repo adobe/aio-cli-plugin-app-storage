@@ -74,7 +74,7 @@ export class Stats extends DBBaseCommand {
   }
 }
 
-Stats.description = 'Get statistics about your App Builder database'
+Stats.description = 'Get statistics of your App Builder database'
 
 Stats.examples = [
   '$ aio app db stats',

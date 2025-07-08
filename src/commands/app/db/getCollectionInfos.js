@@ -33,7 +33,7 @@ export class GetCollectionInfos extends DBBaseCommand {
   }
 }
 
-GetCollectionInfos.description = 'Get details about your App Builder database'
+GetCollectionInfos.description = 'Get details of your App Builder database collections'
 
 GetCollectionInfos.examples = [
   '$ aio app db getCollectionInfos',
