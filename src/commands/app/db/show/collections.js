@@ -10,25 +10,24 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DBBaseCommand } from '../../../DBBaseCommand.js'
-import chalk from 'chalk'
+import { GetCollectionNames } from '../getCollectionNames.js'
 
-export class ShowCollections extends DBBaseCommand {
+export class Collections extends GetCollectionNames {
   async run () {
-    this.log(chalk.green('ShowCollections command not implemented yet'))
+    // Delegate to the parent GetCollectionNames implementation
+    return super.run()
   }
 }
 
-ShowCollections.description = 'Get details about your App Builder database'
+Collections.description = 'Show collection names of your App Builder database (alias for getCollectionNames)'
 
-ShowCollections.examples = [
-  '$ aio app db showCollections',
-  '$ aio app db showCollections --json'
+Collections.examples = [
+  '$ aio app db show collections',
+  '$ aio app db show collections --json'
 ]
 
-ShowCollections.flags = {
-  ...DBBaseCommand.flags
+Collections.flags = {
+  ...GetCollectionNames.flags
 }
 
-ShowCollections.args = {}
-
+Collections.args = {}
