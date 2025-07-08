@@ -1,5 +1,5 @@
 /*
-Copyright 2024 Adobe. All rights reserved.
+Copyright 2025 Adobe. All rights reserved.
 This file is licensed to you under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy
 of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -86,7 +86,7 @@ export class Provision extends DBBaseCommand {
           this.log(chalk.red('Previous database provisioning request was rejected'))
           this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
           this.log(chalk.dim(`   Status: ${currentStatus}`))
-          this.log(chalk.yellow('\nYou can attempt to provision again, but the request may be rejected again'))
+          this.log(chalk.yellow('\nAttempting to provision again...'))
           this.log(chalk.red('If the problem persists, please contact the App Builder team for assistance'))
         } else if (currentStatus !== DB_STATUS.NOT_PROVISIONED) {
           this.log(chalk.yellow(`Database status is '${currentStatus}' - attempting to provision...`))
