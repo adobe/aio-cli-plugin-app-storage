@@ -18,27 +18,27 @@ export class GetCollectionNames extends DBBaseCommand {
     this.debugLogger?.info?.('Fetching collection names')
 
     try {
-        this.log(chalk.blue('Fetching collection names...'))
+      this.log(chalk.blue('Fetching collection names...'))
 
-        const client = await this.db.connect()
-        const collectionInfo = await client.listCollections()
+      const client = await this.db.connect()
+      const collectionInfo = await client.listCollections()
 
-        // Extract only the names from the collection info
-        const collectionNames = collectionInfo.map(collection => collection.name)
+      // Extract only the names from the collection info
+      const collectionNames = collectionInfo.map(collection => collection.name)
 
-        if (this.flags.json) {
-          return collectionNames
-        }
-
-        this.log(chalk.green('Collection names:'))
-        this.log(JSON.stringify(collectionNames, null, 2))
-
+      if (this.flags.json) {
         return collectionNames
-    } catch(error){
-        this.debugLogger?.error?.('Error fetching collection names', error)
-        this.log(chalk.red('Error fetching collection names'))
-        this.log(error)
-        this.exit(1)
+      }
+
+      this.log(chalk.green('Collection names:'))
+      this.log(JSON.stringify(collectionNames, null, 2))
+
+      return collectionNames
+    } catch (error) {
+      this.debugLogger?.error?.('Error fetching collection names', error)
+      this.log(chalk.red('Error fetching collection names'))
+      this.log(error)
+      this.exit(1)
     }
   }
 }

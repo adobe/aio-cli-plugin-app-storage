@@ -16,7 +16,6 @@ import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../src/DBBaseCommand.js'
 
 // Use the global DB mock
-const mockConnect = global.mockDBInstance.connect
 const mockListCollections = jest.fn()
 
 describe('prototype', () => {
@@ -41,11 +40,10 @@ describe('run', () => {
     }
 
     // Reset mocks
-    mockConnect.mockReset()
     mockListCollections.mockReset()
 
-    // Mock the db client
-    mockConnect.mockResolvedValue({
+    // Mock the db client connection
+    global.mockDBInstance.connect = jest.fn().mockResolvedValue({
       listCollections: mockListCollections
     })
   })
@@ -64,7 +62,7 @@ describe('run', () => {
 
       await command.run()
 
-      expect(mockConnect).toHaveBeenCalled()
+      expect(global.mockDBInstance.connect).toHaveBeenCalled()
       expect(mockListCollections).toHaveBeenCalled()
 
       expect(stdout.output).toContain('Fetching collection info...')
@@ -93,10 +91,10 @@ describe('run', () => {
       command.argv = []
       await command.init()
 
-      mockConnect.mockRejectedValue(new Error('Connection failed'))
+      global.mockDBInstance.connect.mockRejectedValue(new Error('Connection failed'))
 
-      // Mock process.exit to prevent test from actually exiting
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {})
+      // Mock command.exit to prevent test from actually exiting
+      const mockExit = jest.spyOn(command, 'exit').mockImplementation(() => {})
 
       await command.run()
 
@@ -111,12 +109,12 @@ describe('run', () => {
       command.argv = []
       await command.init()
 
-      mockConnect.mockResolvedValue({
+      global.mockDBInstance.connect.mockResolvedValue({
         listCollections: mockListCollections
       })
       mockListCollections.mockRejectedValue(new Error('Query failed'))
 
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {})
+      const mockExit = jest.spyOn(command, 'exit').mockImplementation(() => {})
 
       await command.run()
 
@@ -131,9 +129,9 @@ describe('run', () => {
       command.argv = []
       await command.init()
 
-      mockConnect.mockRejectedValue(new Error('401 Unauthorized'))
+      global.mockDBInstance.connect.mockRejectedValue(new Error('401 Unauthorized'))
 
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {})
+      const mockExit = jest.spyOn(command, 'exit').mockImplementation(() => {})
 
       await command.run()
 

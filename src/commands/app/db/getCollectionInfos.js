@@ -18,17 +18,17 @@ export class GetCollectionInfos extends DBBaseCommand {
     this.debugLogger?.info?.('Fetching collection info')
 
     try {
-        this.log(chalk.blue('Fetching collection info...'))
+      this.log(chalk.blue('Fetching collection info...'))
 
-        const client = await this.db.connect()
-        const collectionInfo = await client.listCollections()
+      const client = await this.db.connect()
+      const collectionInfo = await client.listCollections()
 
-        this.log(collectionInfo)
-    } catch(error){
-        this.debugLogger?.error?.('Error fetching collection info', error)
-        this.log(chalk.red('Error fetching collection info'))
-        this.log(error)
-        this.exit(1)
+      this.log(collectionInfo)
+    } catch (error) {
+      this.debugLogger?.error?.('Error fetching collection info', error)
+      this.log(chalk.red('Error fetching collection info'))
+      this.log(error)
+      this.exit(1)
     }
   }
 }

@@ -16,7 +16,6 @@ import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../src/DBBaseCommand.js'
 
 // Use the global DB mock
-const mockConnect = global.mockDBInstance.connect
 const mockDbStats = jest.fn()
 
 describe('prototype', () => {
@@ -41,11 +40,10 @@ describe('run', () => {
     }
 
     // Reset mocks
-    mockConnect.mockReset()
     mockDbStats.mockReset()
 
-    // Mock the db client
-    mockConnect.mockResolvedValue({
+    // Mock the db client connection
+    global.mockDBInstance.connect = jest.fn().mockResolvedValue({
       dbStats: mockDbStats
     })
   })
@@ -66,7 +64,7 @@ describe('run', () => {
 
       const result = await command.run()
 
-      expect(mockConnect).toHaveBeenCalled()
+      expect(global.mockDBInstance.connect).toHaveBeenCalled()
       expect(mockDbStats).toHaveBeenCalled()
       expect(result).toEqual({
         ...statsData,
@@ -155,7 +153,7 @@ describe('run', () => {
       command.argv = []
       await command.init()
 
-      mockConnect.mockRejectedValue(new Error('Connection failed'))
+      global.mockDBInstance.connect.mockRejectedValue(new Error('Connection failed'))
 
       await expect(command.run()).rejects.toThrow('Failed to fetch database statistics: Connection failed')
 
@@ -168,7 +166,7 @@ describe('run', () => {
       command.argv = []
       await command.init()
 
-      mockConnect.mockResolvedValue({
+      global.mockDBInstance.connect.mockResolvedValue({
         dbStats: mockDbStats
       })
       mockDbStats.mockRejectedValue(new Error('Query failed'))
@@ -183,7 +181,7 @@ describe('run', () => {
       command.argv = []
       await command.init()
 
-      mockConnect.mockRejectedValue(new Error('401 Unauthorized'))
+      global.mockDBInstance.connect.mockRejectedValue(new Error('401 Unauthorized'))
 
       await expect(command.run()).rejects.toThrow('Failed to fetch database statistics: 401 Unauthorized')
     })
@@ -208,8 +206,9 @@ describe('run', () => {
         timestamp: expect.any(String)
       })
 
-      // Should still show progress messages even with --json
-      expect(stdout.output).toContain('Fetching database statistics...')
+      // Should not show console messages with --json
+      expect(stdout.output).not.toContain('Fetching database statistics...')
+      expect(stdout.output).not.toContain('Database Statistics:')
     })
   })
 })
