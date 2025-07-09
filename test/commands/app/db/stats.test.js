@@ -49,7 +49,7 @@ describe('run', () => {
   })
 
   describe('successful stats retrieval', () => {
-    test('returns and displays database statistics', async () => {
+    test('returns and displays database statistics without --json flag', async () => {
       command.argv = []
       await command.init()
 
@@ -82,6 +82,31 @@ describe('run', () => {
       expect(stdout.output).toContain('Retrieved:')
     })
 
+    test('returns database statistics with --json flag', async () => {
+      command.argv = ['--json']
+      await command.init()
+
+      const statsData = {
+        totalCollections: 3,
+        totalDocuments: 300,
+        totalSize: 1024
+      }
+      mockDbStats.mockResolvedValue(statsData)
+
+      const result = await command.run()
+
+      expect(result).toEqual({
+        ...statsData,
+        namespace: 'test-namespace',
+        timestamp: expect.any(String)
+      })
+
+      // Should not show console messages with --json
+      expect(stdout.output).not.toContain('Fetching database statistics...')
+      expect(stdout.output).not.toContain('Database Statistics:')
+      expect(stdout.output).not.toContain('Namespace:')
+    })
+
     test('handles empty/null stats', async () => {
       command.argv = []
       await command.init()
@@ -96,6 +121,22 @@ describe('run', () => {
       })
 
       expect(stdout.output).toContain('Raw Stats: null')
+    })
+
+    test('handles empty/null stats with --json flag', async () => {
+      command.argv = ['--json']
+      await command.init()
+
+      mockDbStats.mockResolvedValue(null)
+
+      const result = await command.run()
+
+      expect(result).toEqual({
+        namespace: 'test-namespace',
+        timestamp: expect.any(String)
+      })
+
+      expect(stdout.output).not.toContain('Raw Stats: null')
     })
 
     test('handles object stats', async () => {
@@ -149,7 +190,7 @@ describe('run', () => {
   })
 
   describe('error handling', () => {
-    test('connection error', async () => {
+    test('connection error without --json flag', async () => {
       command.argv = []
       await command.init()
 
@@ -160,6 +201,19 @@ describe('run', () => {
       expect(stdout.output).toContain('Failed to retrieve database statistics')
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Error: Connection failed')
+    })
+
+    test('connection error with --json flag', async () => {
+      command.argv = ['--json']
+      await command.init()
+
+      global.mockDBInstance.connect.mockRejectedValue(new Error('Connection failed'))
+
+      await expect(command.run()).rejects.toThrow('Failed to fetch database statistics: Connection failed')
+
+      // Should not show console messages with --json
+      expect(stdout.output).not.toContain('Failed to retrieve database statistics')
+      expect(stdout.output).not.toContain('Namespace:')
     })
 
     test('dbStats error', async () => {
@@ -184,31 +238,9 @@ describe('run', () => {
       global.mockDBInstance.connect.mockRejectedValue(new Error('401 Unauthorized'))
 
       await expect(command.run()).rejects.toThrow('Failed to fetch database statistics: 401 Unauthorized')
-    })
-  })
 
-  describe('json output', () => {
-    test('json flag works correctly', async () => {
-      command.argv = ['--json']
-      await command.init()
-
-      const statsData = {
-        totalCollections: 3,
-        totalDocuments: 300
-      }
-      mockDbStats.mockResolvedValue(statsData)
-
-      const result = await command.run()
-
-      expect(result).toEqual({
-        ...statsData,
-        namespace: 'test-namespace',
-        timestamp: expect.any(String)
-      })
-
-      // Should not show console messages with --json
-      expect(stdout.output).not.toContain('Fetching database statistics...')
-      expect(stdout.output).not.toContain('Database Statistics:')
+      expect(stdout.output).toContain('Failed to retrieve database statistics')
+      expect(stdout.output).toContain('401 Unauthorized')
     })
   })
 })

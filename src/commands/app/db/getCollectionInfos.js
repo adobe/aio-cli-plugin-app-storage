@@ -18,18 +18,66 @@ export class GetCollectionInfos extends DBBaseCommand {
     this.debugLogger?.info?.('Fetching collection info')
 
     try {
-      this.log(chalk.blue('Fetching collection info...'))
+      if (!this.flags.json) {
+        this.log(chalk.blue('Fetching collection info...'))
+      }
 
       const client = await this.db.connect()
       const collectionInfo = await client.listCollections()
 
-      this.log(collectionInfo)
+      this.debugLogger?.info?.('Collection info retrieved:', collectionInfo)
+
+      if (this.flags.json) {
+        return collectionInfo
+      }
+
+      this.log(chalk.green('Collection Information:'))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+
+      if (collectionInfo && collectionInfo.length > 0) {
+        this.log(chalk.dim(`   Total Collections: ${collectionInfo.length}`))
+        this.log('')
+
+        collectionInfo.forEach((collection, index) => {
+          this.log(chalk.cyan(`   Collection ${index + 1}:`))
+          Object.entries(collection).forEach(([key, value]) => {
+            const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
+            this.log(chalk.dim(`     ${formattedKey}: ${this.formatValue(value)}`))
+          })
+          if (index < collectionInfo.length - 1) {
+            this.log('')
+          }
+        })
+      } else {
+        this.log(chalk.dim('   No collections found'))
+      }
+
+      this.log('')
+      this.log(chalk.dim(`   Retrieved: ${new Date().toLocaleString()}`))
+
+      return collectionInfo
     } catch (error) {
       this.debugLogger?.error?.('Error fetching collection info', error)
-      this.log(chalk.red('Error fetching collection info'))
-      this.log(error)
-      this.exit(1)
+
+      if (!this.flags.json) {
+        this.log(chalk.red('Failed to retrieve collection information'))
+        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+        this.log(chalk.dim(`   Error: ${error.message}`))
+      }
+
+      this.error(`Failed to fetch collection information: ${error.message}`)
     }
+  }
+
+  formatValue (value) {
+    if (typeof value === 'number') {
+      // Format large numbers with commas
+      return value.toLocaleString()
+    }
+    if (typeof value === 'object' && value !== null) {
+      return JSON.stringify(value, null, 2)
+    }
+    return String(value)
   }
 }
 

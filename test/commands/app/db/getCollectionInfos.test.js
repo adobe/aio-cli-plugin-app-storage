@@ -49,7 +49,7 @@ describe('run', () => {
   })
 
   describe('successful collection info retrieval', () => {
-    test('returns full collection information', async () => {
+    test('returns full collection information without --json flag', async () => {
       command.argv = []
       await command.init()
 
@@ -60,17 +60,41 @@ describe('run', () => {
       ]
       mockListCollections.mockResolvedValue(collectionInfo)
 
-      await command.run()
+      const result = await command.run()
 
       expect(global.mockDBInstance.connect).toHaveBeenCalled()
       expect(mockListCollections).toHaveBeenCalled()
+      expect(result).toEqual(collectionInfo)
 
       expect(stdout.output).toContain('Fetching collection info...')
-      expect(stdout.output).toContain('users')
-      expect(stdout.output).toContain('products')
-      expect(stdout.output).toContain('orders')
-      expect(stdout.output).toContain('100')
-      expect(stdout.output).toContain('1024')
+      expect(stdout.output).toContain('Collection Information:')
+      expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).toContain('Total Collections: 3')
+      expect(stdout.output).toContain('Collection 1:')
+      expect(stdout.output).toContain('Name: users')
+      expect(stdout.output).toContain('Document Count: 100')
+      expect(stdout.output).toContain('Size: 1,024')
+      expect(stdout.output).toContain('Retrieved:')
+    })
+
+    test('returns collection information with --json flag', async () => {
+      command.argv = ['--json']
+      await command.init()
+
+      const collectionInfo = [
+        { name: 'users', documentCount: 100, size: 1024 },
+        { name: 'products', documentCount: 50, size: 512 }
+      ]
+      mockListCollections.mockResolvedValue(collectionInfo)
+
+      const result = await command.run()
+
+      expect(result).toEqual(collectionInfo)
+
+      // Should not show console messages with --json
+      expect(stdout.output).not.toContain('Fetching collection info...')
+      expect(stdout.output).not.toContain('Collection Information:')
+      expect(stdout.output).not.toContain('Namespace:')
     })
 
     test('handles empty collection list', async () => {
@@ -79,30 +103,78 @@ describe('run', () => {
 
       mockListCollections.mockResolvedValue([])
 
-      await command.run()
+      const result = await command.run()
 
-      expect(stdout.output).toContain('Fetching collection info...')
-      expect(stdout.output).toContain('[]')
+      expect(result).toEqual([])
+      expect(stdout.output).toContain('Collection Information:')
+      expect(stdout.output).toContain('No collections found')
+    })
+
+    test('handles empty collection list with --json flag', async () => {
+      command.argv = ['--json']
+      await command.init()
+
+      mockListCollections.mockResolvedValue([])
+
+      const result = await command.run()
+
+      expect(result).toEqual([])
+      expect(stdout.output).not.toContain('No collections found')
+    })
+  })
+
+  describe('formatValue method', () => {
+    test('formats numbers with commas', async () => {
+      command.argv = []
+      await command.init()
+
+      const formatted = command.formatValue(1000)
+      expect(formatted).toBe('1,000')
+    })
+
+    test('formats objects as JSON', async () => {
+      command.argv = []
+      await command.init()
+
+      const obj = { key: 'value' }
+      const formatted = command.formatValue(obj)
+      expect(formatted).toContain('{\n  "key": "value"\n}')
+    })
+
+    test('formats other types as strings', async () => {
+      command.argv = []
+      await command.init()
+
+      expect(command.formatValue('test')).toBe('test')
+      expect(command.formatValue(true)).toBe('true')
     })
   })
 
   describe('error handling', () => {
-    test('connection error', async () => {
+    test('connection error without --json flag', async () => {
       command.argv = []
       await command.init()
 
       global.mockDBInstance.connect.mockRejectedValue(new Error('Connection failed'))
 
-      // Mock command.exit to prevent test from actually exiting
-      const mockExit = jest.spyOn(command, 'exit').mockImplementation(() => {})
+      await expect(command.run()).rejects.toThrow('Failed to fetch collection information: Connection failed')
 
-      await command.run()
+      expect(stdout.output).toContain('Failed to retrieve collection information')
+      expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).toContain('Error: Connection failed')
+    })
 
-      expect(stdout.output).toContain('Error fetching collection info')
-      expect(stdout.output).toContain('Connection failed')
-      expect(mockExit).toHaveBeenCalledWith(1)
+    test('connection error with --json flag', async () => {
+      command.argv = ['--json']
+      await command.init()
 
-      mockExit.mockRestore()
+      global.mockDBInstance.connect.mockRejectedValue(new Error('Connection failed'))
+
+      await expect(command.run()).rejects.toThrow('Failed to fetch collection information: Connection failed')
+
+      // Should not show console messages with --json
+      expect(stdout.output).not.toContain('Failed to retrieve collection information')
+      expect(stdout.output).not.toContain('Namespace:')
     })
 
     test('listCollections error', async () => {
@@ -114,15 +186,10 @@ describe('run', () => {
       })
       mockListCollections.mockRejectedValue(new Error('Query failed'))
 
-      const mockExit = jest.spyOn(command, 'exit').mockImplementation(() => {})
+      await expect(command.run()).rejects.toThrow('Failed to fetch collection information: Query failed')
 
-      await command.run()
-
-      expect(stdout.output).toContain('Error fetching collection info')
-      expect(stdout.output).toContain('Query failed')
-      expect(mockExit).toHaveBeenCalledWith(1)
-
-      mockExit.mockRestore()
+      expect(stdout.output).toContain('Failed to retrieve collection information')
+      expect(stdout.output).toContain('Error: Query failed')
     })
 
     test('authentication error', async () => {
@@ -131,15 +198,10 @@ describe('run', () => {
 
       global.mockDBInstance.connect.mockRejectedValue(new Error('401 Unauthorized'))
 
-      const mockExit = jest.spyOn(command, 'exit').mockImplementation(() => {})
+      await expect(command.run()).rejects.toThrow('Failed to fetch collection information: 401 Unauthorized')
 
-      await command.run()
-
-      expect(stdout.output).toContain('Error fetching collection info')
+      expect(stdout.output).toContain('Failed to retrieve collection information')
       expect(stdout.output).toContain('401 Unauthorized')
-      expect(mockExit).toHaveBeenCalledWith(1)
-
-      mockExit.mockRestore()
     })
   })
 })
