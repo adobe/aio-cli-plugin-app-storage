@@ -43,9 +43,7 @@ export class Ping extends DBBaseCommand {
         timestamp: new Date().toISOString()
       }
 
-      if (!this.flags.json) {
-        this.log(chalk.dim('Database is ready for operations'))
-      }
+      this.log(chalk.dim('Database is ready for operations'))
 
       return result
     } catch (error) {

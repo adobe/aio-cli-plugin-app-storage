@@ -36,9 +36,12 @@ export class GetCollectionNames extends DBBaseCommand {
       return collectionNames
     } catch (error) {
       this.debugLogger?.error?.('Error fetching collection names', error)
+
       this.log(chalk.red('Error fetching collection names'))
-      this.log(error)
-      this.exit(1)
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.dim(`   Error: ${error.message}`))
+
+      this.error(`Failed to fetch collection names: ${error.message}`)
     }
   }
 }

@@ -18,9 +18,7 @@ export class Stats extends DBBaseCommand {
     this.debugLogger?.info?.('Fetching database statistics')
 
     try {
-      if (!this.flags.json) {
-        this.log(chalk.blue('Fetching database statistics...'))
-      }
+      this.log(chalk.blue('Fetching database statistics...'))
 
       const client = await this.db.connect()
       const stats = await client.dbStats()
@@ -43,11 +41,9 @@ export class Stats extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Stats command error:', error)
 
-      if (!this.flags.json) {
-        this.log(chalk.red('Failed to retrieve database statistics'))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Error: ${error.message}`))
-      }
+      this.log(chalk.red('Failed to retrieve database statistics'))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(`Failed to fetch database statistics: ${error.message}`)
     }
@@ -60,8 +56,7 @@ export class Stats extends DBBaseCommand {
     if (stats && typeof stats === 'object') {
       // Format and display stats in a readable way
       Object.entries(stats).forEach(([key, value]) => {
-        const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
-        this.log(chalk.dim(`   ${formattedKey}: ${this.formatValue(value)}`))
+        this.log(chalk.dim(`   ${key}: ${this.formatValue(value)}`))
       })
     } else {
       this.log(chalk.dim(`   Raw Stats: ${JSON.stringify(stats, null, 2)}`))

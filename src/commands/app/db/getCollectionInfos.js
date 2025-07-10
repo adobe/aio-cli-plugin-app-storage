@@ -18,9 +18,7 @@ export class GetCollectionInfos extends DBBaseCommand {
     this.debugLogger?.info?.('Fetching collection info')
 
     try {
-      if (!this.flags.json) {
-        this.log(chalk.blue('Fetching collection info...'))
-      }
+      this.log(chalk.blue('Fetching collection info...'))
 
       const client = await this.db.connect()
       const collectionInfo = await client.listCollections()
@@ -41,8 +39,7 @@ export class GetCollectionInfos extends DBBaseCommand {
         collectionInfo.forEach((collection, index) => {
           this.log(chalk.cyan(`   Collection ${index + 1}:`))
           Object.entries(collection).forEach(([key, value]) => {
-            const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
-            this.log(chalk.dim(`     ${formattedKey}: ${this.formatValue(value)}`))
+            this.log(chalk.dim(`     ${key}: ${this.formatValue(value)}`))
           })
           if (index < collectionInfo.length - 1) {
             this.log('')
@@ -59,11 +56,9 @@ export class GetCollectionInfos extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Error fetching collection info', error)
 
-      if (!this.flags.json) {
-        this.log(chalk.red('Failed to retrieve collection information'))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Error: ${error.message}`))
-      }
+      this.log(chalk.red('Failed to retrieve collection information'))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(`Failed to fetch collection information: ${error.message}`)
     }
