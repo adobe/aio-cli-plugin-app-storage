@@ -19,8 +19,6 @@ export class Provision extends DBBaseCommand {
   async run () {
     const { region } = this.flags
 
-    this.debugLogger?.info?.('Starting database provisioning process')
-
     try {
       // First check if database is already provisioned
       this.log(chalk.blue('Checking current provisioning status...'))

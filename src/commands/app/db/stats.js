@@ -15,15 +15,13 @@ import chalk from 'chalk'
 
 export class Stats extends DBBaseCommand {
   async run () {
-    this.debugLogger?.info?.('Fetching database statistics')
-
     try {
       this.log(chalk.blue('Fetching database statistics...'))
 
       const client = await this.db.connect()
       const stats = await client.dbStats()
 
-      this.debugLogger?.info?.('Database stats retrieved:', stats)
+      this.debugLogger?.info?.('Database statistics retrieved:', stats)
 
       const result = {
         ...stats,

@@ -15,13 +15,13 @@ import chalk from 'chalk'
 
 export class GetCollectionNames extends DBBaseCommand {
   async run () {
-    this.debugLogger?.info?.('Fetching collection names')
-
     try {
       this.log(chalk.blue('Fetching collection names...'))
 
       const client = await this.db.connect()
       const collectionInfo = await client.listCollections()
+
+      this.debugLogger?.info?.(`Retrieved ${collectionInfo.length} collections from database`)
 
       // Extract only the names from the collection info
       const collectionNames = collectionInfo.map(collection => collection.name)

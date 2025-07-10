@@ -15,15 +15,13 @@ import chalk from 'chalk'
 
 export class GetCollectionInfos extends DBBaseCommand {
   async run () {
-    this.debugLogger?.info?.('Fetching collection info')
-
     try {
       this.log(chalk.blue('Fetching collection info...'))
 
       const client = await this.db.connect()
       const collectionInfo = await client.listCollections()
 
-      this.debugLogger?.info?.('Collection info retrieved:', collectionInfo)
+      this.debugLogger?.info?.(`Retrieved ${collectionInfo.length} collections with full details:`, collectionInfo)
 
       if (this.flags.json) {
         return collectionInfo
