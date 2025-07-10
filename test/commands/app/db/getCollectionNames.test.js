@@ -114,16 +114,11 @@ describe('run', () => {
 
       global.mockDBInstance.connect.mockRejectedValue(new Error('Connection failed'))
 
-      // Mock command.exit to prevent test from actually exiting
-      const mockExit = jest.spyOn(command, 'exit').mockImplementation(() => {})
-
-      await command.run()
+      await expect(command.run()).rejects.toThrow('Failed to fetch collection names: Connection failed')
 
       expect(stdout.output).toContain('Error fetching collection names')
-      expect(stdout.output).toContain('Connection failed')
-      expect(mockExit).toHaveBeenCalledWith(1)
-
-      mockExit.mockRestore()
+      expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).toContain('Error: Connection failed')
     })
 
     test('listCollections error', async () => {
@@ -135,15 +130,11 @@ describe('run', () => {
       })
       mockListCollections.mockRejectedValue(new Error('Query failed'))
 
-      const mockExit = jest.spyOn(command, 'exit').mockImplementation(() => {})
-
-      await command.run()
+      await expect(command.run()).rejects.toThrow('Failed to fetch collection names: Query failed')
 
       expect(stdout.output).toContain('Error fetching collection names')
-      expect(stdout.output).toContain('Query failed')
-      expect(mockExit).toHaveBeenCalledWith(1)
-
-      mockExit.mockRestore()
+      expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).toContain('Error: Query failed')
     })
   })
 })

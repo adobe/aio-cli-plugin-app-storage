@@ -71,9 +71,9 @@ describe('run', () => {
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Total Collections: 3')
       expect(stdout.output).toContain('Collection 1:')
-      expect(stdout.output).toContain('Name: users')
-      expect(stdout.output).toContain('Document Count: 100')
-      expect(stdout.output).toContain('Size: 1,024')
+      expect(stdout.output).toContain('name: users')
+      expect(stdout.output).toContain('documentCount: 100')
+      expect(stdout.output).toContain('size: 1,024')
       expect(stdout.output).toContain('Retrieved:')
     })
 

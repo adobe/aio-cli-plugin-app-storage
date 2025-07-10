@@ -75,10 +75,10 @@ describe('run', () => {
       expect(stdout.output).toContain('Fetching database statistics...')
       expect(stdout.output).toContain('Database Statistics:')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Total Collections: 5')
-      expect(stdout.output).toContain('Total Documents: 1,000')
-      expect(stdout.output).toContain('Total Size: 2,048')
-      expect(stdout.output).toContain('Avg Document Size: 2.048')
+      expect(stdout.output).toContain('totalCollections: 5')
+      expect(stdout.output).toContain('totalDocuments: 1,000')
+      expect(stdout.output).toContain('totalSize: 2,048')
+      expect(stdout.output).toContain('avgDocumentSize: 2.048')
       expect(stdout.output).toContain('Retrieved:')
     })
 
@@ -157,8 +157,8 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result.collections).toEqual(complexStats.collections)
-      expect(stdout.output).toContain('Collections:')
-      expect(stdout.output).toContain('Metadata:')
+      expect(stdout.output).toContain('collections:')
+      expect(stdout.output).toContain('metadata:')
     })
   })
 
