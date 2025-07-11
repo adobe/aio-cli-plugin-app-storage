@@ -171,5 +171,3 @@ CreateCollection.flags = {
     description: 'JSON schema validator for document validation (JSON string)'
   })
 }
-
-CreateCollection.aliases = ['db:collection:create']

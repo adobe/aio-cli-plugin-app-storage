@@ -27,78 +27,36 @@ $ aio app db --help
 
 # Commands
 <!-- commands -->
-* [`aio app db getCollectionInfos`](#aio-app-db-getcollectioninfos)
-* [`aio app db getCollectionNames`](#aio-app-db-getcollectionnames)
-* [`aio app db ping`](#aio-app-db-ping)
-* [`aio app db provision`](#aio-app-db-provision)
-* [`aio app db stats`](#aio-app-db-stats)
-* [`aio app db status`](#aio-app-db-status)
+## State Storage Commands
 * [`aio app state delete [KEYS]`](#aio-app-state-delete-keys)
 * [`aio app state get KEY`](#aio-app-state-get-key)
 * [`aio app state list`](#aio-app-state-list)
 * [`aio app state put KEY VALUE`](#aio-app-state-put-key-value)
 * [`aio app state stats`](#aio-app-state-stats)
+
+## Database Commands
+### Collection Management
+* [`aio app db collection create COLLECTIONNAME`](#aio-app-db-collection-create-collectionname)
+* [`aio app db collection drop COLLECTIONNAME`](#aio-app-db-collection-drop-collectionname)
+* [`aio app db collection rename CURRENTNAME NEWNAME`](#aio-app-db-collection-rename-currentname-newname)
+* [`aio app db collection stats COLLECTIONNAME`](#aio-app-db-collection-stats-collectionname)
+* [`aio app db collection validate COLLECTIONNAME`](#aio-app-db-collection-validate-collectionname)
+
+### Database Information
+* [`aio app db getCollectionInfos`](#aio-app-db-getcollectioninfos)
+* [`aio app db getCollectionNames`](#aio-app-db-getcollectionnames)
+* [`aio app db show collections`](#aio-app-db-show-collections)
+* [`aio app db stats`](#aio-app-db-stats)
+
+### Database Management
+* [`aio app db ping`](#aio-app-db-ping)
+* [`aio app db provision`](#aio-app-db-provision)
+* [`aio app db status`](#aio-app-db-status)
+
+## Other Commands
 * [`aio help [COMMAND]`](#aio-help-command)
 
-## `aio app db getCollectionInfos`
-
-Get details about your App Builder database
-
-```
-USAGE
-  $ aio app db getCollectionInfos [--json]
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Get details about your App Builder database
-
-EXAMPLES
-  $ aio app db getCollectionInfos
-
-  $ aio app db getCollectionInfos --json
-```
-
-## `aio app db getCollectionNames`
-
-Get collection names from your App Builder database
-
-```
-USAGE
-  $ aio app db getCollectionNames [--json]
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Get collection names from your App Builder database
-
-EXAMPLES
-  $ aio app db getCollectionNames
-
-  $ aio app db getCollectionNames --json
-```
-
-## `aio app db stats`
-
-Get statistics about your App Builder database
-
-```
-USAGE
-  $ aio app db stats [--json]
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Get statistics about your App Builder database
-
-EXAMPLES
-  $ aio app db stats
-
-  $ aio app db stats --json
-```
+# State Storage Commands
 
 ## `aio app state delete [KEYS]`
 
@@ -260,7 +218,267 @@ EXAMPLES
   $ aio app state stats --json
 ```
 
-## `aio app db ping`
+# Database Commands
+
+## Collection Management
+
+### `aio app db collection create COLLECTIONNAME`
+
+Create a new collection in the database
+
+```
+USAGE
+  $ aio app db collection create COLLECTIONNAME [--json] [--region amer|emea|apac] [-c <value>] [-v <value>]
+
+ARGUMENTS
+  COLLECTIONNAME  The name of the collection to create
+
+FLAGS
+  -c, --collation=<value>  Collation for text comparison and sorting (e.g., "en_US", "simple")
+  -v, --validator=<value>  JSON schema validator for document validation (JSON string)
+      --region=<option>    State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
+                           <options: amer|emea|apac>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Create a new collection in the database
+
+ALIASES
+  $ aio db collection create
+
+EXAMPLES
+  $ aio app db collection create users
+
+  $ aio app db collection create products --json
+
+  $ aio app db collection create users --collation en_US
+
+  $ aio app db collection create products --validator '{"$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}'
+
+  $ aio app db collection create inventory --collation simple --validator '{"type": "object", "required": ["id", "quantity"]}' --json
+```
+
+### `aio app db collection drop COLLECTIONNAME`
+
+Drop a collection from the database
+
+```
+USAGE
+  $ aio app db collection drop COLLECTIONNAME [--json] [--region amer|emea|apac]
+
+ARGUMENTS
+  COLLECTIONNAME  The name of the collection to drop
+
+FLAGS
+  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
+                     <options: amer|emea|apac>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Drop a collection from the database
+
+EXAMPLES
+  $ aio app db collection drop users
+
+  $ aio app db collection drop products --json
+```
+
+### `aio app db collection rename CURRENTNAME NEWNAME`
+
+Rename a collection in the database
+
+```
+USAGE
+  $ aio app db collection rename CURRENTNAME NEWNAME [--json] [--region amer|emea|apac]
+
+ARGUMENTS
+  CURRENTNAME  The current name of the collection to rename
+  NEWNAME      The new name for the collection
+
+FLAGS
+  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
+                     <options: amer|emea|apac>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Rename a collection in the database
+
+ALIASES
+  $ aio db collection rename
+
+EXAMPLES
+  $ aio app db collection rename users customers
+
+  $ aio app db collection rename old_products new_products --json
+```
+
+### `aio app db collection stats COLLECTIONNAME`
+
+Get statistics for a collection in the database
+
+```
+USAGE
+  $ aio app db collection stats COLLECTIONNAME [--json] [--region amer|emea|apac]
+
+ARGUMENTS
+  COLLECTIONNAME  The name of the collection to get stats for
+
+FLAGS
+  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
+                     <options: amer|emea|apac>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get statistics for a collection in the database
+
+ALIASES
+  $ aio db collection stats
+
+EXAMPLES
+  $ aio app db collection stats users
+
+  $ aio app db collection stats products --json
+```
+
+### `aio app db collection validate COLLECTIONNAME`
+
+Validate a collection in the database
+
+```
+USAGE
+  $ aio app db collection validate COLLECTIONNAME [--json] [--region amer|emea|apac]
+
+ARGUMENTS
+  COLLECTIONNAME  The name of the collection to validate
+
+FLAGS
+  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
+                     <options: amer|emea|apac>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Validate a collection in the database
+
+ALIASES
+  $ aio db collection validate
+
+EXAMPLES
+  $ aio app db collection validate users
+
+  $ aio app db collection validate products --json
+```
+
+## Database Information
+
+### `aio app db getCollectionInfos`
+
+Get details about your App Builder database
+
+```
+USAGE
+  $ aio app db getCollectionInfos [--json] [--region amer|emea|apac]
+
+FLAGS
+  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
+                     <options: amer|emea|apac>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get details about your App Builder database
+
+EXAMPLES
+  $ aio app db getCollectionInfos
+
+  $ aio app db getCollectionInfos --json
+```
+
+### `aio app db getCollectionNames`
+
+Get collection names from your App Builder database
+
+```
+USAGE
+  $ aio app db getCollectionNames [--json] [--region amer|emea|apac]
+
+FLAGS
+  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
+                     <options: amer|emea|apac>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get collection names from your App Builder database
+
+EXAMPLES
+  $ aio app db getCollectionNames
+
+  $ aio app db getCollectionNames --json
+```
+
+### `aio app db show collections`
+
+Show collection names of your App Builder database (alias for getCollectionNames)
+
+```
+USAGE
+  $ aio app db show collections [--json] [--region amer|emea|apac]
+
+FLAGS
+  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
+                     <options: amer|emea|apac>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Show collection names of your App Builder database (alias for getCollectionNames)
+
+EXAMPLES
+  $ aio app db show collections
+
+  $ aio app db show collections --json
+```
+
+### `aio app db stats`
+
+Get statistics about your App Builder database
+
+```
+USAGE
+  $ aio app db stats [--json] [--region amer|emea|apac]
+
+FLAGS
+  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
+                     <options: amer|emea|apac>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get statistics about your App Builder database
+
+EXAMPLES
+  $ aio app db stats
+
+  $ aio app db stats --json
+```
+
+## Database Management
+
+### `aio app db ping`
 
 Test connectivity to your App Builder database
 
@@ -280,7 +498,7 @@ EXAMPLES
   $ aio app db ping --json
 ```
 
-## `aio app db provision`
+### `aio app db provision`
 
 Provision a new database for your App Builder application
 
@@ -306,7 +524,7 @@ EXAMPLES
   $ aio app db provision --json
 ```
 
-## `aio app db status`
+### `aio app db status`
 
 Check the provisioning status of your App Builder database
 
@@ -330,6 +548,8 @@ EXAMPLES
 
   $ aio app db status --json
 ```
+
+# Other Commands
 
 ## `aio help [COMMAND]`
 
