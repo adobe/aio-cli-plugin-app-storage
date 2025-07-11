@@ -16,8 +16,8 @@ import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
 
 // Use the global DB mock
-const mockListCollections = jest.fn()
-const mockValidateCollection = jest.fn()
+const mockCollection = jest.fn()
+const mockValidate = jest.fn()
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
@@ -42,13 +42,17 @@ describe('run', () => {
     }
 
     // Reset mocks
-    mockListCollections.mockReset()
-    mockValidateCollection.mockReset()
+    mockCollection.mockReset()
+    mockValidate.mockReset()
 
     // Mock the db client connection
     global.mockDBInstance.connect = jest.fn().mockResolvedValue({
-      listCollections: mockListCollections,
-      validateCollection: mockValidateCollection
+      collection: mockCollection
+    })
+
+    // Mock the collection.validate() method
+    mockCollection.mockReturnValue({
+      validate: mockValidate
     })
   })
 
@@ -57,11 +61,8 @@ describe('run', () => {
       command.argv = ['users']
       await command.init()
 
-      // Mock existing collection
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockValidateCollection.mockResolvedValue({
+      // Mock collection validation response
+      mockValidate.mockResolvedValue({
         isValid: true,
         errors: [],
         warnings: [],
@@ -74,8 +75,8 @@ describe('run', () => {
       const result = await command.run()
 
       expect(global.mockDBInstance.connect).toHaveBeenCalled()
-      expect(mockListCollections).toHaveBeenCalled()
-      expect(mockValidateCollection).toHaveBeenCalledWith('users')
+      expect(mockCollection).toHaveBeenCalledWith('users')
+      expect(mockValidate).toHaveBeenCalled()
 
       expect(result).toEqual({
         collectionName: 'users',
@@ -104,11 +105,8 @@ describe('run', () => {
       command.argv = ['users', '--json']
       await command.init()
 
-      // Mock existing collection
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockValidateCollection.mockResolvedValue({
+      // Mock collection validation response
+      mockValidate.mockResolvedValue({
         isValid: true,
         errors: [],
         warnings: []
@@ -137,11 +135,8 @@ describe('run', () => {
       command.argv = ['users']
       await command.init()
 
-      // Mock existing collection with validation issues
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockValidateCollection.mockResolvedValue({
+      // Mock collection validation response with validation issues
+      mockValidate.mockResolvedValue({
         isValid: false,
         errors: ['Missing required index on email field'],
         warnings: ['Large document size detected', 'Unused index found'],
@@ -183,11 +178,8 @@ describe('run', () => {
       command.argv = ['products']
       await command.init()
 
-      // Mock existing collection and minimal validation result
-      mockListCollections.mockResolvedValue([
-        { name: 'products', documentCount: 5 }
-      ])
-      mockValidateCollection.mockResolvedValue({
+      // Mock collection validation response with minimal result
+      mockValidate.mockResolvedValue({
         isValid: true
       })
 
@@ -212,11 +204,8 @@ describe('run', () => {
       command.argv = ['items']
       await command.init()
 
-      // Mock existing collection and validation result without isValid
-      mockListCollections.mockResolvedValue([
-        { name: 'items', documentCount: 3 }
-      ])
-      mockValidateCollection.mockResolvedValue({
+      // Mock collection validation response without isValid
+      mockValidate.mockResolvedValue({
         info: {
           totalDocuments: 3
         }
@@ -244,30 +233,29 @@ describe('run', () => {
       command.argv = ['users']
       await command.init()
 
-      // Mock no existing collections with that name
-      mockListCollections.mockResolvedValue([
-        { name: 'products', documentCount: 5 }
-      ])
+      // Mock validate method to throw an error for non-existent collection
+      mockValidate.mockRejectedValue(new Error('Collection not found'))
 
-      await expect(command.run()).rejects.toThrow("Collection 'users' does not exist")
+      await expect(command.run()).rejects.toThrow("Failed to validate collection 'users': Collection not found")
 
-      expect(mockValidateCollection).not.toHaveBeenCalled()
-      expect(stdout.output).toContain("Collection 'users' does not exist")
+      expect(stdout.output).toContain('Failed to validate collection')
+      expect(stdout.output).toContain('Collection: users')
       expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).toContain('Error: Collection not found')
     })
 
     test('fails when collection does not exist with --json flag', async () => {
       command.argv = ['users', '--json']
       await command.init()
 
-      // Mock no existing collections
-      mockListCollections.mockResolvedValue([])
+      // Mock validate method to throw an error for non-existent collection
+      mockValidate.mockRejectedValue(new Error('Collection not found'))
 
-      await expect(command.run()).rejects.toThrow("Collection 'users' does not exist")
+      await expect(command.run()).rejects.toThrow("Failed to validate collection 'users': Collection not found")
 
-      expect(mockValidateCollection).not.toHaveBeenCalled()
       // Should not show console messages with --json
-      expect(stdout.output).not.toContain("Collection 'users' does not exist")
+      expect(stdout.output).not.toContain('Failed to validate collection')
+      expect(stdout.output).not.toContain('Collection: users')
       expect(stdout.output).not.toContain('Namespace:')
     })
   })
@@ -301,34 +289,11 @@ describe('run', () => {
       expect(stdout.output).not.toContain('Namespace:')
     })
 
-    test('listCollections error', async () => {
+    test('validate method error', async () => {
       command.argv = ['users']
       await command.init()
 
-      global.mockDBInstance.connect.mockResolvedValue({
-        listCollections: mockListCollections,
-        validateCollection: mockValidateCollection
-      })
-      mockListCollections.mockRejectedValue(new Error('Query failed'))
-
-      await expect(command.run()).rejects.toThrow("Failed to validate collection 'users': Query failed")
-
-      expect(stdout.output).toContain('Failed to validate collection')
-      expect(stdout.output).toContain('Error: Query failed')
-    })
-
-    test('validateCollection error', async () => {
-      command.argv = ['users']
-      await command.init()
-
-      global.mockDBInstance.connect.mockResolvedValue({
-        listCollections: mockListCollections,
-        validateCollection: mockValidateCollection
-      })
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockValidateCollection.mockRejectedValue(new Error('Validation failed'))
+      mockValidate.mockRejectedValue(new Error('Validation failed'))
 
       await expect(command.run()).rejects.toThrow("Failed to validate collection 'users': Validation failed")
 

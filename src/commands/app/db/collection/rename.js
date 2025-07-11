@@ -23,33 +23,11 @@ export class RenameCollection extends DBBaseCommand {
 
       const client = await this.db.connect()
 
-      // Check if current collection exists
-      const existingCollections = await client.listCollections()
-      const currentExists = existingCollections.some(col => col.name === currentName)
-
-      if (!currentExists) {
-        const errorMessage = `Collection '${currentName}' does not exist`
-
-        this.log(chalk.red(errorMessage))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-
-        this.error(errorMessage)
-      }
-
-      // Check if new collection name already exists
-      const newExists = existingCollections.some(col => col.name === newName)
-
-      if (newExists) {
-        const errorMessage = `Collection '${newName}' already exists`
-
-        this.log(chalk.red(errorMessage))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-
-        this.error(errorMessage)
-      }
+      // Get the collection object
+      const collection = client.collection(currentName)
 
       // Rename the collection
-      const result = await client.renameCollection(currentName, newName)
+      const result = await collection.rename(newName)
 
       this.debugLogger?.info?.('Collection renamed successfully:', result)
 

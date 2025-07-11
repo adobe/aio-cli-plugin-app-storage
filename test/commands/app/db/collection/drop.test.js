@@ -16,8 +16,8 @@ import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
 
 // Use the global DB mock
-const mockListCollections = jest.fn()
-const mockDropCollection = jest.fn()
+const mockCollection = jest.fn()
+const mockDrop = jest.fn()
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
@@ -42,13 +42,17 @@ describe('run', () => {
     }
 
     // Reset mocks
-    mockListCollections.mockReset()
-    mockDropCollection.mockReset()
+    mockCollection.mockReset()
+    mockDrop.mockReset()
 
     // Mock the db client connection
     global.mockDBInstance.connect = jest.fn().mockResolvedValue({
-      listCollections: mockListCollections,
-      dropCollection: mockDropCollection
+      collection: mockCollection
+    })
+
+    // Mock the collection.drop() method
+    mockCollection.mockReturnValue({
+      drop: mockDrop
     })
   })
 
@@ -57,17 +61,14 @@ describe('run', () => {
       command.argv = ['users']
       await command.init()
 
-      // Mock existing collection
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockDropCollection.mockResolvedValue({ ok: 1, info: 'Collection dropped' })
+      // Mock collection drop response
+      mockDrop.mockResolvedValue({ ok: 1, info: 'Collection dropped' })
 
       const result = await command.run()
 
       expect(global.mockDBInstance.connect).toHaveBeenCalled()
-      expect(mockListCollections).toHaveBeenCalled()
-      expect(mockDropCollection).toHaveBeenCalledWith('users')
+      expect(mockCollection).toHaveBeenCalledWith('users')
+      expect(mockDrop).toHaveBeenCalled()
 
       expect(result).toEqual({
         collectionName: 'users',
@@ -87,11 +88,8 @@ describe('run', () => {
       command.argv = ['users', '--json']
       await command.init()
 
-      // Mock existing collection
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockDropCollection.mockResolvedValue({ ok: 1, info: 'Collection dropped' })
+      // Mock collection drop response
+      mockDrop.mockResolvedValue({ ok: 1, info: 'Collection dropped' })
 
       const result = await command.run()
 
@@ -113,11 +111,8 @@ describe('run', () => {
       command.argv = ['products']
       await command.init()
 
-      // Mock existing collection and minimal result
-      mockListCollections.mockResolvedValue([
-        { name: 'products', documentCount: 5 }
-      ])
-      mockDropCollection.mockResolvedValue(null)
+      // Mock collection drop response with minimal result
+      mockDrop.mockResolvedValue(null)
 
       const result = await command.run()
 
@@ -139,30 +134,29 @@ describe('run', () => {
       command.argv = ['users']
       await command.init()
 
-      // Mock no existing collections
-      mockListCollections.mockResolvedValue([
-        { name: 'products', documentCount: 5 }
-      ])
+      // Mock drop method to throw an error for non-existent collection
+      mockDrop.mockRejectedValue(new Error('Collection not found'))
 
-      await expect(command.run()).rejects.toThrow("Collection 'users' does not exist")
+      await expect(command.run()).rejects.toThrow("Failed to drop collection 'users': Collection not found")
 
-      expect(mockDropCollection).not.toHaveBeenCalled()
-      expect(stdout.output).toContain("Collection 'users' does not exist")
+      expect(stdout.output).toContain('Failed to drop collection')
+      expect(stdout.output).toContain('Collection: users')
       expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).toContain('Error: Collection not found')
     })
 
     test('fails when collection does not exist with --json flag', async () => {
       command.argv = ['users', '--json']
       await command.init()
 
-      // Mock no existing collections
-      mockListCollections.mockResolvedValue([])
+      // Mock drop method to throw an error for non-existent collection
+      mockDrop.mockRejectedValue(new Error('Collection not found'))
 
-      await expect(command.run()).rejects.toThrow("Collection 'users' does not exist")
+      await expect(command.run()).rejects.toThrow("Failed to drop collection 'users': Collection not found")
 
-      expect(mockDropCollection).not.toHaveBeenCalled()
       // Should not show console messages with --json
-      expect(stdout.output).not.toContain("Collection 'users' does not exist")
+      expect(stdout.output).not.toContain('Failed to drop collection')
+      expect(stdout.output).not.toContain('Collection: users')
       expect(stdout.output).not.toContain('Namespace:')
     })
   })
@@ -196,34 +190,11 @@ describe('run', () => {
       expect(stdout.output).not.toContain('Namespace:')
     })
 
-    test('listCollections error', async () => {
+    test('drop method error', async () => {
       command.argv = ['users']
       await command.init()
 
-      global.mockDBInstance.connect.mockResolvedValue({
-        listCollections: mockListCollections,
-        dropCollection: mockDropCollection
-      })
-      mockListCollections.mockRejectedValue(new Error('Query failed'))
-
-      await expect(command.run()).rejects.toThrow("Failed to drop collection 'users': Query failed")
-
-      expect(stdout.output).toContain('Failed to drop collection')
-      expect(stdout.output).toContain('Error: Query failed')
-    })
-
-    test('dropCollection error', async () => {
-      command.argv = ['users']
-      await command.init()
-
-      global.mockDBInstance.connect.mockResolvedValue({
-        listCollections: mockListCollections,
-        dropCollection: mockDropCollection
-      })
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockDropCollection.mockRejectedValue(new Error('Drop failed'))
+      mockDrop.mockRejectedValue(new Error('Drop failed'))
 
       await expect(command.run()).rejects.toThrow("Failed to drop collection 'users': Drop failed")
 

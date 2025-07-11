@@ -16,8 +16,8 @@ import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
 
 // Use the global DB mock
-const mockListCollections = jest.fn()
-const mockRenameCollection = jest.fn()
+const mockCollection = jest.fn()
+const mockRename = jest.fn()
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
@@ -43,13 +43,17 @@ describe('run', () => {
     }
 
     // Reset mocks
-    mockListCollections.mockReset()
-    mockRenameCollection.mockReset()
+    mockCollection.mockReset()
+    mockRename.mockReset()
 
     // Mock the db client connection
     global.mockDBInstance.connect = jest.fn().mockResolvedValue({
-      listCollections: mockListCollections,
-      renameCollection: mockRenameCollection
+      collection: mockCollection
+    })
+
+    // Mock the collection.rename() method
+    mockCollection.mockReturnValue({
+      rename: mockRename
     })
   })
 
@@ -58,18 +62,14 @@ describe('run', () => {
       command.argv = ['users', 'customers']
       await command.init()
 
-      // Mock existing collection (users exists, customers does not)
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 },
-        { name: 'products', documentCount: 5 }
-      ])
-      mockRenameCollection.mockResolvedValue({ ok: 1, info: 'Collection renamed' })
+      // Mock collection rename response
+      mockRename.mockResolvedValue({ ok: 1, info: 'Collection renamed' })
 
       const result = await command.run()
 
       expect(global.mockDBInstance.connect).toHaveBeenCalled()
-      expect(mockListCollections).toHaveBeenCalled()
-      expect(mockRenameCollection).toHaveBeenCalledWith('users', 'customers')
+      expect(mockCollection).toHaveBeenCalledWith('users')
+      expect(mockRename).toHaveBeenCalledWith('customers')
 
       expect(result).toEqual({
         currentName: 'users',
@@ -90,11 +90,8 @@ describe('run', () => {
       command.argv = ['users', 'customers', '--json']
       await command.init()
 
-      // Mock existing collection (users exists, customers does not)
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockRenameCollection.mockResolvedValue({ ok: 1, info: 'Collection renamed' })
+      // Mock collection rename response
+      mockRename.mockResolvedValue({ ok: 1, info: 'Collection renamed' })
 
       const result = await command.run()
 
@@ -117,11 +114,8 @@ describe('run', () => {
       command.argv = ['products', 'items']
       await command.init()
 
-      // Mock existing collection and minimal result
-      mockListCollections.mockResolvedValue([
-        { name: 'products', documentCount: 5 }
-      ])
-      mockRenameCollection.mockResolvedValue(null)
+      // Mock collection rename response with minimal result
+      mockRename.mockResolvedValue(null)
 
       const result = await command.run()
 
@@ -139,72 +133,65 @@ describe('run', () => {
     })
   })
 
-  describe('current collection does not exist', () => {
+  describe('rename errors', () => {
     test('fails when current collection does not exist without --json flag', async () => {
       command.argv = ['users', 'customers']
       await command.init()
 
-      // Mock no existing collections with that name
-      mockListCollections.mockResolvedValue([
-        { name: 'products', documentCount: 5 }
-      ])
+      // Mock rename method to throw an error for non-existent collection
+      mockRename.mockRejectedValue(new Error('Collection not found'))
 
-      await expect(command.run()).rejects.toThrow("Collection 'users' does not exist")
+      await expect(command.run()).rejects.toThrow("Failed to rename collection 'users': Collection not found")
 
-      expect(mockRenameCollection).not.toHaveBeenCalled()
-      expect(stdout.output).toContain("Collection 'users' does not exist")
+      expect(stdout.output).toContain('Failed to rename collection')
+      expect(stdout.output).toContain('Current: users')
+      expect(stdout.output).toContain('New: customers')
       expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).toContain('Error: Collection not found')
     })
 
     test('fails when current collection does not exist with --json flag', async () => {
       command.argv = ['users', 'customers', '--json']
       await command.init()
 
-      // Mock no existing collections
-      mockListCollections.mockResolvedValue([])
+      // Mock rename method to throw an error for non-existent collection
+      mockRename.mockRejectedValue(new Error('Collection not found'))
 
-      await expect(command.run()).rejects.toThrow("Collection 'users' does not exist")
+      await expect(command.run()).rejects.toThrow("Failed to rename collection 'users': Collection not found")
 
-      expect(mockRenameCollection).not.toHaveBeenCalled()
       // Should not show console messages with --json
-      expect(stdout.output).not.toContain("Collection 'users' does not exist")
+      expect(stdout.output).not.toContain('Failed to rename collection')
+      expect(stdout.output).not.toContain('Current: users')
       expect(stdout.output).not.toContain('Namespace:')
     })
-  })
 
-  describe('new collection name already exists', () => {
     test('fails when new collection name already exists without --json flag', async () => {
       command.argv = ['users', 'products']
       await command.init()
 
-      // Mock both collections exist
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 },
-        { name: 'products', documentCount: 5 }
-      ])
+      // Mock rename method to throw an error for existing target collection
+      mockRename.mockRejectedValue(new Error('Target collection already exists'))
 
-      await expect(command.run()).rejects.toThrow("Collection 'products' already exists")
+      await expect(command.run()).rejects.toThrow("Failed to rename collection 'users': Target collection already exists")
 
-      expect(mockRenameCollection).not.toHaveBeenCalled()
-      expect(stdout.output).toContain("Collection 'products' already exists")
-      expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).toContain('Failed to rename collection')
+      expect(stdout.output).toContain('Current: users')
+      expect(stdout.output).toContain('New: products')
+      expect(stdout.output).toContain('Error: Target collection already exists')
     })
 
     test('fails when new collection name already exists with --json flag', async () => {
       command.argv = ['users', 'products', '--json']
       await command.init()
 
-      // Mock both collections exist
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 },
-        { name: 'products', documentCount: 5 }
-      ])
+      // Mock rename method to throw an error for existing target collection
+      mockRename.mockRejectedValue(new Error('Target collection already exists'))
 
-      await expect(command.run()).rejects.toThrow("Collection 'products' already exists")
+      await expect(command.run()).rejects.toThrow("Failed to rename collection 'users': Target collection already exists")
 
-      expect(mockRenameCollection).not.toHaveBeenCalled()
       // Should not show console messages with --json
-      expect(stdout.output).not.toContain("Collection 'products' already exists")
+      expect(stdout.output).not.toContain('Failed to rename collection')
+      expect(stdout.output).not.toContain('Current: users')
       expect(stdout.output).not.toContain('Namespace:')
     })
   })
@@ -240,34 +227,11 @@ describe('run', () => {
       expect(stdout.output).not.toContain('Namespace:')
     })
 
-    test('listCollections error', async () => {
+    test('rename method error', async () => {
       command.argv = ['users', 'customers']
       await command.init()
 
-      global.mockDBInstance.connect.mockResolvedValue({
-        listCollections: mockListCollections,
-        renameCollection: mockRenameCollection
-      })
-      mockListCollections.mockRejectedValue(new Error('Query failed'))
-
-      await expect(command.run()).rejects.toThrow("Failed to rename collection 'users': Query failed")
-
-      expect(stdout.output).toContain('Failed to rename collection')
-      expect(stdout.output).toContain('Error: Query failed')
-    })
-
-    test('renameCollection error', async () => {
-      command.argv = ['users', 'customers']
-      await command.init()
-
-      global.mockDBInstance.connect.mockResolvedValue({
-        listCollections: mockListCollections,
-        renameCollection: mockRenameCollection
-      })
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockRenameCollection.mockRejectedValue(new Error('Rename failed'))
+      mockRename.mockRejectedValue(new Error('Rename failed'))
 
       await expect(command.run()).rejects.toThrow("Failed to rename collection 'users': Rename failed")
 

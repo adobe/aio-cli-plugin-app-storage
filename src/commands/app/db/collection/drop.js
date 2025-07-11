@@ -23,21 +23,11 @@ export class DropCollection extends DBBaseCommand {
 
       const client = await this.db.connect()
 
-      // Check if collection exists
-      const existingCollections = await client.listCollections()
-      const collectionExists = existingCollections.some(col => col.name === collectionName)
-
-      if (!collectionExists) {
-        const errorMessage = `Collection '${collectionName}' does not exist`
-
-        this.log(chalk.red(errorMessage))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-
-        this.error(errorMessage)
-      }
+      // Get the collection object
+      const collection = client.collection(collectionName)
 
       // Drop collection
-      const result = await client.dropCollection(collectionName)
+      const result = await collection.drop()
 
       this.debugLogger?.info?.('Collection dropped successfully:', result)
 
