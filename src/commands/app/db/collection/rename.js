@@ -27,7 +27,7 @@ export class RenameCollection extends DBBaseCommand {
       const collection = client.collection(currentName)
 
       // Rename the collection
-      const result = await collection.rename(newName)
+      const result = await collection.renameCollection(newName)
 
       this.debugLogger?.info?.('Collection renamed successfully:', result)
 
