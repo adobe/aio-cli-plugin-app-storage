@@ -16,8 +16,8 @@ import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
 
 // Use the global DB mock
-const mockListCollections = jest.fn()
-const mockGetCollectionStats = jest.fn()
+const mockCollection = jest.fn()
+const mockStats = jest.fn()
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
@@ -42,13 +42,17 @@ describe('run', () => {
     }
 
     // Reset mocks
-    mockListCollections.mockReset()
-    mockGetCollectionStats.mockReset()
+    mockCollection.mockReset()
+    mockStats.mockReset()
 
     // Mock the db client connection
     global.mockDBInstance.connect = jest.fn().mockResolvedValue({
-      listCollections: mockListCollections,
-      getCollectionStats: mockGetCollectionStats
+      collection: mockCollection
+    })
+
+    // Mock the collection.stats() method
+    mockCollection.mockReturnValue({
+      stats: mockStats
     })
   })
 
@@ -57,11 +61,9 @@ describe('run', () => {
       command.argv = ['users']
       await command.init()
 
-      // Mock existing collection
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockGetCollectionStats.mockResolvedValue({
+      // Mock collection stats response
+      mockStats.mockResolvedValue({
+        documentCount: 10,
         documents: 10,
         size: 1024,
         indexes: 2,
@@ -71,12 +73,13 @@ describe('run', () => {
       const result = await command.run()
 
       expect(global.mockDBInstance.connect).toHaveBeenCalled()
-      expect(mockListCollections).toHaveBeenCalled()
-      expect(mockGetCollectionStats).toHaveBeenCalledWith('users')
+      expect(mockCollection).toHaveBeenCalledWith('users')
+      expect(mockStats).toHaveBeenCalled()
 
       expect(result).toEqual({
         collectionName: 'users',
         stats: {
+          documentCount: 10,
           documents: 10,
           size: 1024,
           indexes: 2,
@@ -100,11 +103,9 @@ describe('run', () => {
       command.argv = ['users', '--json']
       await command.init()
 
-      // Mock existing collection
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockGetCollectionStats.mockResolvedValue({
+      // Mock collection stats response
+      mockStats.mockResolvedValue({
+        documentCount: 10,
         documents: 10,
         size: 1024,
         indexes: 2
@@ -115,6 +116,7 @@ describe('run', () => {
       expect(result).toEqual({
         collectionName: 'users',
         stats: {
+          documentCount: 10,
           documents: 10,
           size: 1024,
           indexes: 2
@@ -133,11 +135,9 @@ describe('run', () => {
       command.argv = ['products']
       await command.init()
 
-      // Mock existing collection and minimal stats
-      mockListCollections.mockResolvedValue([
-        { name: 'products', documentCount: 5 }
-      ])
-      mockGetCollectionStats.mockResolvedValue({
+      // Mock collection stats response with minimal stats
+      mockStats.mockResolvedValue({
+        documentCount: 5,
         documents: 5
       })
 
@@ -146,6 +146,7 @@ describe('run', () => {
       expect(result).toEqual({
         collectionName: 'products',
         stats: {
+          documentCount: 5,
           documents: 5
         },
         namespace: 'test-namespace',
@@ -160,17 +161,18 @@ describe('run', () => {
       command.argv = ['empty']
       await command.init()
 
-      // Mock existing collection and empty stats
-      mockListCollections.mockResolvedValue([
-        { name: 'empty', documentCount: 0 }
-      ])
-      mockGetCollectionStats.mockResolvedValue({})
+      // Mock collection stats response with empty stats
+      mockStats.mockResolvedValue({
+        documentCount: 0
+      })
 
       const result = await command.run()
 
       expect(result).toEqual({
         collectionName: 'empty',
-        stats: {},
+        stats: {
+          documentCount: 0
+        },
         namespace: 'test-namespace',
         timestamp: expect.any(String)
       })
@@ -186,30 +188,29 @@ describe('run', () => {
       command.argv = ['users']
       await command.init()
 
-      // Mock no existing collections with that name
-      mockListCollections.mockResolvedValue([
-        { name: 'products', documentCount: 5 }
-      ])
+      // Mock stats method to throw an error for non-existent collection
+      mockStats.mockRejectedValue(new Error('Collection not found'))
 
-      await expect(command.run()).rejects.toThrow("Collection 'users' does not exist")
+      await expect(command.run()).rejects.toThrow("Failed to get stats for collection 'users': Collection not found")
 
-      expect(mockGetCollectionStats).not.toHaveBeenCalled()
-      expect(stdout.output).toContain("Collection 'users' does not exist")
+      expect(stdout.output).toContain('Failed to get collection stats')
+      expect(stdout.output).toContain('Collection: users')
       expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).toContain('Error: Collection not found')
     })
 
     test('fails when collection does not exist with --json flag', async () => {
       command.argv = ['users', '--json']
       await command.init()
 
-      // Mock no existing collections
-      mockListCollections.mockResolvedValue([])
+      // Mock stats method to throw an error for non-existent collection
+      mockStats.mockRejectedValue(new Error('Collection not found'))
 
-      await expect(command.run()).rejects.toThrow("Collection 'users' does not exist")
+      await expect(command.run()).rejects.toThrow("Failed to get stats for collection 'users': Collection not found")
 
-      expect(mockGetCollectionStats).not.toHaveBeenCalled()
       // Should not show console messages with --json
-      expect(stdout.output).not.toContain("Collection 'users' does not exist")
+      expect(stdout.output).not.toContain('Failed to get collection stats')
+      expect(stdout.output).not.toContain('Collection: users')
       expect(stdout.output).not.toContain('Namespace:')
     })
   })
@@ -243,15 +244,11 @@ describe('run', () => {
       expect(stdout.output).not.toContain('Namespace:')
     })
 
-    test('listCollections error', async () => {
+    test('stats method error', async () => {
       command.argv = ['users']
       await command.init()
 
-      global.mockDBInstance.connect.mockResolvedValue({
-        listCollections: mockListCollections,
-        getCollectionStats: mockGetCollectionStats
-      })
-      mockListCollections.mockRejectedValue(new Error('Query failed'))
+      mockStats.mockRejectedValue(new Error('Query failed'))
 
       await expect(command.run()).rejects.toThrow("Failed to get stats for collection 'users': Query failed")
 
@@ -259,23 +256,21 @@ describe('run', () => {
       expect(stdout.output).toContain('Error: Query failed')
     })
 
-    test('getCollectionStats error', async () => {
+    test('collection data processing error', async () => {
       command.argv = ['users']
       await command.init()
 
-      global.mockDBInstance.connect.mockResolvedValue({
-        listCollections: mockListCollections,
-        getCollectionStats: mockGetCollectionStats
+      // Mock stats method to return valid data
+      mockStats.mockResolvedValue({
+        documentCount: 10
       })
-      mockListCollections.mockResolvedValue([
-        { name: 'users', documentCount: 10 }
-      ])
-      mockGetCollectionStats.mockRejectedValue(new Error('Stats failed'))
 
-      await expect(command.run()).rejects.toThrow("Failed to get stats for collection 'users': Stats failed")
+      // This should work fine now since we just extract the collection data
+      const result = await command.run()
 
-      expect(stdout.output).toContain('Failed to get collection stats')
-      expect(stdout.output).toContain('Error: Stats failed')
+      expect(result.stats).toEqual({
+        documentCount: 10
+      })
     })
 
     test('authentication error', async () => {

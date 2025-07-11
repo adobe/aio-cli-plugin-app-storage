@@ -38,7 +38,7 @@ export class CreateCollection extends DBBaseCommand {
 
       // Check if collection already exists
       const existingCollections = await client.listCollections()
-      const collectionExists = existingCollections.some(col => col.name === collectionName)
+      const collectionExists = existingCollections && existingCollections.some(col => col.name === collectionName)
 
       if (collectionExists) {
         const errorMessage = `Collection '${collectionName}' already exists`
@@ -67,8 +67,10 @@ export class CreateCollection extends DBBaseCommand {
         }
       }
 
-      // Create the collection
-      const result = await client.createCollection(collectionName, options)
+      // Create the collection - only pass options if they exist
+      const result = Object.keys(options).length > 0
+        ? await client.createCollection(collectionName, options)
+        : await client.createCollection(collectionName)
 
       this.debugLogger?.info?.('Collection created successfully:', result)
 
@@ -77,8 +79,12 @@ export class CreateCollection extends DBBaseCommand {
         status: 'created',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
-        options,
         result
+      }
+
+      // Only include options if they exist
+      if (Object.keys(options).length > 0) {
+        response.options = options
       }
 
       this.log(chalk.green(`Collection '${collectionName}' created successfully`))
@@ -89,7 +95,10 @@ export class CreateCollection extends DBBaseCommand {
       }
 
       if (validator) {
-        this.log(chalk.dim(`   Validator: ${typeof validator === 'object' ? JSON.stringify(validator) : validator}`))
+        // Display the final validator object (after parsing) in compact JSON format
+        const validatorObject = options.validator || validator
+        const validatorDisplay = typeof validatorObject === 'object' ? JSON.stringify(validatorObject) : validatorObject
+        this.log(chalk.dim(`   Validator: ${validatorDisplay}`))
       }
 
       if (result && typeof result === 'object' && Object.keys(result).length > 0) {
@@ -120,15 +129,18 @@ export class CreateCollection extends DBBaseCommand {
     const { collation, validator } = this.flags
 
     // Validate collation if provided
-    if (collation) {
+    if (collation !== undefined) {
       if (typeof collation !== 'string' || collation.trim().length === 0) {
         this.error('Collation must be a non-empty string')
       }
     }
 
     // Validate validator if provided
-    if (validator) {
+    if (validator !== undefined) {
       if (typeof validator === 'string') {
+        if (validator.trim().length === 0) {
+          this.error('Invalid validator JSON')
+        }
         try {
           // Try to parse as JSON to validate format
           JSON.parse(validator)

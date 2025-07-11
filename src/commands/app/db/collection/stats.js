@@ -23,21 +23,11 @@ export class StatsCollection extends DBBaseCommand {
 
       const client = await this.db.connect()
 
-      // Check if collection exists
-      const existingCollections = await client.listCollections()
-      const collectionExists = existingCollections.some(col => col.name === collectionName)
+      // Get the collection object
+      const collection = client.collection(collectionName)
 
-            if (!collectionExists) {
-        const errorMessage = `Collection '${collectionName}' does not exist`
-
-        this.log(chalk.red(errorMessage))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-
-        this.error(errorMessage)
-      }
-
-      // Get collection stats
-      const stats = await client.getCollectionStats(collectionName)
+      // Get collection-level statistics
+      const stats = await collection.stats()
 
       this.debugLogger?.info?.('Collection stats retrieved successfully:', stats)
 
@@ -48,7 +38,7 @@ export class StatsCollection extends DBBaseCommand {
         timestamp: new Date().toISOString()
       }
 
-            this.log(chalk.green(`Stats for collection '${collectionName}':`))
+      this.log(chalk.green(`Stats for collection '${collectionName}':`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
       if (stats && typeof stats === 'object') {

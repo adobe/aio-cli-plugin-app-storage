@@ -27,7 +27,7 @@ export class RenameCollection extends DBBaseCommand {
       const existingCollections = await client.listCollections()
       const currentExists = existingCollections.some(col => col.name === currentName)
 
-            if (!currentExists) {
+      if (!currentExists) {
         const errorMessage = `Collection '${currentName}' does not exist`
 
         this.log(chalk.red(errorMessage))

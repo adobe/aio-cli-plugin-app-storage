@@ -27,7 +27,7 @@ export class ValidateCollection extends DBBaseCommand {
       const existingCollections = await client.listCollections()
       const collectionExists = existingCollections.some(col => col.name === collectionName)
 
-            if (!collectionExists) {
+      if (!collectionExists) {
         const errorMessage = `Collection '${collectionName}' does not exist`
 
         this.log(chalk.red(errorMessage))
@@ -48,7 +48,7 @@ export class ValidateCollection extends DBBaseCommand {
         timestamp: new Date().toISOString()
       }
 
-            const isValid = validationResult.isValid !== false
+      const isValid = validationResult.isValid !== false
 
       if (isValid) {
         this.log(chalk.green(`Collection '${collectionName}' is valid`))
