@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DBBaseCommand } from '../../../DBBaseCommand.js'
+import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
 
@@ -18,12 +18,8 @@ export class ValidateCollection extends DBBaseCommand {
   async run () {
     const { collectionName } = this.args
 
-    this.debugLogger?.info?.('Validating collection:', collectionName)
-
     try {
-      if (!this.flags.json) {
-        this.log(chalk.blue(`Validating collection '${collectionName}'...`))
-      }
+      this.log(chalk.blue(`Validating collection '${collectionName}'...`))
 
       const client = await this.db.connect()
 
@@ -31,13 +27,11 @@ export class ValidateCollection extends DBBaseCommand {
       const existingCollections = await client.listCollections()
       const collectionExists = existingCollections.some(col => col.name === collectionName)
 
-      if (!collectionExists) {
+            if (!collectionExists) {
         const errorMessage = `Collection '${collectionName}' does not exist`
 
-        if (!this.flags.json) {
-          this.log(chalk.red(errorMessage))
-          this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        }
+        this.log(chalk.red(errorMessage))
+        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
         this.error(errorMessage)
       }
@@ -54,57 +48,52 @@ export class ValidateCollection extends DBBaseCommand {
         timestamp: new Date().toISOString()
       }
 
-      if (!this.flags.json) {
-        const isValid = validationResult.isValid !== false
+            const isValid = validationResult.isValid !== false
 
-        if (isValid) {
-          this.log(chalk.green(`Collection '${collectionName}' is valid`))
-        } else {
-          this.log(chalk.yellow(`Collection '${collectionName}' has validation issues`))
-        }
-
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-
-        if (validationResult && typeof validationResult === 'object') {
-          // Display validation details
-          if (validationResult.errors && validationResult.errors.length > 0) {
-            this.log(chalk.dim('   Errors:'))
-            validationResult.errors.forEach(error => {
-              this.log(chalk.red(`     - ${error}`))
-            })
-          }
-
-          if (validationResult.warnings && validationResult.warnings.length > 0) {
-            this.log(chalk.dim('   Warnings:'))
-            validationResult.warnings.forEach(warning => {
-              this.log(chalk.yellow(`     - ${warning}`))
-            })
-          }
-
-          if (validationResult.info && typeof validationResult.info === 'object') {
-            this.log(chalk.dim('   Info:'))
-            Object.entries(validationResult.info).forEach(([key, value]) => {
-              this.log(chalk.dim(`     ${key}: ${value}`))
-            })
-          }
-        }
-
-        this.log(chalk.dim(`   Validated: ${new Date().toLocaleString()}`))
+      if (isValid) {
+        this.log(chalk.green(`Collection '${collectionName}' is valid`))
+      } else {
+        this.log(chalk.yellow(`Collection '${collectionName}' has validation issues`))
       }
 
-      return response
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
+      if (validationResult && typeof validationResult === 'object') {
+        // Display validation details
+        if (validationResult.errors && validationResult.errors.length > 0) {
+          this.log(chalk.dim('   Errors:'))
+          validationResult.errors.forEach(error => {
+            this.log(chalk.red(`     - ${error}`))
+          })
+        }
+
+        if (validationResult.warnings && validationResult.warnings.length > 0) {
+          this.log(chalk.dim('   Warnings:'))
+          validationResult.warnings.forEach(warning => {
+            this.log(chalk.yellow(`     - ${warning}`))
+          })
+        }
+
+        if (validationResult.info && typeof validationResult.info === 'object') {
+          this.log(chalk.dim('   Info:'))
+          Object.entries(validationResult.info).forEach(([key, value]) => {
+            this.log(chalk.dim(`     ${key}: ${value}`))
+          })
+        }
+      }
+
+      this.log(chalk.dim(`   Validated: ${new Date().toLocaleString()}`))
+
+      return response
     } catch (error) {
       this.debugLogger?.error?.('Error validating collection:', error)
 
       const errorMessage = `Failed to validate collection '${collectionName}': ${error.message}`
 
-      if (!this.flags.json) {
-        this.log(chalk.red('Failed to validate collection'))
-        this.log(chalk.dim(`   Collection: ${collectionName}`))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Error: ${error.message}`))
-      }
+      this.log(chalk.red('Failed to validate collection'))
+      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(errorMessage)
     }
@@ -131,4 +120,3 @@ ValidateCollection.flags = {
 }
 
 ValidateCollection.aliases = ['db:collection:validate']
-

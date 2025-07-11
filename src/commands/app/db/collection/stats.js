@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DBBaseCommand } from '../../../DBBaseCommand.js'
+import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
 
@@ -18,12 +18,8 @@ export class StatsCollection extends DBBaseCommand {
   async run () {
     const { collectionName } = this.args
 
-    this.debugLogger?.info?.('Getting stats for collection:', collectionName)
-
     try {
-      if (!this.flags.json) {
-        this.log(chalk.blue(`Getting stats for collection '${collectionName}'...`))
-      }
+      this.log(chalk.blue(`Getting stats for collection '${collectionName}'...`))
 
       const client = await this.db.connect()
 
@@ -31,13 +27,11 @@ export class StatsCollection extends DBBaseCommand {
       const existingCollections = await client.listCollections()
       const collectionExists = existingCollections.some(col => col.name === collectionName)
 
-      if (!collectionExists) {
+            if (!collectionExists) {
         const errorMessage = `Collection '${collectionName}' does not exist`
 
-        if (!this.flags.json) {
-          this.log(chalk.red(errorMessage))
-          this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        }
+        this.log(chalk.red(errorMessage))
+        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
         this.error(errorMessage)
       }
@@ -54,33 +48,28 @@ export class StatsCollection extends DBBaseCommand {
         timestamp: new Date().toISOString()
       }
 
-      if (!this.flags.json) {
-        this.log(chalk.green(`Stats for collection '${collectionName}':`))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+            this.log(chalk.green(`Stats for collection '${collectionName}':`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
-        if (stats && typeof stats === 'object') {
-          // Display stats in a formatted way
-          Object.entries(stats).forEach(([key, value]) => {
-            this.log(chalk.dim(`   ${key}: ${value}`))
-          })
-        }
-
-        this.log(chalk.dim(`   Retrieved: ${new Date().toLocaleString()}`))
+      if (stats && typeof stats === 'object') {
+        // Display stats in a formatted way
+        Object.entries(stats).forEach(([key, value]) => {
+          this.log(chalk.dim(`   ${key}: ${value}`))
+        })
       }
 
-      return response
+      this.log(chalk.dim(`   Retrieved: ${new Date().toLocaleString()}`))
 
+      return response
     } catch (error) {
       this.debugLogger?.error?.('Error getting collection stats:', error)
 
       const errorMessage = `Failed to get stats for collection '${collectionName}': ${error.message}`
 
-      if (!this.flags.json) {
-        this.log(chalk.red('Failed to get collection stats'))
-        this.log(chalk.dim(`   Collection: ${collectionName}`))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Error: ${error.message}`))
-      }
+      this.log(chalk.red('Failed to get collection stats'))
+      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(errorMessage)
     }
@@ -107,4 +96,3 @@ StatsCollection.flags = {
 }
 
 StatsCollection.aliases = ['db:collection:stats']
-

@@ -11,17 +11,28 @@ governing permissions and limitations under the License.
 */
 
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
-import { Args } from '@oclif/core'
+import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
 
 export class CreateCollection extends DBBaseCommand {
   async run () {
     const { collectionName } = this.args
-
-    this.debugLogger?.info?.('Creating collection:', collectionName)
+    const { collation, validator } = this.flags
 
     try {
+      // Validate flags
+      this.validateFlags()
+
       this.log(chalk.blue(`Creating collection '${collectionName}'...`))
+
+      // Log flag values if set
+      if (collation) {
+        this.log(chalk.dim(`   Using collation: ${collation}`))
+      }
+
+      if (validator) {
+        this.log(chalk.dim(`   Using validator: ${validator}`))
+      }
 
       const client = await this.db.connect()
 
@@ -38,8 +49,26 @@ export class CreateCollection extends DBBaseCommand {
         this.error(errorMessage)
       }
 
+      // Build collection options
+      const options = {}
+      if (collation) {
+        options.collation = collation
+      }
+      if (validator) {
+        // Parse validator if it's a JSON string
+        if (typeof validator === 'string') {
+          try {
+            options.validator = JSON.parse(validator)
+          } catch (error) {
+            this.error(`Invalid validator JSON: ${error.message}`)
+          }
+        } else {
+          options.validator = validator
+        }
+      }
+
       // Create the collection
-      const result = await client.createCollection(collectionName)
+      const result = await client.createCollection(collectionName, options)
 
       this.debugLogger?.info?.('Collection created successfully:', result)
 
@@ -48,35 +77,67 @@ export class CreateCollection extends DBBaseCommand {
         status: 'created',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
+        options,
         result
       }
 
-      if (!this.flags.json) {
-        this.log(chalk.green(`Collection '${collectionName}' created successfully`))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.green(`Collection '${collectionName}' created successfully`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
-        if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-          this.log(chalk.dim(`   Details: ${JSON.stringify(result, null, 2)}`))
-        }
-
-        this.log(chalk.dim(`   Created: ${new Date().toLocaleString()}`))
+      if (collation) {
+        this.log(chalk.dim(`   Collation: ${collation}`))
       }
 
-      return response
+      if (validator) {
+        this.log(chalk.dim(`   Validator: ${typeof validator === 'object' ? JSON.stringify(validator) : validator}`))
+      }
 
+      if (result && typeof result === 'object' && Object.keys(result).length > 0) {
+        this.log(chalk.dim(`   Details: ${JSON.stringify(result, null, 2)}`))
+      }
+
+      this.log(chalk.dim(`   Created: ${new Date().toLocaleString()}`))
+
+      return response
     } catch (error) {
       this.debugLogger?.error?.('Error creating collection:', error)
 
       const errorMessage = `Failed to create collection '${collectionName}': ${error.message}`
 
-      if (!this.flags.json) {
-        this.log(chalk.red('Failed to create collection'))
-        this.log(chalk.dim(`   Collection: ${collectionName}`))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Error: ${error.message}`))
-      }
+      this.log(chalk.red('Failed to create collection'))
+      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(errorMessage)
+    }
+  }
+
+  /**
+   * Validate flags for collection creation
+   */
+  validateFlags () {
+    const { collation, validator } = this.flags
+
+    // Validate collation if provided
+    if (collation) {
+      if (typeof collation !== 'string' || collation.trim().length === 0) {
+        this.error('Collation must be a non-empty string')
+      }
+    }
+
+    // Validate validator if provided
+    if (validator) {
+      if (typeof validator === 'string') {
+        try {
+          // Try to parse as JSON to validate format
+          JSON.parse(validator)
+        } catch (error) {
+          this.error(`Invalid validator JSON: ${error.message}`)
+        }
+      } else if (typeof validator !== 'object' || validator === null) {
+        this.error('Validator must be a valid JSON string or object')
+      }
     }
   }
 }
@@ -85,7 +146,10 @@ CreateCollection.description = 'Create a new collection in the database'
 
 CreateCollection.examples = [
   '$ aio app db collection create users',
-  '$ aio app db collection create products --json'
+  '$ aio app db collection create products --json',
+  '$ aio app db collection create users --collation en_US',
+  '$ aio app db collection create products --validator \'{"$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}\'',
+  '$ aio app db collection create inventory --collation simple --validator \'{"type": "object", "required": ["id", "quantity"]}\' --json'
 ]
 
 CreateCollection.args = {
@@ -97,7 +161,15 @@ CreateCollection.args = {
 }
 
 CreateCollection.flags = {
-  ...DBBaseCommand.flags
+  ...DBBaseCommand.flags,
+  collation: Flags.string({
+    char: 'c',
+    description: 'Collation for text comparison and sorting (e.g., "en_US", "simple")'
+  }),
+  validator: Flags.string({
+    char: 'v',
+    description: 'JSON schema validator for document validation (JSON string)'
+  })
 }
 
 CreateCollection.aliases = ['db:collection:create']

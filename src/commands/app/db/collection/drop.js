@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DBBaseCommand } from '../../../DBBaseCommand.js'
+import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
 
@@ -18,12 +18,8 @@ export class DropCollection extends DBBaseCommand {
   async run () {
     const { collectionName } = this.args
 
-    this.debugLogger?.info?.('Dropping collection:', collectionName)
-
     try {
-      if (!this.flags.json) {
-        this.log(chalk.blue(`Dropping collection '${collectionName}'...`))
-      }
+      this.log(chalk.blue(`Dropping collection '${collectionName}'...`))
 
       const client = await this.db.connect()
 
@@ -31,13 +27,11 @@ export class DropCollection extends DBBaseCommand {
       const existingCollections = await client.listCollections()
       const collectionExists = existingCollections.some(col => col.name === collectionName)
 
-      if (!collectionExists) {
+            if (!collectionExists) {
         const errorMessage = `Collection '${collectionName}' does not exist`
 
-        if (!this.flags.json) {
-          this.log(chalk.red(errorMessage))
-          this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        }
+        this.log(chalk.red(errorMessage))
+        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
         this.error(errorMessage)
       }
@@ -55,30 +49,25 @@ export class DropCollection extends DBBaseCommand {
         result
       }
 
-      if (!this.flags.json) {
-        this.log(chalk.green(`Collection '${collectionName}' dropped successfully`))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.green(`Collection '${collectionName}' dropped successfully`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
-        if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-          this.log(chalk.dim(`   Details: ${JSON.stringify(result, null, 2)}`))
-        }
-
-        this.log(chalk.dim(`   Dropped: ${new Date().toLocaleString()}`))
+      if (result && typeof result === 'object' && Object.keys(result).length > 0) {
+        this.log(chalk.dim(`   Details: ${JSON.stringify(result, null, 2)}`))
       }
 
-      return response
+      this.log(chalk.dim(`   Dropped: ${new Date().toLocaleString()}`))
 
+      return response
     } catch (error) {
       this.debugLogger?.error?.('Error dropping collection:', error)
 
       const errorMessage = `Failed to drop collection '${collectionName}': ${error.message}`
 
-      if (!this.flags.json) {
-        this.log(chalk.red('Failed to drop collection'))
-        this.log(chalk.dim(`   Collection: ${collectionName}`))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Error: ${error.message}`))
-      }
+      this.log(chalk.red('Failed to drop collection'))
+      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(errorMessage)
     }

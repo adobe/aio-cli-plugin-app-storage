@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DBBaseCommand } from '../../../DBBaseCommand.js'
+import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
 
@@ -18,12 +18,8 @@ export class RenameCollection extends DBBaseCommand {
   async run () {
     const { currentName, newName } = this.args
 
-    this.debugLogger?.info?.('Renaming collection:', currentName, 'to', newName)
-
     try {
-      if (!this.flags.json) {
-        this.log(chalk.blue(`Renaming collection '${currentName}' to '${newName}'...`))
-      }
+      this.log(chalk.blue(`Renaming collection '${currentName}' to '${newName}'...`))
 
       const client = await this.db.connect()
 
@@ -31,13 +27,11 @@ export class RenameCollection extends DBBaseCommand {
       const existingCollections = await client.listCollections()
       const currentExists = existingCollections.some(col => col.name === currentName)
 
-      if (!currentExists) {
+            if (!currentExists) {
         const errorMessage = `Collection '${currentName}' does not exist`
 
-        if (!this.flags.json) {
-          this.log(chalk.red(errorMessage))
-          this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        }
+        this.log(chalk.red(errorMessage))
+        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
         this.error(errorMessage)
       }
@@ -48,10 +42,8 @@ export class RenameCollection extends DBBaseCommand {
       if (newExists) {
         const errorMessage = `Collection '${newName}' already exists`
 
-        if (!this.flags.json) {
-          this.log(chalk.red(errorMessage))
-          this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        }
+        this.log(chalk.red(errorMessage))
+        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
         this.error(errorMessage)
       }
@@ -70,31 +62,26 @@ export class RenameCollection extends DBBaseCommand {
         result
       }
 
-      if (!this.flags.json) {
-        this.log(chalk.green(`Collection '${currentName}' renamed to '${newName}' successfully`))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.green(`Collection '${currentName}' renamed to '${newName}' successfully`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
-        if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-          this.log(chalk.dim(`   Details: ${JSON.stringify(result, null, 2)}`))
-        }
-
-        this.log(chalk.dim(`   Renamed: ${new Date().toLocaleString()}`))
+      if (result && typeof result === 'object' && Object.keys(result).length > 0) {
+        this.log(chalk.dim(`   Details: ${JSON.stringify(result, null, 2)}`))
       }
 
-      return response
+      this.log(chalk.dim(`   Renamed: ${new Date().toLocaleString()}`))
 
+      return response
     } catch (error) {
       this.debugLogger?.error?.('Error renaming collection:', error)
 
       const errorMessage = `Failed to rename collection '${currentName}': ${error.message}`
 
-      if (!this.flags.json) {
-        this.log(chalk.red('Failed to rename collection'))
-        this.log(chalk.dim(`   Current: ${currentName}`))
-        this.log(chalk.dim(`   New: ${newName}`))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Error: ${error.message}`))
-      }
+      this.log(chalk.red('Failed to rename collection'))
+      this.log(chalk.dim(`   Current: ${currentName}`))
+      this.log(chalk.dim(`   New: ${newName}`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(errorMessage)
     }
@@ -126,4 +113,3 @@ RenameCollection.flags = {
 }
 
 RenameCollection.aliases = ['db:collection:rename']
-

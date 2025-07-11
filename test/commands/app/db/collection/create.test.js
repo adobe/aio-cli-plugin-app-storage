@@ -28,7 +28,7 @@ describe('prototype', () => {
     expect(CreateCollection.args.collectionName.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(CreateCollection.flags).sort()).toEqual(['region'])
+    expect(Object.keys(CreateCollection.flags).sort()).toEqual(['collation', 'region', 'validator'])
     expect(CreateCollection.enableJsonFlag).toEqual(true)
   })
 })
@@ -126,6 +126,90 @@ describe('run', () => {
       expect(stdout.output).toContain("Collection 'products' created successfully")
       expect(stdout.output).not.toContain('Details:')
     })
+
+    test('creates collection with collation flag', async () => {
+      command.argv = ['users', '--collation', 'en_US']
+      await command.init()
+
+      // Mock no existing collections
+      mockListCollections.mockResolvedValue([])
+      mockCreateCollection.mockResolvedValue({ ok: 1, info: 'Collection created' })
+
+      const result = await command.run()
+
+      expect(mockCreateCollection).toHaveBeenCalledWith('users', { collation: 'en_US' })
+
+      expect(result).toEqual({
+        collectionName: 'users',
+        status: 'created',
+        namespace: 'test-namespace',
+        timestamp: expect.any(String),
+        options: { collation: 'en_US' },
+        result: { ok: 1, info: 'Collection created' }
+      })
+
+      expect(stdout.output).toContain("Collection 'users' created successfully")
+      expect(stdout.output).toContain('Collation: en_US')
+    })
+
+    test('creates collection with validator flag', async () => {
+      command.argv = ['products', '--validator', '{"type": "object", "required": ["name"]}']
+      await command.init()
+
+      // Mock no existing collections
+      mockListCollections.mockResolvedValue([])
+      mockCreateCollection.mockResolvedValue({ ok: 1, info: 'Collection created' })
+
+      const result = await command.run()
+
+      expect(mockCreateCollection).toHaveBeenCalledWith('products', {
+        validator: { type: 'object', required: ['name'] }
+      })
+
+      expect(result).toEqual({
+        collectionName: 'products',
+        status: 'created',
+        namespace: 'test-namespace',
+        timestamp: expect.any(String),
+        options: { validator: { type: 'object', required: ['name'] } },
+        result: { ok: 1, info: 'Collection created' }
+      })
+
+      expect(stdout.output).toContain("Collection 'products' created successfully")
+      expect(stdout.output).toContain('Validator: {"type":"object","required":["name"]}')
+    })
+
+    test('creates collection with both collation and validator flags', async () => {
+      command.argv = ['inventory', '--collation', 'simple', '--validator', '{"type": "object", "required": ["id", "quantity"]}']
+      await command.init()
+
+      // Mock no existing collections
+      mockListCollections.mockResolvedValue([])
+      mockCreateCollection.mockResolvedValue({ ok: 1, info: 'Collection created' })
+
+      const result = await command.run()
+
+      expect(mockCreateCollection).toHaveBeenCalledWith('inventory', {
+        collation: 'simple',
+        validator: { type: 'object', required: ['id', 'quantity'] }
+      })
+
+      expect(result).toEqual({
+        collectionName: 'inventory',
+        status: 'created',
+        namespace: 'test-namespace',
+        timestamp: expect.any(String),
+        options: {
+          collation: 'simple',
+          validator: { type: 'object', required: ['id', 'quantity'] }
+        },
+        result: { ok: 1, info: 'Collection created' }
+      })
+
+      expect(stdout.output).toContain("Collection 'inventory' created successfully")
+      expect(stdout.output).toContain('Collation: simple')
+      expect(stdout.output).toContain('Validator: {"type":"object","required":["id","quantity"]}')
+    })
   })
 
   describe('collection already exists', () => {
@@ -171,12 +255,60 @@ describe('run', () => {
         runHook: jest.fn().mockResolvedValue({})
       }
       command.argv = []
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Collection name is required')
+      // oclif will throw validation error during init() for missing required args
+      await expect(command.init()).rejects.toThrow('Missing 1 required arg')
 
       expect(mockListCollections).not.toHaveBeenCalled()
       expect(mockCreateCollection).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('flag validation', () => {
+    test('fails with empty collation', async () => {
+      command.argv = ['users', '--collation', '']
+      await command.init()
+
+      await expect(command.run()).rejects.toThrow('Collation must be a non-empty string')
+
+      expect(mockListCollections).not.toHaveBeenCalled()
+      expect(mockCreateCollection).not.toHaveBeenCalled()
+    })
+
+    test('fails with invalid validator JSON', async () => {
+      command.argv = ['users', '--validator', 'invalid-json']
+      await command.init()
+
+      await expect(command.run()).rejects.toThrow('Invalid validator JSON')
+
+      expect(mockListCollections).not.toHaveBeenCalled()
+      expect(mockCreateCollection).not.toHaveBeenCalled()
+    })
+
+    test('fails with empty validator JSON', async () => {
+      command.argv = ['users', '--validator', '']
+      await command.init()
+
+      await expect(command.run()).rejects.toThrow('Invalid validator JSON')
+
+      expect(mockListCollections).not.toHaveBeenCalled()
+      expect(mockCreateCollection).not.toHaveBeenCalled()
+    })
+
+    test('succeeds with valid JSON validator', async () => {
+      command.argv = ['users', '--validator', '{"type": "object"}']
+      await command.init()
+
+      // Mock no existing collections
+      mockListCollections.mockResolvedValue([])
+      mockCreateCollection.mockResolvedValue({ ok: 1 })
+
+      const result = await command.run()
+
+      expect(mockCreateCollection).toHaveBeenCalledWith('users', {
+        validator: { type: 'object' }
+      })
+      expect(result.options.validator).toEqual({ type: 'object' })
     })
   })
 
