@@ -27,8 +27,11 @@ $ aio app db --help
 
 # Commands
 <!-- commands -->
+* [`aio app db getCollectionInfos`](#aio-app-db-getcollectioninfos)
+* [`aio app db getCollectionNames`](#aio-app-db-getcollectionnames)
 * [`aio app db ping`](#aio-app-db-ping)
 * [`aio app db provision`](#aio-app-db-provision)
+* [`aio app db stats`](#aio-app-db-stats)
 * [`aio app db status`](#aio-app-db-status)
 * [`aio app state delete [KEYS]`](#aio-app-state-delete-keys)
 * [`aio app state get KEY`](#aio-app-state-get-key)
@@ -36,6 +39,66 @@ $ aio app db --help
 * [`aio app state put KEY VALUE`](#aio-app-state-put-key-value)
 * [`aio app state stats`](#aio-app-state-stats)
 * [`aio help [COMMAND]`](#aio-help-command)
+
+## `aio app db getCollectionInfos`
+
+Get details about your App Builder database
+
+```
+USAGE
+  $ aio app db getCollectionInfos [--json]
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get details about your App Builder database
+
+EXAMPLES
+  $ aio app db getCollectionInfos
+
+  $ aio app db getCollectionInfos --json
+```
+
+## `aio app db getCollectionNames`
+
+Get collection names from your App Builder database
+
+```
+USAGE
+  $ aio app db getCollectionNames [--json]
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get collection names from your App Builder database
+
+EXAMPLES
+  $ aio app db getCollectionNames
+
+  $ aio app db getCollectionNames --json
+```
+
+## `aio app db stats`
+
+Get statistics about your App Builder database
+
+```
+USAGE
+  $ aio app db stats [--json]
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get statistics about your App Builder database
+
+EXAMPLES
+  $ aio app db stats
+
+  $ aio app db stats --json
+```
 
 ## `aio app state delete [KEYS]`
 

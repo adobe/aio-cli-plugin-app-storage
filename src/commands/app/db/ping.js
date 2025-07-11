@@ -15,8 +15,6 @@ import chalk from 'chalk'
 
 export class Ping extends DBBaseCommand {
   async run () {
-    this.debugLogger?.info?.('Starting database ping test')
-
     try {
       this.log(chalk.blue('Testing database connectivity...'))
 
@@ -25,7 +23,7 @@ export class Ping extends DBBaseCommand {
       const endTime = Date.now()
       const responseTime = endTime - startTime
 
-      this.debugLogger?.info?.('Ping result:', pingResult)
+      this.debugLogger?.info?.(`Database ping completed in ${responseTime}ms:`, pingResult)
 
       this.log(chalk.green('Database connection successful'))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
@@ -43,9 +41,7 @@ export class Ping extends DBBaseCommand {
         timestamp: new Date().toISOString()
       }
 
-      if (!this.flags.json) {
-        this.log(chalk.dim('Database is ready for operations'))
-      }
+      this.log(chalk.dim('Database is ready for operations'))
 
       return result
     } catch (error) {
