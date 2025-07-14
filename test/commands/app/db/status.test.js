@@ -145,7 +145,9 @@ describe('run', () => {
       command.argv = []
       await command.init()
 
-      mockProvisionStatus.mockRejectedValue(new Error('404 not found'))
+      const error = new Error('404 not found')
+      error.httpStatusCode = 404
+      mockProvisionStatus.mockRejectedValue(error)
 
       const result = await command.run()
 

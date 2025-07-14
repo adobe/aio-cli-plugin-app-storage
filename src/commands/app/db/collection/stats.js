@@ -84,5 +84,3 @@ StatsCollection.args = {
 StatsCollection.flags = {
   ...DBBaseCommand.flags
 }
-
-StatsCollection.aliases = ['db:collection:stats']

@@ -108,5 +108,3 @@ ValidateCollection.args = {
 ValidateCollection.flags = {
   ...DBBaseCommand.flags
 }
-
-ValidateCollection.aliases = ['db:collection:validate']
