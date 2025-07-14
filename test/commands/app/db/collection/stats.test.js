@@ -28,7 +28,7 @@ describe('prototype', () => {
     expect(StatsCollection.args.collectionName.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(StatsCollection.flags).sort()).toEqual(['region'])
+    expect(Object.keys(StatsCollection.flags).sort()).toEqual([])
     expect(StatsCollection.enableJsonFlag).toEqual(true)
   })
 })

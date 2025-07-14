@@ -106,7 +106,11 @@ ValidateCollection.args = {
 }
 
 ValidateCollection.flags = {
-  ...DBBaseCommand.flags
+  // Inherit all DB base flags except region
+  ...(() => {
+    const { region, ...dbFlags } = DBBaseCommand.flags
+    return dbFlags
+  })()
 }
 
 ValidateCollection.aliases = ['db:collection:validate']

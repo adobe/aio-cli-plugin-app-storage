@@ -28,7 +28,7 @@ describe('prototype', () => {
     expect(CreateCollection.args.collectionName.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(CreateCollection.flags).sort()).toEqual(['collation', 'region', 'validator'])
+    expect(Object.keys(CreateCollection.flags).sort()).toEqual(['collation', 'validator'])
     expect(CreateCollection.enableJsonFlag).toEqual(true)
   })
 })

@@ -29,7 +29,7 @@ describe('prototype', () => {
     expect(RenameCollection.args.newName.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(RenameCollection.flags).sort()).toEqual(['region'])
+    expect(Object.keys(RenameCollection.flags).sort()).toEqual([])
     expect(RenameCollection.enableJsonFlag).toEqual(true)
   })
 })

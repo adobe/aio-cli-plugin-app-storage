@@ -173,7 +173,11 @@ CreateCollection.args = {
 }
 
 CreateCollection.flags = {
-  ...DBBaseCommand.flags,
+  // Inherit all DB base flags except region
+  ...(() => {
+    const { region, ...dbFlags } = DBBaseCommand.flags
+    return dbFlags
+  })(),
   collation: Flags.string({
     char: 'c',
     description: 'Collation for text comparison and sorting (e.g., "en_US", "simple")'
