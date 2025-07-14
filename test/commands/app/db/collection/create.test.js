@@ -65,14 +65,15 @@ describe('run', () => {
 
       expect(global.mockDBInstance.connect).toHaveBeenCalled()
       expect(mockListCollections).toHaveBeenCalled()
-      expect(mockCreateCollection).toHaveBeenCalledWith('users')
+      expect(mockCreateCollection).toHaveBeenCalledWith('users', {})
 
       expect(result).toEqual({
         collectionName: 'users',
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        result: { ok: 1, info: 'Collection created' }
+        result: { ok: 1, info: 'Collection created' },
+        options: {}
       })
 
       expect(stdout.output).toContain("Creating collection 'users'...")
@@ -96,7 +97,8 @@ describe('run', () => {
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        result: { ok: 1, info: 'Collection created' }
+        result: { ok: 1, info: 'Collection created' },
+        options: {}
       })
 
       // Should not show console messages with --json
@@ -120,7 +122,8 @@ describe('run', () => {
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        result: null
+        result: null,
+        options: {}
       })
 
       expect(stdout.output).toContain("Collection 'products' created successfully")

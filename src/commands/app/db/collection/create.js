@@ -67,10 +67,8 @@ export class CreateCollection extends DBBaseCommand {
         }
       }
 
-      // Create the collection - only pass options if they exist
-      const result = Object.keys(options).length > 0
-        ? await client.createCollection(collectionName, options)
-        : await client.createCollection(collectionName)
+      // Create the collection
+      const result = await client.createCollection(collectionName, options)
 
       this.debugLogger?.info?.('Collection created successfully:', result)
 
@@ -79,12 +77,8 @@ export class CreateCollection extends DBBaseCommand {
         status: 'created',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
-        result
-      }
-
-      // Only include options if they exist
-      if (Object.keys(options).length > 0) {
-        response.options = options
+        result,
+        options
       }
 
       this.log(chalk.green(`Collection '${collectionName}' created successfully`))
