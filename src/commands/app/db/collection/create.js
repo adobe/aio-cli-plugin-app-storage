@@ -52,7 +52,16 @@ export class CreateCollection extends DBBaseCommand {
       // Build collection options
       const options = {}
       if (collation) {
-        options.collation = collation
+        // Parse collation if it's a JSON string
+        if (typeof collation === 'string') {
+          try {
+            options.collation = JSON.parse(collation)
+          } catch (error) {
+            this.error(`Invalid collation JSON: ${error.message}`)
+          }
+        } else {
+          options.collation = collation
+        }
       }
       if (validator) {
         // Parse validator if it's a JSON string
@@ -85,7 +94,9 @@ export class CreateCollection extends DBBaseCommand {
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
       if (collation) {
-        this.log(chalk.dim(`   Collation: ${collation}`))
+        // Display the final collation object (after parsing) in compact JSON format
+        const collationDisplay = typeof options.collation === 'object' ? JSON.stringify(options.collation) : options.collation
+        this.log(chalk.dim(`   Collation: ${collationDisplay}`))
       }
 
       if (validator) {
@@ -123,8 +134,18 @@ export class CreateCollection extends DBBaseCommand {
 
     // Validate collation if provided
     if (collation !== undefined) {
-      if (typeof collation !== 'string' || collation.trim().length === 0) {
-        this.error('Collation must be a non-empty string')
+      if (typeof collation === 'string') {
+        if (collation.trim().length === 0) {
+          this.error('Invalid collation JSON')
+        }
+        try {
+          // Try to parse as JSON to validate format
+          JSON.parse(collation)
+        } catch (error) {
+          this.error(`Invalid collation JSON: ${error.message}`)
+        }
+      } else if (typeof collation !== 'object' || collation === null) {
+        this.error('Collation must be a valid JSON string or object')
       }
     }
 
@@ -152,9 +173,9 @@ CreateCollection.description = 'Create a new collection in the database'
 CreateCollection.examples = [
   '$ aio app db collection create users',
   '$ aio app db collection create products --json',
-  '$ aio app db collection create users --collation en_US',
+  '$ aio app db collection create users --collation \'{"locale": "en_US", "strength": 1}\'',
   '$ aio app db collection create products --validator \'{"$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}\'',
-  '$ aio app db collection create inventory --collation simple --validator \'{"type": "object", "required": ["id", "quantity"]}\' --json'
+  '$ aio app db collection create inventory --collation \'{"locale": "simple"}\' --validator \'{"type": "object", "required": ["id", "quantity"]}\' --json'
 ]
 
 CreateCollection.args = {
@@ -173,7 +194,7 @@ CreateCollection.flags = {
   })(),
   collation: Flags.string({
     char: 'c',
-    description: 'Collation for text comparison and sorting (e.g., "en_US", "simple")'
+    description: 'Collation document for text comparison and sorting (JSON string, e.g., \'{"locale": "en_US", "strength": 1}\')'
   }),
   validator: Flags.string({
     char: 'v',

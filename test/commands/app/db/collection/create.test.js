@@ -131,7 +131,7 @@ describe('run', () => {
     })
 
     test('creates collection with collation flag', async () => {
-      command.argv = ['users', '--collation', 'en_US']
+      command.argv = ['users', '--collation', '{"locale": "en_US", "strength": 1}']
       await command.init()
 
       // Mock no existing collections
@@ -140,19 +140,19 @@ describe('run', () => {
 
       const result = await command.run()
 
-      expect(mockCreateCollection).toHaveBeenCalledWith('users', { collation: 'en_US' })
+      expect(mockCreateCollection).toHaveBeenCalledWith('users', { collation: { locale: 'en_US', strength: 1 } })
 
       expect(result).toEqual({
         collectionName: 'users',
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        options: { collation: 'en_US' },
+        options: { collation: { locale: 'en_US', strength: 1 } },
         result: { ok: 1, info: 'Collection created' }
       })
 
       expect(stdout.output).toContain("Collection 'users' created successfully")
-      expect(stdout.output).toContain('Collation: en_US')
+      expect(stdout.output).toContain('Collation: {"locale":"en_US","strength":1}')
     })
 
     test('creates collection with validator flag', async () => {
@@ -183,7 +183,7 @@ describe('run', () => {
     })
 
     test('creates collection with both collation and validator flags', async () => {
-      command.argv = ['inventory', '--collation', 'simple', '--validator', '{"type": "object", "required": ["id", "quantity"]}']
+      command.argv = ['inventory', '--collation', '{"locale": "simple"}', '--validator', '{"type": "object", "required": ["id", "quantity"]}']
       await command.init()
 
       // Mock no existing collections
@@ -193,7 +193,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(mockCreateCollection).toHaveBeenCalledWith('inventory', {
-        collation: 'simple',
+        collation: { locale: 'simple' },
         validator: { type: 'object', required: ['id', 'quantity'] }
       })
 
@@ -203,14 +203,14 @@ describe('run', () => {
         namespace: 'test-namespace',
         timestamp: expect.any(String),
         options: {
-          collation: 'simple',
+          collation: { locale: 'simple' },
           validator: { type: 'object', required: ['id', 'quantity'] }
         },
         result: { ok: 1, info: 'Collection created' }
       })
 
       expect(stdout.output).toContain("Collection 'inventory' created successfully")
-      expect(stdout.output).toContain('Collation: simple')
+      expect(stdout.output).toContain('Collation: {"locale":"simple"}')
       expect(stdout.output).toContain('Validator: {"type":"object","required":["id","quantity"]}')
     })
   })
@@ -272,7 +272,17 @@ describe('run', () => {
       command.argv = ['users', '--collation', '']
       await command.init()
 
-      await expect(command.run()).rejects.toThrow('Collation must be a non-empty string')
+      await expect(command.run()).rejects.toThrow('Invalid collation JSON')
+
+      expect(mockListCollections).not.toHaveBeenCalled()
+      expect(mockCreateCollection).not.toHaveBeenCalled()
+    })
+
+    test('fails with invalid collation JSON', async () => {
+      command.argv = ['users', '--collation', 'invalid-json']
+      await command.init()
+
+      await expect(command.run()).rejects.toThrow('Invalid collation JSON')
 
       expect(mockListCollections).not.toHaveBeenCalled()
       expect(mockCreateCollection).not.toHaveBeenCalled()
@@ -312,6 +322,22 @@ describe('run', () => {
         validator: { type: 'object' }
       })
       expect(result.options.validator).toEqual({ type: 'object' })
+    })
+
+    test('succeeds with valid JSON collation', async () => {
+      command.argv = ['users', '--collation', '{"locale": "en_US"}']
+      await command.init()
+
+      // Mock no existing collections
+      mockListCollections.mockResolvedValue([])
+      mockCreateCollection.mockResolvedValue({ ok: 1 })
+
+      const result = await command.run()
+
+      expect(mockCreateCollection).toHaveBeenCalledWith('users', {
+        collation: { locale: 'en_US' }
+      })
+      expect(result.options.collation).toEqual({ locale: 'en_US' })
     })
   })
 
