@@ -29,7 +29,7 @@ describe('prototype', () => {
     expect(Object.keys(Ping.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(Ping.flags).sort()).toEqual(['region'])
+    expect(Object.keys(Ping.flags).sort()).toEqual([])
     expect(Ping.enableJsonFlag).toEqual(true)
   })
 })

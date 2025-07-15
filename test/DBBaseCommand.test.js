@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { expect, jest } from '@jest/globals'
 import { DBBaseCommand } from '../src/DBBaseCommand.js'
 import { BaseCommand } from '../src/BaseCommand.js'
-import { AVAILABLE_REGIONS, DEFAULT_REGION } from '../src/constants/db.js'
+import { DEFAULT_REGION } from '../src/constants/db.js'
 
 // Mock aio-lib-db
 const mockInit = jest.fn()
@@ -37,8 +37,7 @@ describe('prototype', () => {
     expect(Object.keys(DBBaseCommand.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(DBBaseCommand.flags).sort()).toEqual(['region'])
-    expect(DBBaseCommand.flags.region.options).toEqual(AVAILABLE_REGIONS)
+    expect(Object.keys(DBBaseCommand.flags).sort()).toEqual([])
     expect(DBBaseCommand.enableJsonFlag).toEqual(true)
   })
   test('getServiceName', () => {
@@ -71,8 +70,9 @@ describe('init', () => {
     expect(command.rtNamespace).toBe(global.fakeConfig['runtime.namespace'])
   })
 
-  test('initialization with custom region', async () => {
-    command.argv = ['--region', 'emea']
+  test('initialization with custom region from config', async () => {
+    global.fakeConfig['db.region'] = 'emea'
+    command.argv = []
     await command.init()
 
     expect(command.dbConfig.region).toBe('emea')
@@ -222,13 +222,13 @@ describe('configuration', () => {
     global.fakeConfig['db.region'] = 'emea'
     global.fakeConfig['db.endpoint'] = 'https://custom.db.com'
 
-    command.argv = ['--region', 'apac'] // Flag should override config
+    command.argv = []
     await command.init()
 
     expect(command.dbConfig).toEqual({
       namespace: global.fakeConfig['runtime.namespace'],
       auth: global.fakeConfig['runtime.auth'],
-      region: 'apac', // Flag takes precedence
+      region: 'emea', // Uses config value
       endpoint: 'https://custom.db.com'
     })
   })
