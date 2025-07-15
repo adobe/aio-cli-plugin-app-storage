@@ -87,11 +87,7 @@ RenameCollection.args = {
 }
 
 RenameCollection.flags = {
-  // Inherit all DB base flags except region
-  ...(() => {
-    const { region, ...dbFlags } = DBBaseCommand.flags
-    return dbFlags
-  })()
+  ...DBBaseCommand.flags
 }
 
 RenameCollection.aliases = ['db:collection:rename']

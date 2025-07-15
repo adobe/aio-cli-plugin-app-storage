@@ -80,9 +80,5 @@ DropCollection.args = {
 }
 
 DropCollection.flags = {
-  // Inherit all DB base flags except region
-  ...(() => {
-    const { region, ...dbFlags } = DBBaseCommand.flags
-    return dbFlags
-  })()
+  ...DBBaseCommand.flags
 }

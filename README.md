@@ -376,11 +376,7 @@ Get details about your App Builder database
 
 ```
 USAGE
-  $ aio app db getCollectionInfos [--json] [--region amer|emea|apac]
-
-FLAGS
-  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  $ aio app db getCollectionInfos [--json]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -400,11 +396,7 @@ Get collection names from your App Builder database
 
 ```
 USAGE
-  $ aio app db getCollectionNames [--json] [--region amer|emea|apac]
-
-FLAGS
-  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  $ aio app db getCollectionNames [--json]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -424,11 +416,7 @@ Show collection names of your App Builder database (alias for getCollectionNames
 
 ```
 USAGE
-  $ aio app db show collections [--json] [--region amer|emea|apac]
-
-FLAGS
-  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  $ aio app db show collections [--json]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -448,11 +436,7 @@ Get statistics about your App Builder database
 
 ```
 USAGE
-  $ aio app db stats [--json] [--region amer|emea|apac]
-
-FLAGS
-  --region=<option>  State region. Defaults to 'AIO_STATE_REGION' env or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  $ aio app db stats [--json]
 
 GLOBAL FLAGS
   --json  Format output as json.
