@@ -26,7 +26,7 @@ describe('prototype', () => {
     expect(Object.keys(Stats.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(Stats.flags).sort()).toEqual(['region'])
+    expect(Object.keys(Stats.flags).sort()).toEqual([])
     expect(Stats.enableJsonFlag).toEqual(true)
   })
 })

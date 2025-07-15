@@ -30,7 +30,7 @@ describe('prototype', () => {
     expect(Object.keys(Status.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(Status.flags).sort()).toEqual(['region', 'watch'])
+    expect(Object.keys(Status.flags).sort()).toEqual(['watch'])
     expect(Status.flags.watch.type).toBe('boolean')
     expect(Status.flags.watch.default).toBe(false)
     expect(Status.enableJsonFlag).toEqual(true)

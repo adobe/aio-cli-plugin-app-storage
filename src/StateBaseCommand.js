@@ -13,8 +13,9 @@ governing permissions and limitations under the License.
 import { BaseCommand } from './BaseCommand.js'
 import config from '@adobe/aio-lib-core-config'
 import { CONFIG_STATE_REGION } from './constants/state.js'
-import { DEFAULT_REGION } from './constants/db.js'
+import { DEFAULT_REGION, AVAILABLE_REGIONS } from './constants/db.js'
 import semver from 'semver'
+import { Flags } from '@oclif/core'
 
 export class StateBaseCommand extends BaseCommand {
   async init () {
@@ -73,4 +74,13 @@ export class StateBaseCommand extends BaseCommand {
   getServiceName () {
     return 'state'
   }
+}
+
+StateBaseCommand.flags = {
+  ...BaseCommand.flags,
+  region: Flags.string({
+    description: 'State region. Defaults to \'AIO_STATE_REGION\' env or \'amer\' if neither is set.',
+    required: false,
+    options: AVAILABLE_REGIONS
+  })
 }

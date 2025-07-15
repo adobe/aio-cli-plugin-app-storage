@@ -26,7 +26,7 @@ describe('prototype', () => {
     expect(Object.keys(GetCollectionInfos.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(GetCollectionInfos.flags).sort()).toEqual(['region'])
+    expect(Object.keys(GetCollectionInfos.flags).sort()).toEqual([])
     expect(GetCollectionInfos.enableJsonFlag).toEqual(true)
   })
 })
