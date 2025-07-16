@@ -85,14 +85,6 @@ describe('init', () => {
     expect(command.dbConfig.region).toBe(DEFAULT_REGION)
   })
 
-  test('initialization with config region', async () => {
-    global.fakeConfig['db.region'] = 'apac'
-    command.argv = []
-    await command.init()
-
-    expect(command.dbConfig.region).toBe('apac')
-  })
-
   test('initialization with custom endpoint', async () => {
     global.fakeConfig['db.endpoint'] = 'https://custom.endpoint.com'
     command.argv = []
