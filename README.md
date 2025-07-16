@@ -383,7 +383,7 @@ Insert a single document into a collection
 
 ```
 USAGE
-  $ aio app db collection insertOne COLLECTION DOCUMENT [--json] [--region amer|emea|apac] [--bypassDocumentValidation]
+  $ aio app db collection insertOne COLLECTION DOCUMENT [--json] [--bypassDocumentValidation]
 
 ARGUMENTS
   COLLECTION  The name of the collection
@@ -391,8 +391,6 @@ ARGUMENTS
 
 FLAGS
   --bypassDocumentValidation  Bypass schema validation if present
-  --region=<option>           Database region. Defaults to 'AIO_DB_REGION' env or 'amer' if neither is set.
-                              <options: amer|emea|apac>
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -414,15 +412,11 @@ Delete a single document from a collection
 
 ```
 USAGE
-  $ aio app db collection deleteOne COLLECTION FILTER [--json] [--region amer|emea|apac]
+  $ aio app db collection deleteOne COLLECTION FILTER [--json]
 
 ARGUMENTS
   COLLECTION  The name of the collection
   FILTER      The filter document (JSON string)
-
-FLAGS
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' env or 'amer' if neither is set.
-                     <options: amer|emea|apac>
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -446,7 +440,7 @@ Find a single document in a collection
 
 ```
 USAGE
-  $ aio app db collection findOne COLLECTION FILTER [--json] [--region amer|emea|apac] [-p <value>]
+  $ aio app db collection findOne COLLECTION FILTER [--json] [-p <value>]
 
 ARGUMENTS
   COLLECTION  The name of the collection
@@ -454,8 +448,6 @@ ARGUMENTS
 
 FLAGS
   -p, --projection=<value>  The fields to return (JSON string, e.g., '{"name": 1, "_id": 0}')
-  --region=<option>         Database region. Defaults to 'AIO_DB_REGION' env or 'amer' if neither is set.
-                            <options: amer|emea|apac>
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -479,7 +471,7 @@ Update a single document in a collection
 
 ```
 USAGE
-  $ aio app db collection updateOne COLLECTION FILTER UPDATE [--json] [--region amer|emea|apac] [-u]
+  $ aio app db collection updateOne COLLECTION FILTER UPDATE [--json] [-u]
 
 ARGUMENTS
   COLLECTION  The name of the collection
@@ -488,8 +480,6 @@ ARGUMENTS
 
 FLAGS
   -u, --upsert          If no document is found, create a new one
-  --region=<option>     Database region. Defaults to 'AIO_DB_REGION' env or 'amer' if neither is set.
-                        <options: amer|emea|apac>
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -513,7 +503,7 @@ Replace a single document in a collection
 
 ```
 USAGE
-  $ aio app db collection replaceOne COLLECTION FILTER REPLACEMENT [--json] [--region amer|emea|apac] [-u]
+  $ aio app db collection replaceOne COLLECTION FILTER REPLACEMENT [--json] [-u]
 
 ARGUMENTS
   COLLECTION   The name of the collection
@@ -522,8 +512,6 @@ ARGUMENTS
 
 FLAGS
   -u, --upsert          If no document is found, create a new one
-  --region=<option>     Database region. Defaults to 'AIO_DB_REGION' env or 'amer' if neither is set.
-                        <options: amer|emea|apac>
 
 GLOBAL FLAGS
   --json  Format output as json.
