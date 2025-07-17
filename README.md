@@ -368,30 +368,37 @@ Create an index on a collection in your App Builder database
 
 ```
 USAGE
-  $ aio app db collection createIndex COLLECTIONNAME SPECIFICATION [--name <name>] [--unique] [--json]
+  $ aio app db collection createIndex COLLECTIONNAME [--spec <index_spec>] [--key <index_key>] [--name <index_name>] [--unique] [--json]
 
 ARGUMENTS
   COLLECTIONNAME  The name of the collection to create the index on
-  SPECIFICATION   Index specification as a JSON object (e.g., '{ "name":1, "age":-1 }') or single key
 
 FLAGS
-  -n, --name=<name>    A name that uniquely identifies the index
-  -u, --unique         Creates a unique index so that the collection will not accept insertion or update of documents where the index key value matches an existing value in the index
+  -n, --name=<value>  A name that uniquely identifies the index
+  -u, --unique        Creates a unique index so that the collection will not accept insertion or update of documents where the index key value matches an existing value in the index
 
 GLOBAL FLAGS
-  --json           Format output as json
+  --json  Format output as json
+
+REQUIRES AT LEAST ONE INDEX DEFINITION FLAGS
+  -k, --key=<value>...   Index key to use with default specification
+  -s, --spec=<value>...  Index specification as a JSON object (e.g., '{"name":1, "age":-1}')
 
 DESCRIPTION
   Create a new index on a collection in the database
 
 EXAMPLES
-  $ aio app db collection createIndex users '{"name":1, "age":-1}'
+  $ aio app db collection createIndex users --spec '{"name":1, "age":-1}'
 
-  $ aio app db collection createIndex users '{"name":1, "age":-1}' --name "name_age_index"
+  $ aio app db collection createIndex users -s '{"name":1, "age":-1}' --name "name_age_index"
 
-  $ aio app db collection createIndex movies '{"director":"text", "name":"text"}' --unique
+  $ aio app db collection createIndex students -s '{"name":1}' --key grade --unique
 
-  $ aio app db collection createIndex products '{"name":"text", "category":"text", "price":-1}' --json
+  $ aio app db collection createIndex reviews -k sku -k rating
+
+  $ aio app db collection createIndex products -s '{"name":"text", "category":"text"}' --json
+
+  $ aio app db collection createIndex books -s '{"author":1}' -k year
 ```
 
 ### `aio app db collection dropIndex COLLECTIONNAME INDEXNAME`
