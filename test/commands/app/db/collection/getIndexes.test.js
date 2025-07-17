@@ -126,6 +126,36 @@ describe('run', () => {
     })
   })
 
+  describe('missing collection name', () => {
+    test('fails when collection name is missing', async () => {
+      command = new GetIndexes([])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = []
+
+      // oclif will throw validation error during init() for missing required args
+      await expect(command.init()).rejects.toThrow('Missing 1 required arg')
+
+      expect(mockGetIndexes).not.toHaveBeenCalled()
+    })
+
+    test('fails when collection name is empty string', async () => {
+      command = new GetIndexes([''])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = ['']
+
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Collection name: Must be a non-empty string')
+
+      expect(mockGetIndexes).not.toHaveBeenCalled()
+    })
+  })
+
   describe('error handling', () => {
     test('connection error without --json flag', async () => {
       command.argv = [collectionName]

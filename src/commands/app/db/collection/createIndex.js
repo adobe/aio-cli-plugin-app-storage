@@ -13,37 +13,61 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
+import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
+
+// Regular expression to match the -s/--spec or -k/--key flags in <flag>=<value> format
+// if match.groups.spec is defined, it means the flag was -s or --spec
+// if match.groups.key is defined, it means the flag was -k or --key
+const specFlagMatch = /^((?<spec>-s|--spec)|(?<key>-k|--key))=(?<val>.+)/
 
 export class CreateIndex extends DBBaseCommand {
-  async run () {
-    let { collectionName, specification } = this.args
-
-    if (typeof collectionName !== 'string' || collectionName.trim().length === 0) {
-      this.error('Collection name must be a non-empty string')
-    }
-
-    if (typeof specification !== 'object' && (typeof specification !== 'string' || specification.trim().length === 0)) {
-      this.error('Index specification must be a non-empty string or JSON object')
-    }
-    if (typeof specification === 'string' && specification.trim().startsWith('{')) {
-      // If the specification starts with a bracket, assume it's a JSON object.
-      try {
-        specification = JSON.parse(specification)
-      } catch (error) {
-        this.error('Invalid JSON format for index specification')
+  getOrderedSpecs () {
+    // Key/spec order matters when creating an index and both key and spec can be specified,
+    // so we need to parse argv to obtain the proper order since using this.flags loses the order between the two
+    const args = this.argv.slice(1) // Ignore the first element (collection name)
+    const fullSpec = []
+    let specOption = false
+    args.forEach((arg) => {
+      if (specOption === 'key') {
+        // Previous arg was -k or --key
+        fullSpec.push(arg)
+        specOption = false
+      } else if (specOption === 'spec') {
+        // Previous arg was -s or --spec
+        fullSpec.push(asObject(arg))
+        specOption = false
+      } else if (arg === '-k' || arg === '--key') {
+        // Next arg is a key
+        specOption = 'key'
+      } else if (arg === '-s' || arg === '--spec') {
+        // Next arg is a spec
+        specOption = 'spec'
+      } else {
+        // Check if the arg is in the form of -s=<val>/--spec=<val> or -k=<val>/--key=<val>
+        const specMatch = arg.match(specFlagMatch)
+        if (specMatch?.groups?.spec) {
+          // Spec is a JSON object, flag is a string
+          fullSpec.push(asObject(specMatch.groups.val))
+        } else if (specMatch?.groups?.key) {
+          fullSpec.push(specMatch.groups.val)
+        }
+        specOption = false
       }
-    }
+    })
+
+    return fullSpec
+  }
+
+  async run () {
+    const { collectionName } = this.args
+    const { name, unique } = this.flags
 
     try {
-      const { name, unique } = this.flags
-      // Validate name if provided
-      if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
-        this.error('Index name must be a non-empty string')
-      }
+      const fullSpec = this.getOrderedSpecs()
+      const prettySpec = JSON.stringify(fullSpec, null, 2).replace(/^/gm, '     ')
 
-      const specString = JSON.stringify(specification)
       this.log(chalk.blue(`Creating index ${name ? `'${name}' ` : ''}on collection '${collectionName}'...`))
-      this.log(chalk.dim(`   With specification: ${specString}`))
+      this.log(chalk.dim(`   Specification:\n${prettySpec}`))
       if (unique) this.log(chalk.dim(`   Unique index: ${unique}`))
 
       const client = await this.db.connect()
@@ -54,25 +78,23 @@ export class CreateIndex extends DBBaseCommand {
       if (name) options.name = name
       if (unique) options.unique = unique
 
-      // Create the index - only pass options if they exist
-      const result = await collection.createIndex(specification, options)
+      const result = await collection.createIndex(fullSpec, options)
 
       this.debugLogger?.info?.('Index created successfully:', result)
 
       const response = {
         collectionName,
         indexName: result,
-        specification,
+        specification: fullSpec,
         status: 'created',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString()
       }
 
-      // Only include options if they exist
       if (Object.keys(options).length > 0) response.options = options
 
       this.log(chalk.green(`Index '${result}' created successfully in the '${collectionName}' collection`))
-      this.log(chalk.dim(`   Specification: ${specString}`))
+      this.log(chalk.dim(`   Specification:\n${prettySpec}`))
       if (unique) this.log(chalk.dim(`   Unique: ${unique}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Created: ${new Date().toLocaleString()}`))
@@ -84,7 +106,6 @@ export class CreateIndex extends DBBaseCommand {
       this.log(chalk.red('Failed to create index'))
       this.log(chalk.dim(`   Collection: ${collectionName}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(`Failed to create index on collection '${collectionName}': ${error.message}`)
     }
@@ -94,30 +115,47 @@ export class CreateIndex extends DBBaseCommand {
 CreateIndex.description = 'Create a new index on a collection in the database'
 
 CreateIndex.examples = [
-  '$ aio app db collection createIndex users \'{"name":1, "age":-1}\'',
-  '$ aio app db collection createIndex users \'{"name":1, "age":-1}\' --name "name_age_index"',
-  '$ aio app db collection createIndex movies \'{"director":"text", "name":"text"}\' --unique',
-  '$ aio app db collection createIndex products \'{"name":"text", "category":"text", "price":-1}\' --json'
+  '$ aio app db collection createIndex users --spec \'{"name":1, "age":-1}\'',
+  '$ aio app db collection createIndex users -s \'{"name":1, "age":-1}\' --name "name_age_index"',
+  '$ aio app db collection createIndex students -s \'{"name":1}\' --key grade --unique',
+  '$ aio app db collection createIndex reviews -k sku -k rating',
+  '$ aio app db collection createIndex products -s \'{"name":"text", "category":"text"}\' --json',
+  '$ aio app db collection createIndex books -s \'{"author":1}\' -k year'
 ]
 
 CreateIndex.args = {
   collectionName: Args.string({
     name: 'collectionName',
     description: 'The name of the collection to create the index on',
-    required: true
-  }),
-  specification: Args.string({
-    name: 'specification',
-    description: 'Index specification as a JSON object (e.g., \'{ "name":1, "age":-1 }\') or single key',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Collection name')
   })
 }
 
 CreateIndex.flags = {
   ...DBBaseCommand.flags,
+  spec: Flags.string({
+    char: 's',
+    helpGroup: 'Requires at least one index definition',
+    description: 'Index specification as a JSON object (e.g., \'{"name":1, "age":-1}\')',
+    multiple: true,
+    atLeastOne: ['key', 'spec'],
+    parse: input => asObject(input, 'Index specification')
+  }),
+  key: Flags.string({
+    char: 'k',
+    helpGroup: 'Requires at least one index definition',
+    description: 'Index key to use with default specification',
+    multiple: true,
+    atLeastOne: ['key', 'spec'],
+    // Note: untrimmed whitespace input is allowed for index keys
+    parse: input => isNonEmptyString(input, 'Index key')
+  }),
   name: Flags.string({
     char: 'n',
-    description: 'A name that uniquely identifies the index'
+    description: 'A name that uniquely identifies the index',
+    // Note: untrimmed whitespace input is allowed for index names
+    parse: input => isNonEmptyString(input, 'Index name')
   }),
   unique: Flags.boolean({
     char: 'u',

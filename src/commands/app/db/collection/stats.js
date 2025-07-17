@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
+import { isNonEmptyString } from '../../../../utils/inputValidation.js'
 
 export class StatsCollection extends DBBaseCommand {
   async run () {
@@ -77,7 +78,8 @@ StatsCollection.args = {
   collectionName: Args.string({
     name: 'collectionName',
     description: 'The name of the collection to get stats for',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Collection name')
   })
 }
 

@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 */
 
 import { CreateIndex } from '../../../../../src/commands/app/db/collection/createIndex.js'
-import { expect, jest } from '@jest/globals'
+import { expect, jest, test } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
 
@@ -24,25 +24,32 @@ describe('prototype', () => {
     expect(CreateIndex.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(CreateIndex.args)).toEqual(['collectionName', 'specification'])
+    expect(Object.keys(CreateIndex.args)).toEqual(['collectionName'])
     expect(CreateIndex.args.collectionName.required).toBe(true)
-    expect(CreateIndex.args.specification.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(CreateIndex.flags).sort()).toEqual(['name', 'unique'])
+    expect(Object.keys(CreateIndex.flags).sort()).toEqual(['key', 'name', 'spec', 'unique'])
+    expect(CreateIndex.flags.key.atLeastOne.sort()).toEqual(['key', 'spec'])
+    expect(CreateIndex.flags.spec.atLeastOne.sort()).toEqual(['key', 'spec'])
+    expect(CreateIndex.flags.key.multiple).toEqual(true)
+    expect(CreateIndex.flags.spec.multiple).toEqual(true)
     expect(CreateIndex.enableJsonFlag).toEqual(true)
   })
 })
 
 describe('run', () => {
-  const collectionName = 'users'
-  const specString = '{"name": 1}'
-  const specification = { name: 1 }
+  const collectionName = 'students'
+  const spec1 = { name: 1 }
+  const specString1 = '{"name": 1}'
+  const spec2 = { age: -1 }
+  const specString2 = '{"age": -1}'
+  const key1 = 'grade'
+  const key2 = 'teacher'
   const rtNamespace = 'test-namespace'
   let command
 
   beforeEach(async () => {
-    command = new CreateIndex([collectionName, specString])
+    command = new CreateIndex([collectionName])
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
@@ -62,8 +69,8 @@ describe('run', () => {
   })
 
   describe('successful index creation', () => {
-    test('creates index without --json flag', async () => {
-      command.argv = [collectionName, specString]
+    test('creates index with specification', async () => {
+      command.argv = [collectionName, '--spec', specString1]
       const indexName = 'name_1'
       mockCreateIndex.mockResolvedValue(indexName)
       await command.init()
@@ -72,12 +79,12 @@ describe('run', () => {
 
       expect(global.mockDBInstance.connect).toHaveBeenCalled()
       expect(mockCollection).toHaveBeenCalledWith(collectionName)
-      expect(mockCreateIndex).toHaveBeenCalledWith(specification, {})
+      expect(mockCreateIndex).toHaveBeenCalledWith([spec1], {})
 
       expect(result).toEqual({
         collectionName,
         indexName,
-        specification,
+        specification: [spec1],
         status: 'created',
         namespace: rtNamespace,
         timestamp: expect.any(String)
@@ -89,8 +96,108 @@ describe('run', () => {
       expect(stdout.output).toContain('Created:')
     })
 
+    test('creates index with multiple specifications', async () => {
+      command.argv = [collectionName, '--spec', specString1, `-s=${specString2}`]
+      const indexName = 'name_1_age_-1'
+      mockCreateIndex.mockResolvedValue(indexName)
+      await command.init()
+
+      const result = await command.run()
+
+      expect(global.mockDBInstance.connect).toHaveBeenCalled()
+      expect(mockCollection).toHaveBeenCalledWith(collectionName)
+      expect(mockCreateIndex).toHaveBeenCalledWith([spec1, spec2], {})
+
+      expect(result).toEqual({
+        collectionName,
+        indexName,
+        specification: [spec1, spec2],
+        status: 'created',
+        namespace: rtNamespace,
+        timestamp: expect.any(String)
+      })
+
+      expect(stdout.output).toContain(`Creating index on collection '${collectionName}'...`)
+      expect(stdout.output).toContain(`Index '${indexName}' created successfully in the '${collectionName}' collection`)
+    })
+
+    test('creates index with key', async () => {
+      command.argv = [collectionName, '--key', key1]
+      const indexName = 'grade_1'
+      mockCreateIndex.mockResolvedValue(indexName)
+      await command.init()
+
+      const result = await command.run()
+
+      expect(global.mockDBInstance.connect).toHaveBeenCalled()
+      expect(mockCollection).toHaveBeenCalledWith(collectionName)
+      expect(mockCreateIndex).toHaveBeenCalledWith([key1], {})
+
+      expect(result).toEqual({
+        collectionName,
+        indexName,
+        specification: [key1],
+        status: 'created',
+        namespace: rtNamespace,
+        timestamp: expect.any(String)
+      })
+
+      expect(stdout.output).toContain(`Creating index on collection '${collectionName}'...`)
+      expect(stdout.output).toContain(`Index '${indexName}' created successfully in the '${collectionName}' collection`)
+    })
+
+    test('creates index with multiple keys', async () => {
+      command.argv = [collectionName, '--key', key1, `-k=${key2}`]
+      const indexName = 'grade_1_teacher_1'
+      mockCreateIndex.mockResolvedValue(indexName)
+      await command.init()
+
+      const result = await command.run()
+
+      expect(global.mockDBInstance.connect).toHaveBeenCalled()
+      expect(mockCollection).toHaveBeenCalledWith(collectionName)
+      expect(mockCreateIndex).toHaveBeenCalledWith([key1, key2], {})
+
+      expect(result).toEqual({
+        collectionName,
+        indexName,
+        specification: [key1, key2],
+        status: 'created',
+        namespace: rtNamespace,
+        timestamp: expect.any(String)
+      })
+
+      expect(stdout.output).toContain(`Creating index on collection '${collectionName}'...`)
+      expect(stdout.output).toContain(`Index '${indexName}' created successfully in the '${collectionName}' collection`)
+    })
+
+    test('creates index with multiple keys and specifications in provided order', async () => {
+      command.argv = [collectionName, '--key', key1, `--spec=${specString1}`, '-s', specString2, `-k=${key2}`]
+      const indexName = 'grade_1_name_1_age_1_teacher_1'
+      mockCreateIndex.mockResolvedValue(indexName)
+      await command.init()
+
+      const result = await command.run()
+
+      expect(global.mockDBInstance.connect).toHaveBeenCalled()
+      expect(mockCollection).toHaveBeenCalledWith(collectionName)
+      expect(mockCreateIndex).toHaveBeenCalledWith([key1, spec1, spec2, key2], {})
+
+      expect(result).toEqual({
+        collectionName,
+        indexName,
+        specification: [key1, spec1, spec2, key2],
+        status: 'created',
+        namespace: rtNamespace,
+        timestamp: expect.any(String)
+      })
+
+      expect(stdout.output).toContain(`Creating index on collection '${collectionName}'...`)
+      expect(stdout.output).toContain(`Index '${indexName}' created successfully in the '${collectionName}' collection`)
+    })
+
     test('creates index with --json flag', async () => {
-      command.argv = [collectionName, specString, '--json']
+      command.argv = [collectionName, '--spec', specString1, '--json']
       const indexName = 'name_1'
       mockCreateIndex.mockResolvedValue(indexName)
       await command.init()
@@ -100,12 +207,12 @@ describe('run', () => {
       // Mock no existing collections
       expect(global.mockDBInstance.connect).toHaveBeenCalled()
       expect(mockCollection).toHaveBeenCalledWith(collectionName)
-      expect(mockCreateIndex).toHaveBeenCalledWith(specification, {})
+      expect(mockCreateIndex).toHaveBeenCalledWith([spec1], {})
 
       expect(result).toEqual({
         collectionName,
         indexName,
-        specification,
+        specification: [spec1],
         status: 'created',
         namespace: rtNamespace,
         timestamp: expect.any(String)
@@ -119,7 +226,7 @@ describe('run', () => {
     })
 
     test('creates index with name flag', async () => {
-      command.argv = [collectionName, specString, '--name', 'custom_index_name']
+      command.argv = [collectionName, '-s', specString1, '--name', 'custom_index_name']
       await command.init()
 
       const indexName = 'custom_index_name'
@@ -127,12 +234,12 @@ describe('run', () => {
 
       const result = await command.run()
 
-      expect(mockCreateIndex).toHaveBeenCalledWith(specification, { name: 'custom_index_name' })
+      expect(mockCreateIndex).toHaveBeenCalledWith([spec1], { name: 'custom_index_name' })
 
       expect(result).toEqual({
         collectionName,
         indexName,
-        specification,
+        specification: [spec1],
         status: 'created',
         namespace: rtNamespace,
         timestamp: expect.any(String),
@@ -144,7 +251,7 @@ describe('run', () => {
     })
 
     test('creates index with unique flag', async () => {
-      command.argv = [collectionName, specString, '--unique']
+      command.argv = [collectionName, '-s', specString1, '--unique']
       await command.init()
 
       const indexName = 'name_1'
@@ -152,12 +259,12 @@ describe('run', () => {
 
       const result = await command.run()
 
-      expect(mockCreateIndex).toHaveBeenCalledWith(specification, { unique: true })
+      expect(mockCreateIndex).toHaveBeenCalledWith([spec1], { unique: true })
 
       expect(result).toEqual({
         collectionName,
         indexName,
-        specification,
+        specification: [spec1],
         status: 'created',
         namespace: rtNamespace,
         timestamp: expect.any(String),
@@ -170,7 +277,7 @@ describe('run', () => {
     })
 
     test('creates index with multiple flags', async () => {
-      command.argv = [collectionName, specString, '--name', 'custom_index_name', '--unique']
+      command.argv = [collectionName, '-s', specString1, '--name', 'custom_index_name', '--unique']
       await command.init()
 
       const indexName = 'custom_index_name'
@@ -178,7 +285,7 @@ describe('run', () => {
 
       const result = await command.run()
 
-      expect(mockCreateIndex).toHaveBeenCalledWith(specification, {
+      expect(mockCreateIndex).toHaveBeenCalledWith([spec1], {
         name: 'custom_index_name',
         unique: true
       })
@@ -186,7 +293,7 @@ describe('run', () => {
       expect(result).toEqual({
         collectionName,
         indexName,
-        specification,
+        specification: [spec1],
         status: 'created',
         namespace: rtNamespace,
         timestamp: expect.any(String),
@@ -204,20 +311,12 @@ describe('run', () => {
 
   describe('parameter validation', () => {
     test('fails with missing collection name', async () => {
-      command.argv = ['', specString]
-      await command.init()
+      command.argv = ['', '-s', specString1]
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Collection name: Must be a non-empty string')
 
-      await expect(command.run()).rejects.toThrow('Collection name must be a non-empty string')
-
-      expect(mockCollection).not.toHaveBeenCalled()
-      expect(mockCreateIndex).not.toHaveBeenCalled()
-    })
-
-    test('fails with missing specification', async () => {
-      command.argv = [collectionName, '']
-      await command.init()
-
-      await expect(command.run()).rejects.toThrow('Index specification must be a non-empty string or JSON object')
       expect(mockCollection).not.toHaveBeenCalled()
       expect(mockCreateIndex).not.toHaveBeenCalled()
     })
@@ -225,10 +324,51 @@ describe('run', () => {
 
   describe('flag validation', () => {
     test('fails with invalid index name', async () => {
-      command.argv = [collectionName, specString, '--name', '']
-      await command.init()
+      command.argv = [collectionName, '-s', specString1, '--name', '']
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Index name: Must be a non-empty string')
+      expect(mockCollection).not.toHaveBeenCalled()
+      expect(mockCreateIndex).not.toHaveBeenCalled()
+    })
 
-      await expect(command.run()).rejects.toThrow('Index name must be a non-empty string')
+    test('fails if specification is malformed json', async () => {
+      command.argv = [collectionName, '--spec', '{"bad object": 1']
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('JSON parse error:')
+      expect(mockCollection).not.toHaveBeenCalled()
+      expect(mockCreateIndex).not.toHaveBeenCalled()
+    })
+
+    test('fails if specification is not an object', async () => {
+      command.argv = [collectionName, '--spec', '["arrays", "are", "not", "allowed"]']
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('is not a JSON object')
+      expect(mockCollection).not.toHaveBeenCalled()
+      expect(mockCreateIndex).not.toHaveBeenCalled()
+    })
+
+    test('fails if key is an empty string', async () => {
+      command.argv = [collectionName, '--key', '']
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Index key: Must be a non-empty string')
+      expect(mockCollection).not.toHaveBeenCalled()
+      expect(mockCreateIndex).not.toHaveBeenCalled()
+    })
+
+    test('fails is neither key nor spec is provided', async () => {
+      command.argv = [collectionName]
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('At least one of the following must be provided: --key, --spec')
       expect(mockCollection).not.toHaveBeenCalled()
       expect(mockCreateIndex).not.toHaveBeenCalled()
     })
@@ -236,17 +376,16 @@ describe('run', () => {
 
   describe('error handling', () => {
     test('fails with connection error', async () => {
-      command.argv = [collectionName, specString]
+      command.argv = [collectionName, '-s', specString1]
       await command.init()
 
       global.mockDBInstance.connect.mockRejectedValue(new Error('Connection failed'))
 
-      await expect(command.run()).rejects.toThrow("Failed to create index on collection 'users': Connection failed")
+      await expect(command.run()).rejects.toThrow("Failed to create index on collection 'students': Connection failed")
 
       expect(stdout.output).toContain('Failed to create index')
       expect(stdout.output).toContain(`Collection: ${collectionName}`)
       expect(stdout.output).toContain('Namespace:')
-      expect(stdout.output).toContain('Error: Connection failed')
     })
   })
 })

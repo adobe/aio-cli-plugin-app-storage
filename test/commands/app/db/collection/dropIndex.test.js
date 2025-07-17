@@ -114,6 +114,51 @@ describe('run', () => {
     })
   })
 
+  describe('argument validation', () => {
+    test('fails when a required parameter is missing', async () => {
+      command = new DropIndex([])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = ['collectionName']
+
+      // oclif will throw validation error during init() for missing required args
+      await expect(command.init()).rejects.toThrow('Missing 1 required arg')
+
+      expect(mockDropIndex).not.toHaveBeenCalled()
+    })
+
+    test('fails when collection name is empty string', async () => {
+      command = new DropIndex([''])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = ['', 'indexName']
+
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Collection name: Must be a non-empty string')
+
+      expect(mockDropIndex).not.toHaveBeenCalled()
+    })
+
+    test('fails when index name is empty string', async () => {
+      command = new DropIndex([''])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = ['collectionName', '']
+
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Index name: Must be a non-empty string')
+
+      expect(mockDropIndex).not.toHaveBeenCalled()
+    })
+  })
+
   describe('error handling', () => {
     test('connection error without --json flag', async () => {
       command.argv = [collectionName, indexName]

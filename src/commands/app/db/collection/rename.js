@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
+import { isNonEmptyString } from '../../../../utils/inputValidation.js'
 
 export class RenameCollection extends DBBaseCommand {
   async run () {
@@ -77,12 +78,14 @@ RenameCollection.args = {
   currentName: Args.string({
     name: 'currentName',
     description: 'The current name of the collection to rename',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Current collection name')
   }),
   newName: Args.string({
     name: 'newName',
     description: 'The new name for the collection',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'New collection name')
   })
 }
 

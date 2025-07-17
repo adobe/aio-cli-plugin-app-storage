@@ -13,21 +13,13 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
+import { isNonEmptyString } from '../../../../utils/inputValidation.js'
 
 export class DropIndex extends DBBaseCommand {
   async run () {
     const { collectionName, indexName } = this.args
 
-    if (typeof collectionName !== 'string' || collectionName.trim().length === 0) {
-      this.error('Collection name must be a non-empty string')
-    }
-
-    if (typeof indexName !== 'string' || indexName.trim().length === 0) {
-      this.error('Index name must be a non-empty string')
-    }
-
     try {
-      // Validate flags
       this.log(chalk.blue(`Dropping index '${indexName}' from collection '${collectionName}'...`))
 
       const client = await this.db.connect()
@@ -79,12 +71,14 @@ DropIndex.args = {
   collectionName: Args.string({
     name: 'collectionName',
     description: 'The name of the collection to drop the index from',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Collection name')
   }),
   indexName: Args.string({
     name: 'indexName',
     description: 'The name of the index to drop',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Index name')
   })
 }
 
