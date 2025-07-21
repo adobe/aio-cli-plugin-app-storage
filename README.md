@@ -40,7 +40,6 @@ $ aio app db --help
 * [`aio app db collection drop COLLECTIONNAME`](#aio-app-db-collection-drop-collectionname)
 * [`aio app db collection rename CURRENTNAME NEWNAME`](#aio-app-db-collection-rename-currentname-newname)
 * [`aio app db collection stats COLLECTIONNAME`](#aio-app-db-collection-stats-collectionname)
-* [`aio app db collection validate COLLECTIONNAME`](#aio-app-db-collection-validate-collectionname)
 
 ### Index Management
 * [`aio app db collection createIndex COLLECTIONNAME SPECIFICATION`](#aio-app-db-collection-createindex-collectionname-specification)
@@ -335,29 +334,6 @@ EXAMPLES
   $ aio app db collection stats users
 
   $ aio app db collection stats products --json
-```
-
-### `aio app db collection validate COLLECTIONNAME`
-
-Validate a collection in the database
-
-```
-USAGE
-  $ aio app db collection validate COLLECTIONNAME [--json]
-
-ARGUMENTS
-  COLLECTIONNAME  The name of the collection to validate
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Validate a collection in the database
-
-EXAMPLES
-  $ aio app db collection validate users
-
-  $ aio app db collection validate products --json
 ```
 
 ## Index Management
