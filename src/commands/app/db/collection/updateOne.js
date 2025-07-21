@@ -65,8 +65,6 @@ export class UpdateOne extends DBBaseCommand {
       } else {
         this.log(chalk.yellow(`No document found in collection '${collection}' matching the filter`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Matched: ${result.matchedCount}`))
-        this.log(chalk.dim(`   Modified: ${result.modifiedCount}`))
       }
 
       this.log(chalk.dim(`   Updated: ${new Date().toLocaleString()}`))
