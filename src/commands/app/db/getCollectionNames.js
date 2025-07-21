@@ -49,8 +49,8 @@ export class GetCollectionNames extends DBBaseCommand {
 GetCollectionNames.description = 'Get collection names of your App Builder database'
 
 GetCollectionNames.examples = [
-  '$ aio app db GetCollectionNames',
-  '$ aio app db GetCollectionNames --json'
+  '$ aio app db getCollectionNames',
+  '$ aio app db getCollectionNames --json'
 ]
 
 GetCollectionNames.flags = {
@@ -58,3 +58,5 @@ GetCollectionNames.flags = {
 }
 
 GetCollectionNames.args = {}
+
+GetCollectionNames.aliases = ['app:db:show:collections']

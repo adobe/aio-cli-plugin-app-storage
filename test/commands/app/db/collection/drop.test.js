@@ -129,6 +129,36 @@ describe('run', () => {
     })
   })
 
+  describe('missing collection name', () => {
+    test('fails when collection name is missing', async () => {
+      command = new DropCollection([])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = []
+
+      // oclif will throw validation error during init() for missing required args
+      await expect(command.init()).rejects.toThrow('Missing 1 required arg')
+
+      expect(mockDrop).not.toHaveBeenCalled()
+    })
+
+    test('fails when collection name is empty string', async () => {
+      command = new DropCollection([''])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = ['']
+
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Collection name: Must be a non-empty string')
+
+      expect(mockDrop).not.toHaveBeenCalled()
+    })
+  })
+
   describe('collection does not exist', () => {
     test('fails when collection does not exist without --json flag', async () => {
       command.argv = ['users']

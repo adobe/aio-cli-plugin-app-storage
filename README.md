@@ -42,10 +42,14 @@ $ aio app db --help
 * [`aio app db collection stats COLLECTIONNAME`](#aio-app-db-collection-stats-collectionname)
 * [`aio app db collection validate COLLECTIONNAME`](#aio-app-db-collection-validate-collectionname)
 
+### Index Management
+* [`aio app db collection createIndex COLLECTIONNAME SPECIFICATION`](#aio-app-db-collection-createindex-collectionname-specification)
+* [`aio app db collection dropIndex COLLECTIONNAME INDEXNAME`](#aio-app-db-collection-dropindex-collectionname-indexname)
+* [`aio app db collection getIndexes COLLECTIONNAME`](#aio-app-db-collection-getindexes-collectionname)
+
 ### Database Information
 * [`aio app db getCollectionInfos`](#aio-app-db-getcollectioninfos)
 * [`aio app db getCollectionNames`](#aio-app-db-getcollectionnames)
-* [`aio app db show collections`](#aio-app-db-show-collections)
 * [`aio app db stats`](#aio-app-db-stats)
 
 ### Database Management
@@ -251,9 +255,6 @@ DESCRIPTION
 
 For more details, see the [MongoDB Collation Documentation](https://www.mongodb.com/docs/manual/reference/collation/).
 
-ALIASES
-  $ aio db collection create
-
 EXAMPLES
   $ aio app db collection create users
 
@@ -307,9 +308,6 @@ GLOBAL FLAGS
 DESCRIPTION
   Rename a collection in the database
 
-ALIASES
-  $ aio db collection rename
-
 EXAMPLES
   $ aio app db collection rename users customers
 
@@ -332,9 +330,6 @@ GLOBAL FLAGS
 
 DESCRIPTION
   Get statistics for a collection in the database
-
-ALIASES
-  $ aio db collection stats
 
 EXAMPLES
   $ aio app db collection stats users
@@ -359,13 +354,98 @@ GLOBAL FLAGS
 DESCRIPTION
   Validate a collection in the database
 
-ALIASES
-  $ aio db collection validate
-
 EXAMPLES
   $ aio app db collection validate users
 
   $ aio app db collection validate products --json
+```
+
+## Index Management
+
+### `aio app db collection createIndex COLLECTIONNAME SPECIFICATION`
+
+Create an index on a collection in your App Builder database
+
+```
+USAGE
+  $ aio app db collection createIndex COLLECTIONNAME [--spec <index_spec>] [--key <index_key>] [--name <index_name>] [--unique] [--json]
+
+ARGUMENTS
+  COLLECTIONNAME  The name of the collection to create the index on
+
+FLAGS
+  -n, --name=<value>  A name that uniquely identifies the index
+  -u, --unique        Creates a unique index so that the collection will not accept insertion or update of documents where the index key value matches an existing value in the index
+
+GLOBAL FLAGS
+  --json  Format output as json
+
+REQUIRES AT LEAST ONE INDEX DEFINITION FLAGS
+  -k, --key=<value>...   Index key to use with default specification
+  -s, --spec=<value>...  Index specification as a JSON object (e.g., '{"name":1, "age":-1}')
+
+DESCRIPTION
+  Create a new index on a collection in the database
+
+EXAMPLES
+  $ aio app db collection createIndex users --spec '{"name":1, "age":-1}'
+
+  $ aio app db collection createIndex users -s '{"name":1, "age":-1}' --name "name_age_index"
+
+  $ aio app db collection createIndex students -s '{"name":1}' --key grade --unique
+
+  $ aio app db collection createIndex reviews -k sku -k rating
+
+  $ aio app db collection createIndex products -s '{"name":"text", "category":"text"}' --json
+
+  $ aio app db collection createIndex books -s '{"author":1}' -k year
+```
+
+### `aio app db collection dropIndex COLLECTIONNAME INDEXNAME`
+
+Drop an index from a collection in your App Builder database
+
+```
+USAGE
+  $ aio app db collection dropIndex COLLECTIONNAME INDEXNAME [--json]
+
+ARGUMENTS
+  COLLECTIONNAME  The name of the collection to drop the index from
+  INDEXNAME       The name of the index to drop
+
+GLOBAL FLAGS
+  --json  Format output as json
+
+DESCRIPTION
+  Drop an index from a collection in the database
+
+EXAMPLES
+  $ aio app db collection dropIndex users name_age_index
+
+  $ aio app db collection dropIndex products category_1 --json
+```
+
+### `aio app db collection getIndexes COLLECTIONNAME`
+
+Get all indexes for a collection in your App Builder database
+
+```
+USAGE
+  $ aio app db collection getIndexes COLLECTIONNAME [--json]
+
+ARGUMENTS
+  COLLECTIONNAME  The name of the collection to retrieve indexes from
+
+GLOBAL FLAGS
+  --json  Format output as json
+
+DESCRIPTION
+  Get the list of indexes from a collection in the database
+
+EXAMPLES
+  $ aio app db collection getIndexes users
+
+  $ aio app db collection getIndexes products --json
 ```
 
 ## Database Information
@@ -404,30 +484,13 @@ GLOBAL FLAGS
 DESCRIPTION
   Get collection names from your App Builder database
 
+ALIASES
+  $ aio app db show collections
+
 EXAMPLES
   $ aio app db getCollectionNames
 
   $ aio app db getCollectionNames --json
-```
-
-### `aio app db show collections`
-
-Show collection names of your App Builder database (alias for getCollectionNames)
-
-```
-USAGE
-  $ aio app db show collections [--json]
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Show collection names of your App Builder database (alias for getCollectionNames)
-
-EXAMPLES
-  $ aio app db show collections
-
-  $ aio app db show collections --json
 ```
 
 ### `aio app db stats`
