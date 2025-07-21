@@ -42,8 +42,8 @@ export class FindOne extends DBBaseCommand {
 
       const response = {
         collection,
-        filter: filter,
-        projection: projection,
+        filter,
+        projection,
         document: result,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString()
@@ -77,7 +77,6 @@ export class FindOne extends DBBaseCommand {
       this.log(chalk.red('Failed to find document'))
       this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-      this.log(chalk.dim(`${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
       this.error(errorMessage)
     }
   }
@@ -130,19 +129,14 @@ FindOne.flags = {
     parse: (input) => {
       try {
         const parsed = JSON.parse(input)
-
-        // Validate that it's a valid object (not null, not an array)
-        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-          throw new Error('Projection must be a valid JSON object (not null, not an array)')
-        }
-
-        return parsed
       } catch (error) {
-        if (error.message.includes('Projection must be a valid JSON object')) {
-          throw error
-        }
         throw new Error(`Invalid projection JSON: ${error.message}`)
       }
+      // Validate that it's a valid object (not null, not an array)
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new Error('Projection must be a JSON object')
+      }
+      return parsed
     }
   })
 }

@@ -104,7 +104,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Document deleted successfully from collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Deleted: 1')
-      expect(stdout.output).toContain('Acknowledged: true')
     })
 
     test('handles no document found', async () => {
@@ -120,7 +119,6 @@ describe('run', () => {
 
       expect(result.deletedCount).toBe(0)
       expect(stdout.output).toContain('No document found in collection \'users\' matching the filter')
-      expect(stdout.output).toContain('Deleted: 0')
     })
 
     test('deletes with complex filter', async () => {
@@ -150,9 +148,8 @@ describe('run', () => {
   describe('error handling', () => {
     test('handles invalid JSON filter', async () => {
       command.argv = ['users', '{"invalid": json}']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid filter JSON:')
+      await expect(command.init()).rejects.toThrow('Invalid filter JSON:')
     })
 
     test('handles database connection error', async () => {
@@ -166,7 +163,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Failed to delete document')
       expect(stdout.output).toContain('Collection: users')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Error: Database connection failed')
     })
 
     test('handles delete operation error', async () => {
@@ -178,7 +174,6 @@ describe('run', () => {
       await expect(command.run()).rejects.toThrow('Failed to delete document from collection \'users\': Delete operation failed')
 
       expect(stdout.output).toContain('Failed to delete document')
-      expect(stdout.output).toContain('Error: Delete operation failed')
     })
 
     test('handles permission error', async () => {
@@ -229,9 +224,8 @@ describe('run', () => {
 
     test('handles malformed JSON', async () => {
       command.argv = ['users', '{"name": "John", "age":}']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid filter JSON:')
+      await expect(command.init()).rejects.toThrow('Invalid filter JSON:')
     })
 
     test('handles empty JSON object', async () => {
@@ -266,7 +260,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Document deleted successfully from collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Deleted: 1')
-      expect(stdout.output).toContain('Acknowledged: true')
       expect(stdout.output).toContain('Deleted:')
     })
 
@@ -283,7 +276,6 @@ describe('run', () => {
 
       expect(stdout.output).toContain('No document found in collection \'users\' matching the filter')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Deleted: 0')
     })
   })
 

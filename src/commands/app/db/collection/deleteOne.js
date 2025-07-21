@@ -31,7 +31,7 @@ export class DeleteOne extends DBBaseCommand {
 
       const response = {
         collection,
-        filter: filter,
+        filter,
         deletedCount: result.deletedCount,
         acknowledged: result.acknowledged,
         namespace: this.rtNamespace,

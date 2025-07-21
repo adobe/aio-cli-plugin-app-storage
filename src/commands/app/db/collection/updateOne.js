@@ -42,8 +42,8 @@ export class UpdateOne extends DBBaseCommand {
 
       const response = {
         collection,
-        filter: filterObj,
-        update: updateObj,
+        filter,
+        update,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         result

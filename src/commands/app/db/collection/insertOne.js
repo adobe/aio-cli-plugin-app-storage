@@ -42,7 +42,7 @@ export class InsertOne extends DBBaseCommand {
 
       const response = {
         collection,
-        document: documentObj,
+        document,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         result
@@ -93,21 +93,17 @@ InsertOne.args = {
     description: 'The document to insert (JSON string)',
     required: true,
     parse: (input) => {
+      let parsed
       try {
-        const parsed = JSON.parse(input)
-
-        // Validate that it's a valid object (not null, not an array)
-        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-          throw new Error('Document must be a valid JSON object (not null, not an array)')
-        }
-
-        return parsed
+        parsed = JSON.parse(input)
       } catch (error) {
-        if (error.message.includes('Document must be a valid JSON object')) {
-          throw error
-        }
         throw new Error(`Invalid document JSON: ${error.message}`)
       }
+      // Validate that it's a valid object (not null, not an array)
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new Error('Document must be a JSON object (not null, not an array)')
+      }
+      return parsed
     }
   })
 }

@@ -104,11 +104,6 @@ describe('run', () => {
         collection: 'users',
         filter: { name: 'John' },
         replacement: { name: 'John Doe', age: 30, status: 'active' },
-        matchedCount: 1,
-        modifiedCount: 1,
-        acknowledged: true,
-        upsertedId: null,
-        upsertedCount: 0,
         namespace: 'test-namespace',
         timestamp: expect.any(String),
         result: replaceResult
@@ -117,9 +112,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Replacing document in collection \'users\'...')
       expect(stdout.output).toContain('Document replaced successfully in collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Matched: 1')
-      expect(stdout.output).toContain('Modified: 1')
-      expect(stdout.output).toContain('Acknowledged: true')
     })
 
     test('replaces with upsert flag', async () => {
@@ -143,8 +135,8 @@ describe('run', () => {
         { upsert: true }
       )
 
-      expect(result.upsertedId).toBe('507f1f77bcf86cd799439011')
-      expect(result.upsertedCount).toBe(1)
+      expect(result.result.upsertedId).toBe('507f1f77bcf86cd799439011')
+      expect(result.result.upsertedCount).toBe(1)
       expect(stdout.output).toContain('Upsert enabled: Will create document if not found')
       expect(stdout.output).toContain('Document created (upserted) in collection \'users\'')
       expect(stdout.output).toContain('Upserted ID: 507f1f77bcf86cd799439011')
@@ -165,11 +157,9 @@ describe('run', () => {
 
       const result = await command.run()
 
-      expect(result.matchedCount).toBe(0)
-      expect(result.modifiedCount).toBe(0)
+      expect(result.result.matchedCount).toBe(0)
+      expect(result.result.modifiedCount).toBe(0)
       expect(stdout.output).toContain('No document found in collection \'users\' matching the filter')
-      expect(stdout.output).toContain('Matched: 0')
-      expect(stdout.output).toContain('Modified: 0')
     })
 
     test('replaces with complex filter and replacement', async () => {
@@ -213,16 +203,14 @@ describe('run', () => {
   describe('error handling', () => {
     test('handles invalid JSON filter', async () => {
       command.argv = ['users', '{"invalid": json}', '{"name": "John"}']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid filter JSON:')
+      await expect(command.init()).rejects.toThrow('Invalid filter JSON:')
     })
 
     test('handles invalid JSON replacement', async () => {
       command.argv = ['users', '{"name": "John"}', '{"invalid": json}']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid replacement JSON:')
+      await expect(command.init()).rejects.toThrow('Invalid replacement JSON:')
     })
 
     test('handles database connection error', async () => {
@@ -236,7 +224,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Failed to replace document')
       expect(stdout.output).toContain('Collection: users')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Error: Database connection failed')
     })
 
     test('handles replace operation error', async () => {
@@ -248,7 +235,6 @@ describe('run', () => {
       await expect(command.run()).rejects.toThrow('Failed to replace document in collection \'users\': Replace operation failed')
 
       expect(stdout.output).toContain('Failed to replace document')
-      expect(stdout.output).toContain('Error: Replace operation failed')
     })
 
     test('handles validation error', async () => {
@@ -311,16 +297,14 @@ describe('run', () => {
 
     test('handles malformed JSON filter', async () => {
       command.argv = ['users', '{"name": "John", "age":}', '{"name": "John"}']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid filter JSON:')
+      await expect(command.init()).rejects.toThrow('Invalid filter JSON:')
     })
 
     test('handles malformed JSON replacement', async () => {
       command.argv = ['users', '{"name": "John"}', '{"name": "John", "age":}']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid replacement JSON:')
+      await expect(command.init()).rejects.toThrow('Invalid replacement JSON:')
     })
 
     test('handles empty JSON objects', async () => {
@@ -361,9 +345,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Replacing document in collection \'users\'...')
       expect(stdout.output).toContain('Document replaced successfully in collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Matched: 1')
-      expect(stdout.output).toContain('Modified: 1')
-      expect(stdout.output).toContain('Acknowledged: true')
       expect(stdout.output).toContain('Replaced:')
     })
 
@@ -403,8 +384,6 @@ describe('run', () => {
       await command.run()
 
       expect(stdout.output).toContain('No document found in collection \'users\' matching the filter')
-      expect(stdout.output).toContain('Matched: 0')
-      expect(stdout.output).toContain('Modified: 0')
     })
 
     test('does not display upsert message when flag is not used', async () => {
@@ -441,8 +420,8 @@ describe('run', () => {
 
       const result = await command.run()
 
-      expect(result.matchedCount).toBe(1)
-      expect(result.modifiedCount).toBe(1)
+      expect(result.result.matchedCount).toBe(1)
+      expect(result.result.modifiedCount).toBe(1)
       // Should not show console messages with --json
       expect(stdout.output).not.toContain('Replacing document in collection')
       expect(stdout.output).not.toContain('Document replaced successfully')

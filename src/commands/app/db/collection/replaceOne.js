@@ -42,8 +42,8 @@ export class ReplaceOne extends DBBaseCommand {
 
       const response = {
         collection,
-        filter: filterObj,
-        replacement: replacementObj,
+        filter,
+        replacement,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         result

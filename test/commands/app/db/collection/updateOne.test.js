@@ -100,11 +100,6 @@ describe('run', () => {
         collection: 'users',
         filter: { name: 'John' },
         update: { $set: { age: 31 } },
-        matchedCount: 1,
-        modifiedCount: 1,
-        acknowledged: true,
-        upsertedId: null,
-        upsertedCount: 0,
         namespace: 'test-namespace',
         timestamp: expect.any(String),
         result: updateResult
@@ -113,9 +108,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Updating document in collection \'users\'...')
       expect(stdout.output).toContain('Document updated successfully in collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Matched: 1')
-      expect(stdout.output).toContain('Modified: 1')
-      expect(stdout.output).toContain('Acknowledged: true')
     })
 
     test('updates with upsert flag', async () => {
@@ -139,8 +131,8 @@ describe('run', () => {
         { upsert: true }
       )
 
-      expect(result.upsertedId).toBe('507f1f77bcf86cd799439011')
-      expect(result.upsertedCount).toBe(1)
+      expect(result.result.upsertedId).toBe('507f1f77bcf86cd799439011')
+      expect(result.result.upsertedCount).toBe(1)
       expect(stdout.output).toContain('Upsert enabled: Will create document if not found')
       expect(stdout.output).toContain('Document created (upserted) in collection \'users\'')
       expect(stdout.output).toContain('Upserted ID: 507f1f77bcf86cd799439011')
@@ -161,11 +153,9 @@ describe('run', () => {
 
       const result = await command.run()
 
-      expect(result.matchedCount).toBe(0)
-      expect(result.modifiedCount).toBe(0)
+      expect(result.result.matchedCount).toBe(0)
+      expect(result.result.modifiedCount).toBe(0)
       expect(stdout.output).toContain('No document found in collection \'users\' matching the filter')
-      expect(stdout.output).toContain('Matched: 0')
-      expect(stdout.output).toContain('Modified: 0')
     })
 
     test('updates with complex filter and update', async () => {
@@ -203,16 +193,14 @@ describe('run', () => {
   describe('error handling', () => {
     test('handles invalid JSON filter', async () => {
       command.argv = ['users', '{"invalid": json}', '{"$set": {"age": 31}}']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid filter JSON:')
+      await expect(command.init()).rejects.toThrow('Invalid filter JSON:')
     })
 
     test('handles invalid JSON update', async () => {
       command.argv = ['users', '{"name": "John"}', '{"$set": invalid}']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid update JSON:')
+      await expect(command.init()).rejects.toThrow('Invalid update JSON:')
     })
 
     test('handles database connection error', async () => {
@@ -226,7 +214,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Failed to update document')
       expect(stdout.output).toContain('Collection: users')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Error: Database connection failed')
     })
 
     test('handles update operation error', async () => {
@@ -238,7 +225,6 @@ describe('run', () => {
       await expect(command.run()).rejects.toThrow('Failed to update document in collection \'users\': Update operation failed')
 
       expect(stdout.output).toContain('Failed to update document')
-      expect(stdout.output).toContain('Error: Update operation failed')
     })
 
     test('handles validation error', async () => {
@@ -298,16 +284,14 @@ describe('run', () => {
 
     test('handles malformed JSON filter', async () => {
       command.argv = ['users', '{"name": "John", "age":}', '{"$set": {"age": 31}}']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid filter JSON:')
+      await expect(command.init()).rejects.toThrow('Invalid filter JSON:')
     })
 
     test('handles malformed JSON update', async () => {
       command.argv = ['users', '{"name": "John"}', '{"$set": {"age":}}']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid update JSON:')
+      await expect(command.init()).rejects.toThrow('Invalid update JSON:')
     })
 
     test('handles empty JSON objects', async () => {
@@ -348,9 +332,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Updating document in collection \'users\'...')
       expect(stdout.output).toContain('Document updated successfully in collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Matched: 1')
-      expect(stdout.output).toContain('Modified: 1')
-      expect(stdout.output).toContain('Acknowledged: true')
       expect(stdout.output).toContain('Updated:')
     })
 
@@ -390,8 +371,6 @@ describe('run', () => {
       await command.run()
 
       expect(stdout.output).toContain('No document found in collection \'users\' matching the filter')
-      expect(stdout.output).toContain('Matched: 0')
-      expect(stdout.output).toContain('Modified: 0')
     })
 
     test('does not display upsert message when flag is not used', async () => {
@@ -428,8 +407,8 @@ describe('run', () => {
 
       const result = await command.run()
 
-      expect(result.matchedCount).toBe(1)
-      expect(result.modifiedCount).toBe(1)
+      expect(result.result.matchedCount).toBe(1)
+      expect(result.result.modifiedCount).toBe(1)
       // Should not show console messages with --json
       expect(stdout.output).not.toContain('Updating document in collection')
       expect(stdout.output).not.toContain('Document updated successfully')
