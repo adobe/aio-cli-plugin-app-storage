@@ -15,74 +15,64 @@ import { Args } from '@oclif/core'
 import chalk from 'chalk'
 import { isNonEmptyString } from '../../../../utils/inputValidation.js'
 
-export class StatsCollection extends DBBaseCommand {
+export class GetIndexes extends DBBaseCommand {
   async run () {
     const { collectionName } = this.args
 
     try {
-      this.log(chalk.blue(`Getting stats for collection '${collectionName}'...`))
+      this.log(chalk.blue(`Getting indexes from collection '${collectionName}'...`))
 
       const client = await this.db.connect()
+      const collection = await client.collection(collectionName)
 
-      // Get the collection object
-      const collection = client.collection(collectionName)
+      const result = await collection.getIndexes()
 
-      // Get collection-level statistics
-      const stats = await collection.stats()
-
-      this.debugLogger?.info?.('Collection stats retrieved successfully:', stats)
+      this.debugLogger?.info?.('Indexes retrieved successfully:', result)
 
       const response = {
         collectionName,
-        stats,
         namespace: this.rtNamespace,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        indexes: result
       }
 
-      this.log(chalk.green(`Stats for collection '${collectionName}':`))
+      this.log(chalk.green('Indexes retrieved successfully'))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-
-      if (stats && typeof stats === 'object') {
-        // Display stats in a formatted way
-        Object.entries(stats).forEach(([key, value]) => {
-          this.log(chalk.dim(`   ${key}: ${value}`))
-        })
-      }
-
       this.log(chalk.dim(`   Retrieved: ${new Date().toLocaleString()}`))
+      if (result && Array.isArray(result) && result.length > 0) {
+        this.log(chalk.dim(`   Indexes:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
+      } else {
+        this.log(chalk.dim('   No indexes found for this collection'))
+      }
 
       return response
     } catch (error) {
-      this.debugLogger?.error?.('Error getting collection stats:', error)
+      this.debugLogger?.error?.('Error getting indexes:', error)
 
-      const errorMessage = `Failed to get stats for collection '${collectionName}': ${error.message}`
-
-      this.log(chalk.red('Failed to get collection stats'))
+      this.log(chalk.red('Failed to retrieve indexes'))
       this.log(chalk.dim(`   Collection: ${collectionName}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
-      this.error(errorMessage)
+      this.error(`Failed to retrieve indexes from collection '${collectionName}': ${error.message}`)
     }
   }
 }
 
-StatsCollection.description = 'Get statistics for a collection in the database'
+GetIndexes.description = 'Get the list of indexes from a collection in the database'
 
-StatsCollection.examples = [
-  '$ aio app db collection stats users',
-  '$ aio app db collection stats products --json'
+GetIndexes.examples = [
+  '$ aio app db collection getIndexes users',
+  '$ aio app db collection getIndexes products --json'
 ]
 
-StatsCollection.args = {
+GetIndexes.args = {
   collectionName: Args.string({
     name: 'collectionName',
-    description: 'The name of the collection to get stats for',
+    description: 'The name of the collection to retrieve indexes from',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')
   })
 }
 
-StatsCollection.flags = {
-  ...DBBaseCommand.flags
-}
+GetIndexes.flags = DBBaseCommand.flags

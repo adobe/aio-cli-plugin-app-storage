@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
+import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
 
 export class CreateCollection extends DBBaseCommand {
   async run () {
@@ -20,9 +21,6 @@ export class CreateCollection extends DBBaseCommand {
     const { collation, validator } = this.flags
 
     try {
-      // Validate flags
-      this.validateFlags()
-
       this.log(chalk.blue(`Creating collection '${collectionName}'...`))
 
       // Log flag values if set
@@ -52,28 +50,10 @@ export class CreateCollection extends DBBaseCommand {
       // Build collection options
       const options = {}
       if (collation) {
-        // Parse collation if it's a JSON string
-        if (typeof collation === 'string') {
-          try {
-            options.collation = JSON.parse(collation)
-          } catch (error) {
-            this.error(`Invalid collation JSON: ${error.message}`)
-          }
-        } else {
-          options.collation = collation
-        }
+        options.collation = collation
       }
       if (validator) {
-        // Parse validator if it's a JSON string
-        if (typeof validator === 'string') {
-          try {
-            options.validator = JSON.parse(validator)
-          } catch (error) {
-            this.error(`Invalid validator JSON: ${error.message}`)
-          }
-        } else {
-          options.validator = validator
-        }
+        options.validator = validator
       }
 
       // Create the collection
@@ -106,7 +86,7 @@ export class CreateCollection extends DBBaseCommand {
       }
 
       if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-        this.log(chalk.dim(`   Details: ${JSON.stringify(result, null, 2)}`))
+        this.log(chalk.dim(`   Details:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
       }
 
       this.log(chalk.dim(`   Created: ${new Date().toLocaleString()}`))
@@ -125,47 +105,6 @@ export class CreateCollection extends DBBaseCommand {
       this.error(errorMessage)
     }
   }
-
-  /**
-   * Validate flags for collection creation
-   */
-  validateFlags () {
-    const { collation, validator } = this.flags
-
-    // Validate collation if provided
-    if (collation !== undefined) {
-      if (typeof collation === 'string') {
-        if (collation.trim().length === 0) {
-          this.error('Invalid collation JSON')
-        }
-        try {
-          // Try to parse as JSON to validate format
-          JSON.parse(collation)
-        } catch (error) {
-          this.error(`Invalid collation JSON: ${error.message}`)
-        }
-      } else if (typeof collation !== 'object' || collation === null) {
-        this.error('Collation must be a valid JSON string or object')
-      }
-    }
-
-    // Validate validator if provided
-    if (validator !== undefined) {
-      if (typeof validator === 'string') {
-        if (validator.trim().length === 0) {
-          this.error('Invalid validator JSON')
-        }
-        try {
-          // Try to parse as JSON to validate format
-          JSON.parse(validator)
-        } catch (error) {
-          this.error(`Invalid validator JSON: ${error.message}`)
-        }
-      } else if (typeof validator !== 'object' || validator === null) {
-        this.error('Validator must be a valid JSON string or object')
-      }
-    }
-  }
 }
 
 CreateCollection.description = 'Create a new collection in the database'
@@ -182,7 +121,8 @@ CreateCollection.args = {
   collectionName: Args.string({
     name: 'collectionName',
     description: 'The name of the collection to create',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Collection name')
   })
 }
 
@@ -190,10 +130,12 @@ CreateCollection.flags = {
   ...DBBaseCommand.flags,
   collation: Flags.string({
     char: 'c',
-    description: 'Collation document for text comparison and sorting (JSON string, e.g., \'{"locale": "en_US", "strength": 1}\')'
+    description: 'Collation document for text comparison and sorting (JSON string, e.g., \'{"locale": "en_US", "strength": 1}\')',
+    parse: input => asObject(input, 'Collation')
   }),
   validator: Flags.string({
     char: 'v',
-    description: 'JSON schema validator for document validation (JSON string)'
+    description: 'JSON schema validator for document validation (JSON string)',
+    parse: input => asObject(input, 'Validator')
   })
 }

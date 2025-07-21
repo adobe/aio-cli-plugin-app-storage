@@ -133,6 +133,51 @@ describe('run', () => {
     })
   })
 
+  describe('required argument validation', () => {
+    test('fails when one argument is missing', async () => {
+      command = new RenameCollection([])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = ['collectionName']
+
+      // oclif will throw validation error during init() for missing required args
+      await expect(command.init()).rejects.toThrow('Missing 1 required arg')
+
+      expect(mockRenameCollection).not.toHaveBeenCalled()
+    })
+
+    test('fails when source collection name is empty string', async () => {
+      command = new RenameCollection([''])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = ['', 'newCollectionName']
+
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Current collection name: Must be a non-empty string')
+
+      expect(mockRenameCollection).not.toHaveBeenCalled()
+    })
+
+    test('fails when destination collection name is empty string', async () => {
+      command = new RenameCollection([''])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = ['sourceCollectionName', '']
+
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('New collection name: Must be a non-empty string')
+
+      expect(mockRenameCollection).not.toHaveBeenCalled()
+    })
+  })
+
   describe('rename errors', () => {
     test('fails when current collection does not exist without --json flag', async () => {
       command.argv = ['users', 'customers']

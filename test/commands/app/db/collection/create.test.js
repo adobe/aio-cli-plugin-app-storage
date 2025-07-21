@@ -265,14 +265,32 @@ describe('run', () => {
       expect(mockListCollections).not.toHaveBeenCalled()
       expect(mockCreateCollection).not.toHaveBeenCalled()
     })
+
+    test('fails when collection name is empty string', async () => {
+      command = new CreateCollection([''])
+      command.config = {
+        runHook: jest.fn().mockResolvedValue({})
+      }
+      command.argv = ['']
+
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Collection name: Must be a non-empty string')
+
+      expect(mockListCollections).not.toHaveBeenCalled()
+      expect(mockCreateCollection).not.toHaveBeenCalled()
+    })
   })
 
   describe('flag validation', () => {
     test('fails with empty collation', async () => {
       command.argv = ['users', '--collation', '']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid collation JSON')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('is not a JSON object')
 
       expect(mockListCollections).not.toHaveBeenCalled()
       expect(mockCreateCollection).not.toHaveBeenCalled()
@@ -280,9 +298,11 @@ describe('run', () => {
 
     test('fails with invalid collation JSON', async () => {
       command.argv = ['users', '--collation', 'invalid-json']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid collation JSON')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Collation: JSON parse error:')
 
       expect(mockListCollections).not.toHaveBeenCalled()
       expect(mockCreateCollection).not.toHaveBeenCalled()
@@ -290,9 +310,11 @@ describe('run', () => {
 
     test('fails with invalid validator JSON', async () => {
       command.argv = ['users', '--validator', 'invalid-json']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid validator JSON')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Validator: JSON parse error:')
 
       expect(mockListCollections).not.toHaveBeenCalled()
       expect(mockCreateCollection).not.toHaveBeenCalled()
@@ -300,9 +322,11 @@ describe('run', () => {
 
     test('fails with empty validator JSON', async () => {
       command.argv = ['users', '--validator', '']
-      await command.init()
 
-      await expect(command.run()).rejects.toThrow('Invalid validator JSON')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('is not a JSON object')
 
       expect(mockListCollections).not.toHaveBeenCalled()
       expect(mockCreateCollection).not.toHaveBeenCalled()

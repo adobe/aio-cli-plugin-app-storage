@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
+import { isNonEmptyString } from '../../../../utils/inputValidation.js'
 
 export class RenameCollection extends DBBaseCommand {
   async run () {
@@ -44,7 +45,7 @@ export class RenameCollection extends DBBaseCommand {
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
       if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-        this.log(chalk.dim(`   Details: ${JSON.stringify(result, null, 2)}`))
+        this.log(chalk.dim(`   Details:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
       }
 
       this.log(chalk.dim(`   Renamed: ${new Date().toLocaleString()}`))
@@ -77,17 +78,17 @@ RenameCollection.args = {
   currentName: Args.string({
     name: 'currentName',
     description: 'The current name of the collection to rename',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Current collection name')
   }),
   newName: Args.string({
     name: 'newName',
     description: 'The new name for the collection',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'New collection name')
   })
 }
 
 RenameCollection.flags = {
   ...DBBaseCommand.flags
 }
-
-RenameCollection.aliases = ['db:collection:rename']

@@ -15,72 +15,71 @@ import { Args } from '@oclif/core'
 import chalk from 'chalk'
 import { isNonEmptyString } from '../../../../utils/inputValidation.js'
 
-export class DropCollection extends DBBaseCommand {
+export class DropIndex extends DBBaseCommand {
   async run () {
-    const { collectionName } = this.args
+    const { collectionName, indexName } = this.args
 
     try {
-      this.log(chalk.blue(`Dropping collection '${collectionName}'...`))
+      this.log(chalk.blue(`Dropping index '${indexName}' from collection '${collectionName}'...`))
 
       const client = await this.db.connect()
+      const collection = await client.collection(collectionName)
 
-      // Get the collection object
-      const collection = client.collection(collectionName)
+      const result = await collection.dropIndex(indexName)
 
-      // Drop collection
-      const result = await collection.drop()
-
-      this.debugLogger?.info?.('Collection dropped successfully:', result)
+      this.debugLogger?.info?.('Index dropped successfully:', result)
 
       const response = {
         collectionName,
+        indexName,
         status: 'dropped',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         result
       }
 
-      this.log(chalk.green(`Collection '${collectionName}' dropped successfully`))
-      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-
+      this.log(chalk.green(`Index '${indexName}' dropped successfully`))
       if (result && typeof result === 'object' && Object.keys(result).length > 0) {
         this.log(chalk.dim(`   Details:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
       }
-
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Dropped: ${new Date().toLocaleString()}`))
 
       return response
     } catch (error) {
-      this.debugLogger?.error?.('Error dropping collection:', error)
+      this.debugLogger?.error?.('Error dropping index:', error)
 
-      const errorMessage = `Failed to drop collection '${collectionName}': ${error.message}`
-
-      this.log(chalk.red('Failed to drop collection'))
+      this.log(chalk.red('Failed to drop index'))
       this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Index: ${indexName}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
-      this.error(errorMessage)
+      this.error(`Failed to drop index '${indexName}' from collection '${collectionName}': ${error.message}`)
     }
   }
 }
 
-DropCollection.description = 'Drop a collection from the database'
+DropIndex.description = 'Drop an index from a collection in the database'
 
-DropCollection.examples = [
-  '$ aio app db collection drop users',
-  '$ aio app db collection drop products --json'
+DropIndex.examples = [
+  '$ aio app db collection dropIndex users name_age_index',
+  '$ aio app db collection dropIndex products category_1 --json'
 ]
 
-DropCollection.args = {
+DropIndex.args = {
   collectionName: Args.string({
     name: 'collectionName',
-    description: 'The name of the collection to drop',
+    description: 'The name of the collection to drop the index from',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')
+  }),
+  indexName: Args.string({
+    name: 'indexName',
+    description: 'The name of the index to drop',
+    required: true,
+    parse: input => isNonEmptyString(input, 'Index name')
   })
 }
 
-DropCollection.flags = {
-  ...DBBaseCommand.flags
-}
+DropIndex.flags = DBBaseCommand.flags

@@ -47,7 +47,7 @@ export class Status extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Status command error:', error)
 
-      if (error.message?.toLowerCase().includes('not found') || error.message?.includes('404')) {
+      if (error.httpStatusCode === 404) {
         this.log(chalk.yellow('No database has been provisioned for this workspace'))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
         this.log(chalk.dim(`   Status: ${DB_STATUS.NOT_PROVISIONED}`))
