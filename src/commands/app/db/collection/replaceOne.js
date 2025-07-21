@@ -103,19 +103,14 @@ ReplaceOne.args = {
     parse: (input) => {
       try {
         const parsed = JSON.parse(input)
-
-        // Validate that it's a valid object (not null, not an array)
-        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-          throw new Error('Filter must be a valid JSON object (not null, not an array)')
-        }
-
-        return parsed
       } catch (error) {
-        if (error.message.includes('Filter must be a valid JSON object')) {
-          throw error
-        }
         throw new Error(`Invalid filter JSON: ${error.message}`)
       }
+      // Validate that it's a valid object (not null, not an array)
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new Error('Filter must be a JSON object')
+      }
+      return parsed
     }
   }),
   replacement: Args.string({
