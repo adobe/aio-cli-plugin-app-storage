@@ -20,22 +20,6 @@ export class UpdateOne extends DBBaseCommand {
     const { upsert } = this.flags
 
     try {
-      // Parse filter JSON
-      let filterObj
-      try {
-        filterObj = JSON.parse(filter)
-      } catch (error) {
-        this.error(`Invalid filter JSON: ${error.message}`)
-      }
-
-      // Parse update JSON
-      let updateObj
-      try {
-        updateObj = JSON.parse(update)
-      } catch (error) {
-        this.error(`Invalid update JSON: ${error.message}`)
-      }
-
       this.log(chalk.blue(`Updating document in collection '${collection}'...`))
 
       if (upsert) {
@@ -52,7 +36,7 @@ export class UpdateOne extends DBBaseCommand {
       }
 
       // Update the document
-      const result = await coll.updateOne(filterObj, updateObj, options)
+      const result = await coll.updateOne(filter, update, options)
 
       this.debugLogger?.info?.('Document updated successfully:', result)
 
@@ -60,11 +44,6 @@ export class UpdateOne extends DBBaseCommand {
         collection,
         filter: filterObj,
         update: updateObj,
-        matchedCount: result.matchedCount,
-        modifiedCount: result.modifiedCount,
-        acknowledged: result.acknowledged,
-        upsertedId: result.upsertedId,
-        upsertedCount: result.upsertedCount,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         result
@@ -100,7 +79,6 @@ export class UpdateOne extends DBBaseCommand {
       this.log(chalk.red('Failed to update document'))
       this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(errorMessage)
     }
@@ -125,12 +103,46 @@ UpdateOne.args = {
   filter: Args.string({
     name: 'filter',
     description: 'The filter document (JSON string)',
-    required: true
+    required: true,
+    parse: (input) => {
+      try {
+        const parsed = JSON.parse(input)
+
+        // Validate that it's a valid object (not null, not an array)
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          throw new Error('Filter must be a valid JSON object (not null, not an array)')
+        }
+
+        return parsed
+      } catch (error) {
+        if (error.message.includes('Filter must be a valid JSON object')) {
+          throw error
+        }
+        throw new Error(`Invalid filter JSON: ${error.message}`)
+      }
+    }
   }),
   update: Args.string({
     name: 'update',
     description: 'The update document (JSON string)',
-    required: true
+    required: true,
+    parse: (input) => {
+      try {
+        const parsed = JSON.parse(input)
+
+        // Validate that it's a valid object (not null, not an array)
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          throw new Error('Update must be a valid JSON object (not null, not an array)')
+        }
+
+        return parsed
+      } catch (error) {
+        if (error.message.includes('Update must be a valid JSON object')) {
+          throw error
+        }
+        throw new Error(`Invalid update JSON: ${error.message}`)
+      }
+    }
   })
 }
 

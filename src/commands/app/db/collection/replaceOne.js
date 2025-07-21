@@ -20,22 +20,6 @@ export class ReplaceOne extends DBBaseCommand {
     const { upsert } = this.flags
 
     try {
-      // Parse filter JSON
-      let filterObj
-      try {
-        filterObj = JSON.parse(filter)
-      } catch (error) {
-        this.error(`Invalid filter JSON: ${error.message}`)
-      }
-
-      // Parse replacement JSON
-      let replacementObj
-      try {
-        replacementObj = JSON.parse(replacement)
-      } catch (error) {
-        this.error(`Invalid replacement JSON: ${error.message}`)
-      }
-
       this.log(chalk.blue(`Replacing document in collection '${collection}'...`))
 
       if (upsert) {
@@ -52,7 +36,7 @@ export class ReplaceOne extends DBBaseCommand {
       }
 
       // Replace the document
-      const result = await coll.replaceOne(filterObj, replacementObj, options)
+      const result = await coll.replaceOne(filter, replacement, options)
 
       this.debugLogger?.info?.('Document replaced successfully:', result)
 
@@ -60,11 +44,6 @@ export class ReplaceOne extends DBBaseCommand {
         collection,
         filter: filterObj,
         replacement: replacementObj,
-        matchedCount: result.matchedCount,
-        modifiedCount: result.modifiedCount,
-        acknowledged: result.acknowledged,
-        upsertedId: result.upsertedId,
-        upsertedCount: result.upsertedCount,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         result
@@ -73,8 +52,6 @@ export class ReplaceOne extends DBBaseCommand {
       if (result.matchedCount > 0) {
         this.log(chalk.green(`Document replaced successfully in collection '${collection}'`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Matched: ${result.matchedCount}`))
-        this.log(chalk.dim(`   Modified: ${result.modifiedCount}`))
         this.log(chalk.dim(`   Acknowledged: ${result.acknowledged}`))
       } else if (upsert && result.upsertedId) {
         this.log(chalk.green(`Document created (upserted) in collection '${collection}'`))
@@ -85,8 +62,6 @@ export class ReplaceOne extends DBBaseCommand {
       } else {
         this.log(chalk.yellow(`No document found in collection '${collection}' matching the filter`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Matched: ${result.matchedCount}`))
-        this.log(chalk.dim(`   Modified: ${result.modifiedCount}`))
       }
 
       this.log(chalk.dim(`   Replaced: ${new Date().toLocaleString()}`))
@@ -100,7 +75,6 @@ export class ReplaceOne extends DBBaseCommand {
       this.log(chalk.red('Failed to replace document'))
       this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(errorMessage)
     }
@@ -125,12 +99,46 @@ ReplaceOne.args = {
   filter: Args.string({
     name: 'filter',
     description: 'The filter document (JSON string)',
-    required: true
+    required: true,
+    parse: (input) => {
+      try {
+        const parsed = JSON.parse(input)
+
+        // Validate that it's a valid object (not null, not an array)
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          throw new Error('Filter must be a valid JSON object (not null, not an array)')
+        }
+
+        return parsed
+      } catch (error) {
+        if (error.message.includes('Filter must be a valid JSON object')) {
+          throw error
+        }
+        throw new Error(`Invalid filter JSON: ${error.message}`)
+      }
+    }
   }),
   replacement: Args.string({
     name: 'replacement',
     description: 'The replacement document (JSON string)',
-    required: true
+    required: true,
+    parse: (input) => {
+      try {
+        const parsed = JSON.parse(input)
+
+        // Validate that it's a valid object (not null, not an array)
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          throw new Error('Replacement must be a valid JSON object (not null, not an array)')
+        }
+
+        return parsed
+      } catch (error) {
+        if (error.message.includes('Replacement must be a valid JSON object')) {
+          throw error
+        }
+        throw new Error(`Invalid replacement JSON: ${error.message}`)
+      }
+    }
   })
 }
 

@@ -19,27 +19,19 @@ export class DeleteOne extends DBBaseCommand {
     const { collection, filter } = this.args
 
     try {
-      // Parse filter JSON
-      let filterObj
-      try {
-        filterObj = JSON.parse(filter)
-      } catch (error) {
-        this.error(`Invalid filter JSON: ${error.message}`)
-      }
-
       this.log(chalk.blue(`Deleting document from collection '${collection}'...`))
 
       const client = await this.db.connect()
       const coll = client.collection(collection)
 
       // Delete the document
-      const result = await coll.deleteOne(filterObj)
+      const result = await coll.deleteOne(filter)
 
       this.debugLogger?.info?.('Document deleted successfully:', result)
 
       const response = {
         collection,
-        filter: filterObj,
+        filter: filter,
         deletedCount: result.deletedCount,
         acknowledged: result.acknowledged,
         namespace: this.rtNamespace,
@@ -50,12 +42,9 @@ export class DeleteOne extends DBBaseCommand {
       if (result.deletedCount > 0) {
         this.log(chalk.green(`Document deleted successfully from collection '${collection}'`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Deleted: ${result.deletedCount}`))
-        this.log(chalk.dim(`   Acknowledged: ${result.acknowledged}`))
       } else {
         this.log(chalk.yellow(`No document found in collection '${collection}' matching the filter`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Deleted: ${result.deletedCount}`))
       }
 
       this.log(chalk.dim(`   Deleted: ${new Date().toLocaleString()}`))
@@ -69,7 +58,6 @@ export class DeleteOne extends DBBaseCommand {
       this.log(chalk.red('Failed to delete document'))
       this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(errorMessage)
     }
@@ -94,7 +82,24 @@ DeleteOne.args = {
   filter: Args.string({
     name: 'filter',
     description: 'The filter document (JSON string)',
-    required: true
+    required: true,
+    parse: (input) => {
+      try {
+        const parsed = JSON.parse(input)
+
+        // Validate that it's a valid object (not null, not an array)
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          throw new Error('Filter must be a valid JSON object (not null, not an array)')
+        }
+
+        return parsed
+      } catch (error) {
+        if (error.message.includes('Filter must be a valid JSON object')) {
+          throw error
+        }
+        throw new Error(`Invalid filter JSON: ${error.message}`)
+      }
+    }
   })
 }
 

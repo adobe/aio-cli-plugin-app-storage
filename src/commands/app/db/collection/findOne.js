@@ -20,28 +20,10 @@ export class FindOne extends DBBaseCommand {
     const { projection } = this.flags
 
     try {
-      // Parse filter JSON
-      let filterObj
-      try {
-        filterObj = JSON.parse(filter)
-      } catch (error) {
-        this.error(`Invalid filter JSON: ${error.message}`)
-      }
-
-      // Parse projection JSON if provided
-      let projectionObj
-      if (projection) {
-        try {
-          projectionObj = JSON.parse(projection)
-        } catch (error) {
-          this.error(`Invalid projection JSON: ${error.message}`)
-        }
-      }
-
       this.log(chalk.blue(`Finding document in collection '${collection}'...`))
 
       if (projection) {
-        this.log(chalk.dim(`   Using projection: ${projection}`))
+        this.log(chalk.dim(`   Using projection: ${JSON.stringify(projection)}`))
       }
 
       const client = await this.db.connect()
@@ -49,19 +31,19 @@ export class FindOne extends DBBaseCommand {
 
       // Build options
       const options = {}
-      if (projectionObj) {
-        options.projection = projectionObj
+      if (projection) {
+        options.projection = projection
       }
 
       // Find the document
-      const result = await coll.findOne(filterObj, options)
+      const result = await coll.findOne(filter, options)
 
       this.debugLogger?.info?.('Document found:', result)
 
       const response = {
         collection,
-        filter: filterObj,
-        projection: projectionObj,
+        filter: filter,
+        projection: projection,
         document: result,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString()
@@ -77,7 +59,7 @@ export class FindOne extends DBBaseCommand {
 
         if (!this.flags.json) {
           this.log(chalk.dim('   Document:'))
-          this.log(chalk.dim(`     ${JSON.stringify(result, null, 2)}`))
+          this.log(chalk.dim(`${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
         }
       } else {
         this.log(chalk.yellow(`No document found in collection '${collection}' matching the filter`))
@@ -95,8 +77,7 @@ export class FindOne extends DBBaseCommand {
       this.log(chalk.red('Failed to find document'))
       this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-      this.log(chalk.dim(`   Error: ${error.message}`))
-
+      this.log(chalk.dim(`${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
       this.error(errorMessage)
     }
   }
@@ -120,7 +101,24 @@ FindOne.args = {
   filter: Args.string({
     name: 'filter',
     description: 'The filter document (JSON string)',
-    required: true
+    required: true,
+    parse: (input) => {
+      try {
+        const parsed = JSON.parse(input)
+
+        // Validate that it's a valid object (not null, not an array)
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          throw new Error('Filter must be a valid JSON object (not null, not an array)')
+        }
+
+        return parsed
+      } catch (error) {
+        if (error.message.includes('Filter must be a valid JSON object')) {
+          throw error
+        }
+        throw new Error(`Invalid filter JSON: ${error.message}`)
+      }
+    }
   })
 }
 
@@ -128,6 +126,23 @@ FindOne.flags = {
   ...DBBaseCommand.flags,
   projection: Flags.string({
     char: 'p',
-    description: 'The fields to return (JSON string, e.g., \'{"name": 1, "_id": 0}\')'
+    description: 'The fields to return (JSON string, e.g., \'{"name": 1, "_id": 0}\')',
+    parse: (input) => {
+      try {
+        const parsed = JSON.parse(input)
+
+        // Validate that it's a valid object (not null, not an array)
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          throw new Error('Projection must be a valid JSON object (not null, not an array)')
+        }
+
+        return parsed
+      } catch (error) {
+        if (error.message.includes('Projection must be a valid JSON object')) {
+          throw error
+        }
+        throw new Error(`Invalid projection JSON: ${error.message}`)
+      }
+    }
   })
 }

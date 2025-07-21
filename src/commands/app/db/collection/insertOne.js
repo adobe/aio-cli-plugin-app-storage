@@ -20,14 +20,6 @@ export class InsertOne extends DBBaseCommand {
     const { bypassDocumentValidation } = this.flags
 
     try {
-      // Parse document JSON
-      let documentObj
-      try {
-        documentObj = JSON.parse(document)
-      } catch (error) {
-        this.error(`Invalid document JSON: ${error.message}`)
-      }
-
       this.log(chalk.blue(`Inserting document into collection '${collection}'...`))
 
       if (bypassDocumentValidation) {
@@ -44,15 +36,13 @@ export class InsertOne extends DBBaseCommand {
       }
 
       // Insert the document
-      const result = await coll.insertOne(documentObj, options)
+      const result = await coll.insertOne(document, options)
 
       this.debugLogger?.info?.('Document inserted successfully:', result)
 
       const response = {
         collection,
         document: documentObj,
-        insertedId: result.insertedId,
-        acknowledged: result.acknowledged,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         result
@@ -78,7 +68,6 @@ export class InsertOne extends DBBaseCommand {
       this.log(chalk.red('Failed to insert document'))
       this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-      this.log(chalk.dim(`   Error: ${error.message}`))
 
       this.error(errorMessage)
     }
@@ -102,7 +91,24 @@ InsertOne.args = {
   document: Args.string({
     name: 'document',
     description: 'The document to insert (JSON string)',
-    required: true
+    required: true,
+    parse: (input) => {
+      try {
+        const parsed = JSON.parse(input)
+
+        // Validate that it's a valid object (not null, not an array)
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          throw new Error('Document must be a valid JSON object (not null, not an array)')
+        }
+
+        return parsed
+      } catch (error) {
+        if (error.message.includes('Document must be a valid JSON object')) {
+          throw error
+        }
+        throw new Error(`Invalid document JSON: ${error.message}`)
+      }
+    }
   })
 }
 
