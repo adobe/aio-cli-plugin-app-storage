@@ -50,11 +50,12 @@ export class UpdateOne extends DBBaseCommand {
       }
 
       if (result.matchedCount > 0) {
-        this.log(chalk.green(`Document updated successfully in collection '${collection}'`))
+        if (result.modifiedCount > 0) {
+          this.log(chalk.green(`Document updated successfully in collection '${collection}'`))
+        } else {
+          this.log(chalk.green(`Matching document found in collection '${collection}', but no update was necessary`))
+        }
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Matched: ${result.matchedCount}`))
-        this.log(chalk.dim(`   Modified: ${result.modifiedCount}`))
-        this.log(chalk.dim(`   Acknowledged: ${result.acknowledged}`))
       } else if (upsert && result.upsertedId) {
         this.log(chalk.green(`Document created (upserted) in collection '${collection}'`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
