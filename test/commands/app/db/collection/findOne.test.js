@@ -174,13 +174,19 @@ describe('run', () => {
     test('handles invalid JSON filter', async () => {
       command.argv = ['users', '{"invalid": json}']
 
-      await expect(command.init()).rejects.toThrow('Invalid filter JSON:')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('JSON parse error:')
     })
 
     test('handles invalid JSON projection', async () => {
       command.argv = ['users', '{"name": "John"}', '--projection', '{"invalid": json}']
 
-      await expect(command.init()).rejects.toThrow('Invalid projection JSON:')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('JSON parse error:')
     })
 
     test('handles database connection error', async () => {
@@ -212,7 +218,10 @@ describe('run', () => {
     test('handles invalid projection format', async () => {
       command.argv = ['users', '{"name": "John"}', '--projection', 'invalid']
 
-      await expect(command.init()).rejects.toThrow('Invalid projection JSON:')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('JSON parse error:')
     })
   })
 

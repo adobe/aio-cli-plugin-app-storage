@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
+import { asObject } from '../../../../utils/inputValidation.js'
 
 export class ReplaceOne extends DBBaseCommand {
   async run () {
@@ -98,37 +99,13 @@ ReplaceOne.args = {
     name: 'filter',
     description: 'The filter document (JSON string)',
     required: true,
-    parse: (input) => {
-      let parsed
-      try {
-        parsed = JSON.parse(input)
-      } catch (error) {
-        throw new Error(`Invalid filter JSON: ${error.message}`)
-      }
-      // Validate that it's a valid object (not null, not an array)
-      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        throw new Error('Filter must be a valid JSON object (not null, not an array)')
-      }
-      return parsed
-    }
+    parse: input => asObject(input, 'Filter')
   }),
   replacement: Args.string({
     name: 'replacement',
     description: 'The replacement document (JSON string)',
     required: true,
-    parse: (input) => {
-      let parsed
-      try {
-        parsed = JSON.parse(input)
-      } catch (error) {
-        throw new Error(`Invalid replacement JSON: ${error.message}`)
-      }
-      // Validate that it's a valid object (not null, not an array)
-      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        throw new Error('Replacement must be a valid JSON object (not null, not an array)')
-      }
-      return parsed
-    }
+    parse: input => asObject(input, 'Replacement')
   })
 }
 

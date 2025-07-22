@@ -167,7 +167,10 @@ describe('run', () => {
     test('handles invalid JSON document', async () => {
       command.argv = ['users', '{"invalid": json}']
 
-      await expect(command.init()).rejects.toThrow('Invalid document JSON:')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Document: JSON parse error:')
     })
 
     test('handles database connection error', async () => {
@@ -247,7 +250,10 @@ describe('run', () => {
     test('handles malformed JSON', async () => {
       command.argv = ['users', '{"name": "John", "age":}']
 
-      await expect(command.init()).rejects.toThrow('Invalid document JSON:')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('JSON parse error:')
     })
 
     test('handles empty JSON object', async () => {

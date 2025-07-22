@@ -194,13 +194,19 @@ describe('run', () => {
     test('handles invalid JSON filter', async () => {
       command.argv = ['users', '{"invalid": json}', '{"$set": {"age": 31}}']
 
-      await expect(command.init()).rejects.toThrow('Invalid filter JSON:')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('JSON parse error:')
     })
 
     test('handles invalid JSON update', async () => {
       command.argv = ['users', '{"name": "John"}', '{"$set": invalid}']
 
-      await expect(command.init()).rejects.toThrow('Invalid update JSON:')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('JSON parse error:')
     })
 
     test('handles database connection error', async () => {
@@ -285,13 +291,19 @@ describe('run', () => {
     test('handles malformed JSON filter', async () => {
       command.argv = ['users', '{"name": "John", "age":}', '{"$set": {"age": 31}}']
 
-      await expect(command.init()).rejects.toThrow('Invalid filter JSON:')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('JSON parse error:')
     })
 
     test('handles malformed JSON update', async () => {
       command.argv = ['users', '{"name": "John"}', '{"$set": {"age":}}']
 
-      await expect(command.init()).rejects.toThrow('Invalid update JSON:')
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('JSON parse error:')
     })
 
     test('handles empty JSON objects', async () => {

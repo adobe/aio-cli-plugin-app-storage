@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
+import { asObject } from '../../../../utils/inputValidation.js'
 
 export class InsertOne extends DBBaseCommand {
   async run () {
@@ -91,19 +92,7 @@ InsertOne.args = {
     name: 'document',
     description: 'The document to insert (JSON string)',
     required: true,
-    parse: (input) => {
-      let parsed
-      try {
-        parsed = JSON.parse(input)
-      } catch (error) {
-        throw new Error(`Invalid document JSON: ${error.message}`)
-      }
-      // Validate that it's a valid object (not null, not an array)
-      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        throw new Error('Document must be a JSON object (not null, not an array)')
-      }
-      return parsed
-    }
+    parse: input => asObject(input, 'Document')
   })
 }
 
