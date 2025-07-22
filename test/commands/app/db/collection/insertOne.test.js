@@ -284,7 +284,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Document inserted successfully into collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Inserted ID: 507f1f77bcf86cd799439011')
-      expect(stdout.output).toContain('Acknowledged: true')
     })
 
     test('displays validation bypass message when flag is used', async () => {

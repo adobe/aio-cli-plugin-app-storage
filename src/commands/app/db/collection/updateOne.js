@@ -61,7 +61,6 @@ export class UpdateOne extends DBBaseCommand {
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
         this.log(chalk.dim(`   Upserted ID: ${result.upsertedId}`))
         this.log(chalk.dim(`   Upserted count: ${result.upsertedCount}`))
-        this.log(chalk.dim(`   Acknowledged: ${result.acknowledged}`))
       } else {
         this.log(chalk.yellow(`No document found in collection '${collection}' matching the filter`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
@@ -126,14 +125,15 @@ UpdateOne.args = {
     description: 'The update document (JSON string)',
     required: true,
     parse: (input) => {
+      let parsed
       try {
-        const parsed = JSON.parse(input)
+        parsed = JSON.parse(input)
       } catch (error) {
         throw new Error(`Invalid update JSON: ${error.message}`)
       }
       // Validate that it's a valid object (not null, not an array)
       if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        throw new Error('Update must be a JSON object')
+        throw new Error('Update must be a valid JSON object (not null, not an array)')
       }
       return parsed
     }

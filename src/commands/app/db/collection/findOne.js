@@ -102,14 +102,15 @@ FindOne.args = {
     description: 'The filter document (JSON string)',
     required: true,
     parse: (input) => {
+      let parsed
       try {
-        const parsed = JSON.parse(input)
+        parsed = JSON.parse(input)
       } catch (error) {
         throw new Error(`Invalid filter JSON: ${error.message}`)
       }
       // Validate that it's a valid object (not null, not an array)
       if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        throw new Error('Filter must be a JSON object')
+        throw new Error('Filter must be a valid JSON object (not null, not an array)')
       }
       return parsed
     }
@@ -122,14 +123,15 @@ FindOne.flags = {
     char: 'p',
     description: 'The fields to return (JSON string, e.g., \'{"name": 1, "_id": 0}\')',
     parse: (input) => {
+      let parsed
       try {
-        const parsed = JSON.parse(input)
+        parsed = JSON.parse(input)
       } catch (error) {
         throw new Error(`Invalid projection JSON: ${error.message}`)
       }
       // Validate that it's a valid object (not null, not an array)
       if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        throw new Error('Projection must be a JSON object')
+        throw new Error('Projection must be a valid JSON object (not null, not an array)')
       }
       return parsed
     }

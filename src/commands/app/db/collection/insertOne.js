@@ -51,7 +51,6 @@ export class InsertOne extends DBBaseCommand {
       this.log(chalk.green(`Document inserted successfully into collection '${collection}'`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Inserted ID: ${result.insertedId}`))
-      this.log(chalk.dim(`   Acknowledged: ${result.acknowledged}`))
 
       if (bypassDocumentValidation) {
         this.log(chalk.dim('   Validation bypassed: Yes'))
