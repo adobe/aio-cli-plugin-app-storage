@@ -40,7 +40,6 @@ $ aio app db --help
 * [`aio app db collection drop COLLECTIONNAME`](#aio-app-db-collection-drop-collectionname)
 * [`aio app db collection rename CURRENTNAME NEWNAME`](#aio-app-db-collection-rename-currentname-newname)
 * [`aio app db collection stats COLLECTIONNAME`](#aio-app-db-collection-stats-collectionname)
-* [`aio app db collection validate COLLECTIONNAME`](#aio-app-db-collection-validate-collectionname)
 
 ### Document Operations
 * [`aio app db collection insertOne COLLECTION DOCUMENT`](#aio-app-db-collection-insertone-collection-document)
@@ -243,13 +242,12 @@ Create a new collection in the database
 
 ```
 USAGE
-  $ aio app db collection create COLLECTIONNAME [--json] [-c <value>] [-v <value>]
+  $ aio app db collection create COLLECTIONNAME [--json] [-v <value>]
 
 ARGUMENTS
   COLLECTIONNAME  The name of the collection to create
 
 FLAGS
-  -c, --collation=<value>  Collation document for text comparison and sorting (JSON string, e.g., '{"locale": "en_US", "strength": 1}')
   -v, --validator=<value>  JSON schema validator for document validation (JSON string)
 
 GLOBAL FLAGS
@@ -258,24 +256,12 @@ GLOBAL FLAGS
 DESCRIPTION
   Create a new collection in the database
 
-**Note about Collation:** The `--collation` flag accepts a JSON document following the MongoDB collation specification. Common fields include:
-- `locale`: Language and country code (e.g., "en_US", "fr_FR", "simple")
-- `strength`: Comparison level (1-5, where 1 is case-insensitive)
-- `caseLevel`: Whether to consider case differences
-- `numericOrdering`: Whether to compare numbers numerically
-
-For more details, see the [MongoDB Collation Documentation](https://www.mongodb.com/docs/manual/reference/collation/).
-
 EXAMPLES
   $ aio app db collection create users
 
   $ aio app db collection create products --json
 
-  $ aio app db collection create users --collation '{"locale": "en_US", "strength": 1}'
-
   $ aio app db collection create products --validator '{"$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}'
-
-  $ aio app db collection create inventory --collation '{"locale": "simple"}' --validator '{"type": "object", "required": ["id", "quantity"]}' --json
 ```
 
 ### `aio app db collection drop COLLECTIONNAME`
@@ -346,29 +332,6 @@ EXAMPLES
   $ aio app db collection stats users
 
   $ aio app db collection stats products --json
-```
-
-### `aio app db collection validate COLLECTIONNAME`
-
-Validate a collection in the database
-
-```
-USAGE
-  $ aio app db collection validate COLLECTIONNAME [--json]
-
-ARGUMENTS
-  COLLECTIONNAME  The name of the collection to validate
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Validate a collection in the database
-
-EXAMPLES
-  $ aio app db collection validate users
-
-  $ aio app db collection validate products --json
 ```
 
 ## Document Operations

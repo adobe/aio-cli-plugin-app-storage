@@ -18,16 +18,12 @@ import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js
 export class CreateCollection extends DBBaseCommand {
   async run () {
     const { collectionName } = this.args
-    const { collation, validator } = this.flags
+    const { validator } = this.flags
 
     try {
       this.log(chalk.blue(`Creating collection '${collectionName}'...`))
 
       // Log flag values if set
-      if (collation) {
-        this.log(chalk.dim(`   Using collation: ${collation}`))
-      }
-
       if (validator) {
         this.log(chalk.dim(`   Using validator: ${validator}`))
       }
@@ -49,9 +45,6 @@ export class CreateCollection extends DBBaseCommand {
 
       // Build collection options
       const options = {}
-      if (collation) {
-        options.collation = collation
-      }
       if (validator) {
         options.validator = validator
       }
@@ -72,12 +65,6 @@ export class CreateCollection extends DBBaseCommand {
 
       this.log(chalk.green(`Collection '${collectionName}' created successfully`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-
-      if (collation) {
-        // Display the final collation object (after parsing) in compact JSON format
-        const collationDisplay = typeof options.collation === 'object' ? JSON.stringify(options.collation) : options.collation
-        this.log(chalk.dim(`   Collation: ${collationDisplay}`))
-      }
 
       if (validator) {
         // Display the final validator object (after parsing) in compact JSON format
@@ -112,9 +99,8 @@ CreateCollection.description = 'Create a new collection in the database'
 CreateCollection.examples = [
   '$ aio app db collection create users',
   '$ aio app db collection create products --json',
-  '$ aio app db collection create users --collation \'{"locale": "en_US", "strength": 1}\'',
   '$ aio app db collection create products --validator \'{"$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}\'',
-  '$ aio app db collection create inventory --collation \'{"locale": "simple"}\' --validator \'{"type": "object", "required": ["id", "quantity"]}\' --json'
+  '$ aio app db collection create inventory --validator \'{"type": "object", "required": ["id", "quantity"]}\' --json'
 ]
 
 CreateCollection.args = {
@@ -128,11 +114,6 @@ CreateCollection.args = {
 
 CreateCollection.flags = {
   ...DBBaseCommand.flags,
-  collation: Flags.string({
-    char: 'c',
-    description: 'Collation document for text comparison and sorting (JSON string, e.g., \'{"locale": "en_US", "strength": 1}\')',
-    parse: input => asObject(input, 'Collation')
-  }),
   validator: Flags.string({
     char: 'v',
     description: 'JSON schema validator for document validation (JSON string)',
