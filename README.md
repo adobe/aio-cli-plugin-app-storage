@@ -244,7 +244,6 @@ ARGUMENTS
   COLLECTIONNAME  The name of the collection to create
 
 FLAGS
-  -c, --collation=<value>  Collation document for text comparison and sorting (JSON string, e.g., '{"locale": "en_US", "strength": 1}')
   -v, --validator=<value>  JSON schema validator for document validation (JSON string)
 
 GLOBAL FLAGS
@@ -253,24 +252,12 @@ GLOBAL FLAGS
 DESCRIPTION
   Create a new collection in the database
 
-**Note about Collation:** The `--collation` flag accepts a JSON document following the MongoDB collation specification. Common fields include:
-- `locale`: Language and country code (e.g., "en_US", "fr_FR", "simple")
-- `strength`: Comparison level (1-5, where 1 is case-insensitive)
-- `caseLevel`: Whether to consider case differences
-- `numericOrdering`: Whether to compare numbers numerically
-
-For more details, see the [MongoDB Collation Documentation](https://www.mongodb.com/docs/manual/reference/collation/).
-
 EXAMPLES
   $ aio app db collection create users
 
   $ aio app db collection create products --json
 
-  $ aio app db collection create users --collation '{"locale": "en_US", "strength": 1}'
-
   $ aio app db collection create products --validator '{"$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}'
-
-  $ aio app db collection create inventory --collation '{"locale": "simple"}' --validator '{"type": "object", "required": ["id", "quantity"]}' --json
 ```
 
 ### `aio app db collection drop COLLECTIONNAME`
