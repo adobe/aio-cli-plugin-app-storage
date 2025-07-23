@@ -178,6 +178,7 @@ describe('run', () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
+      expect(mockFindOne).not.toHaveBeenCalled()
     })
 
     test('handles invalid JSON projection', async () => {
@@ -187,6 +188,7 @@ describe('run', () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
+      expect(mockFindOne).not.toHaveBeenCalled()
     })
 
     test('handles database connection error', async () => {
@@ -222,6 +224,7 @@ describe('run', () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
+      expect(mockFindOne).not.toHaveBeenCalled()
     })
   })
 

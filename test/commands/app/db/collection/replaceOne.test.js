@@ -208,6 +208,7 @@ describe('run', () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
+      expect(mockReplaceOne).not.toHaveBeenCalled()
     })
 
     test('handles invalid JSON replacement', async () => {
@@ -217,6 +218,7 @@ describe('run', () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
+      expect(mockReplaceOne).not.toHaveBeenCalled()
     })
 
     test('handles database connection error', async () => {
@@ -308,6 +310,7 @@ describe('run', () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
+      expect(mockReplaceOne).not.toHaveBeenCalled()
     })
 
     test('handles malformed JSON replacement', async () => {
@@ -317,6 +320,7 @@ describe('run', () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
+      expect(mockReplaceOne).not.toHaveBeenCalled()
     })
 
     test('handles empty JSON objects', async () => {

@@ -171,6 +171,7 @@ describe('run', () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('Document: JSON parse error:')
+      expect(mockInsertOne).not.toHaveBeenCalled()
     })
 
     test('handles database connection error', async () => {
@@ -254,6 +255,7 @@ describe('run', () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
+      expect(mockInsertOne).not.toHaveBeenCalled()
     })
 
     test('handles empty JSON object', async () => {

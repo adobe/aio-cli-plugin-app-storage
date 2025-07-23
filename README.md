@@ -521,8 +521,6 @@ EXAMPLES
   $ aio app db collection replaceOne users '{"email": "john@example.com"}' '{"email": "john@example.com", "name": "John", "verified": true}' --upsert
 ```
 
-## Database Information
-=======
 ## Index Management
 
 ### `aio app db collection createIndex COLLECTIONNAME SPECIFICATION`
