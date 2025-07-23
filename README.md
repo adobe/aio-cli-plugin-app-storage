@@ -424,6 +424,35 @@ EXAMPLES
   $ aio app db collection findOne users '{"age": {"$gte": 21}}' --projection '{"name": 1, "_id": 0}'
 ```
 
+### `aio app db collection find COLLECTION FILTER`
+
+Find documents in a collection based on filter criteria.
+
+```
+USAGE
+  $ aio app db collection find COLLECTIONNAME FILTER [-l <value>] [-s <value>] [-o <value>] [-p <value>]
+
+ARGUMENTS
+  COLLECTIONNAME  The name of the collection to query
+  FILTER          Filter criteria for the documents to find (JSON string, e.g. '{"status": "active"}')
+
+FLAGS
+  -l, --limit=<value>       [default: 20] Limit the number of documents returned, max: 100
+  -o, --sort=<value>        Sort specification as a JSON object (e.g. '{"field": 1}')
+  -p, --projection=<value>  Projection specification as a JSON object (e.g. '{"field1": 1, "field2": 0}')
+  -s, --skip=<value>        Skip the first N documents
+
+DESCRIPTION
+  Find documents in a collection based on filter criteria.
+
+EXAMPLES
+  $ aio app db collection find users '{}'
+
+  $ aio app db collection find products '{"category": "Computer Accessories"}' --json
+
+  $ aio app db collection find products '{"name": {"$regex": "Speakers$"}}' --sort '{"price": -1}' --limit 10 --skip 5 --projection '{"name": 1, "price": 1}'
+```
+
 ### `aio app db collection updateOne COLLECTION FILTER UPDATE`
 
 Update a single document in a collection

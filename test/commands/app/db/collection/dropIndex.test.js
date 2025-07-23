@@ -54,7 +54,7 @@ describe('run', () => {
       collection: mockCollection
     })
 
-    // Mock the collection.drop() method
+    // Mock the collection.dropIndex() method
     mockCollection.mockReturnValue({
       dropIndex: mockDropIndex
     })

@@ -13,7 +13,8 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
-import { asObject } from '../../../../utils/inputValidation.js'
+import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
+import { prettyJson } from '../../../../utils/output.js'
 
 export class FindOne extends DBBaseCommand {
   async run () {
@@ -59,7 +60,7 @@ export class FindOne extends DBBaseCommand {
         }
 
         this.log(chalk.dim('   Document:'))
-        this.log(chalk.dim(`${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
+        this.log(chalk.dim(`${prettyJson(result)}`))
       } else {
         this.log(chalk.yellow(`No document found in collection '${collection}' matching the filter`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
@@ -94,7 +95,8 @@ FindOne.args = {
   collection: Args.string({
     name: 'collection',
     description: 'The name of the collection',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Collection name')
   }),
   filter: Args.string({
     name: 'filter',

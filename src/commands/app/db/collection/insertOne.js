@@ -13,7 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
-import { asObject } from '../../../../utils/inputValidation.js'
+import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
 
 export class InsertOne extends DBBaseCommand {
   async run () {
@@ -86,7 +86,8 @@ InsertOne.args = {
   collection: Args.string({
     name: 'collection',
     description: 'The name of the collection',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Collection name')
   }),
   document: Args.string({
     name: 'document',

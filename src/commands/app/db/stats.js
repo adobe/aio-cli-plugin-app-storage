@@ -12,6 +12,7 @@ governing permissions and limitations under the License.
 
 import { DBBaseCommand } from '../../../DBBaseCommand.js'
 import chalk from 'chalk'
+import { prettyJson } from '../../../utils/output.js'
 
 export class Stats extends DBBaseCommand {
   async run () {
@@ -57,7 +58,7 @@ export class Stats extends DBBaseCommand {
         this.log(chalk.dim(`   ${key}: ${this.formatValue(value)}`))
       })
     } else {
-      this.log(chalk.dim(`   Raw Stats: ${JSON.stringify(stats, null, 2)}`))
+      this.log(chalk.dim(`   Raw Stats: ${this.formatValue(stats)}`))
     }
 
     this.log('')
@@ -70,7 +71,7 @@ export class Stats extends DBBaseCommand {
       return value.toLocaleString()
     }
     if (typeof value === 'object' && value !== null) {
-      return JSON.stringify(value, null, 2)
+      return `\n${prettyJson(value)}`
     }
     return String(value)
   }

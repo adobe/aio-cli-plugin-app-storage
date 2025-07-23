@@ -14,6 +14,7 @@ import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
 import { isNonEmptyString } from '../../../../utils/inputValidation.js'
+import { prettyJson } from '../../../../utils/output.js'
 
 export class InsertMany extends DBBaseCommand {
   async run () {
@@ -58,7 +59,7 @@ export class InsertMany extends DBBaseCommand {
         this.log(chalk.dim(`   Inserted IDs: ${JSON.stringify(result.insertedIds)}`))
       }
 
-      this.log(chalk.dim(`   Details:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
+      this.log(chalk.dim(`   Details:\n${prettyJson(result)}`))
 
       this.log(chalk.dim(`   Inserted: ${new Date().toLocaleString()}`))
 

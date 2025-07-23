@@ -14,6 +14,7 @@ import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
 import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
+import { prettyJson } from '../../../../utils/output.js'
 
 // Regular expression to match the -s/--spec or -k/--key flags in <flag>=<value> format
 // if match.groups.spec is defined, it means the flag was -s or --spec
@@ -64,7 +65,7 @@ export class CreateIndex extends DBBaseCommand {
 
     try {
       const fullSpec = this.getOrderedSpecs()
-      const prettySpec = JSON.stringify(fullSpec, null, 2).replace(/^/gm, '     ')
+      const prettySpec = prettyJson(fullSpec)
 
       this.log(chalk.blue(`Creating index ${name ? `'${name}' ` : ''}on collection '${collectionName}'...`))
       this.log(chalk.dim(`   Specification:\n${prettySpec}`))

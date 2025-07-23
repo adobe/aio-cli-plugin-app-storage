@@ -14,6 +14,7 @@ import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
 import { isNonEmptyString } from '../../../../utils/inputValidation.js'
+import { prettyJson } from '../../../../utils/output.js'
 
 export class DropCollection extends DBBaseCommand {
   async run () {
@@ -44,7 +45,7 @@ export class DropCollection extends DBBaseCommand {
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
       if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-        this.log(chalk.dim(`   Details:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
+        this.log(chalk.dim(`   Details:\n${prettyJson(result)}`))
       }
 
       this.log(chalk.dim(`   Dropped: ${new Date().toLocaleString()}`))
