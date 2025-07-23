@@ -42,6 +42,13 @@ $ aio app db --help
 * [`aio app db collection stats COLLECTIONNAME`](#aio-app-db-collection-stats-collectionname)
 * [`aio app db collection validate COLLECTIONNAME`](#aio-app-db-collection-validate-collectionname)
 
+### Document Operations
+* [`aio app db collection insertOne COLLECTION DOCUMENT`](#aio-app-db-collection-insertone-collection-document)
+* [`aio app db collection deleteOne COLLECTION FILTER`](#aio-app-db-collection-deleteone-collection-filter)
+* [`aio app db collection findOne COLLECTION FILTER`](#aio-app-db-collection-findone-collection-filter)
+* [`aio app db collection updateOne COLLECTION FILTER UPDATE`](#aio-app-db-collection-updateone-collection-filter-update)
+* [`aio app db collection replaceOne COLLECTION FILTER REPLACEMENT`](#aio-app-db-collection-replaceone-collection-filter-replacement)
+
 ### Index Management
 * [`aio app db collection createIndex COLLECTIONNAME SPECIFICATION`](#aio-app-db-collection-createindex-collectionname-specification)
 * [`aio app db collection dropIndex COLLECTIONNAME INDEXNAME`](#aio-app-db-collection-dropindex-collectionname-indexname)
@@ -358,6 +365,160 @@ EXAMPLES
   $ aio app db collection validate users
 
   $ aio app db collection validate products --json
+```
+
+## Document Operations
+
+### `aio app db collection insertOne COLLECTION DOCUMENT`
+
+Insert a single document into a collection
+
+```
+USAGE
+  $ aio app db collection insertOne COLLECTION DOCUMENT [--json] [--bypassDocumentValidation]
+
+ARGUMENTS
+  COLLECTION  The name of the collection
+  DOCUMENT    The document to insert (JSON string)
+
+FLAGS
+  --bypassDocumentValidation  Bypass schema validation if present
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Insert a single document into a collection
+
+EXAMPLES
+  $ aio app db collection insertOne users '{"name": "John", "age": 30}'
+
+  $ aio app db collection insertOne products '{"name": "Widget", "price": 10.99}' --json
+
+  $ aio app db collection insertOne posts '{"title": "Hello World", "content": "This is a test post"}' --bypassDocumentValidation
+```
+
+### `aio app db collection deleteOne COLLECTION FILTER`
+
+Delete a single document from a collection
+
+```
+USAGE
+  $ aio app db collection deleteOne COLLECTION FILTER [--json]
+
+ARGUMENTS
+  COLLECTION  The name of the collection
+  FILTER      The filter document (JSON string)
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Delete a single document from a collection
+
+EXAMPLES
+  $ aio app db collection deleteOne users '{"name": "John"}'
+
+  $ aio app db collection deleteOne products '{"id": "123"}' --json
+
+  $ aio app db collection deleteOne posts '{"status": "draft"}'
+
+  $ aio app db collection deleteOne users '{"email": "john@example.com"}'
+```
+
+### `aio app db collection findOne COLLECTION FILTER`
+
+Find a single document in a collection
+
+```
+USAGE
+  $ aio app db collection findOne COLLECTION FILTER [--json] [-p <value>]
+
+ARGUMENTS
+  COLLECTION  The name of the collection
+  FILTER      The filter document (JSON string)
+
+FLAGS
+  -p, --projection=<value>  The fields to return (JSON string, e.g., '{"name": 1, "_id": 0}')
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Find a single document in a collection
+
+EXAMPLES
+  $ aio app db collection findOne users '{"name": "John"}'
+
+  $ aio app db collection findOne products '{"price": {"$lt": 50}}' --json
+
+  $ aio app db collection findOne posts '{"status": "published"}' --projection '{"title": 1, "author": 1}'
+
+  $ aio app db collection findOne users '{"age": {"$gte": 21}}' --projection '{"name": 1, "_id": 0}'
+```
+
+### `aio app db collection updateOne COLLECTION FILTER UPDATE`
+
+Update a single document in a collection
+
+```
+USAGE
+  $ aio app db collection updateOne COLLECTION FILTER UPDATE [--json] [-u]
+
+ARGUMENTS
+  COLLECTION  The name of the collection
+  FILTER      The filter document (JSON string)
+  UPDATE      The update document (JSON string)
+
+FLAGS
+  -u, --upsert          If no document is found, create a new one
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Update a single document in a collection
+
+EXAMPLES
+  $ aio app db collection updateOne users '{"name": "John"}' '{"$set": {"age": 31}}'
+
+  $ aio app db collection updateOne products '{"id": "123"}' '{"$inc": {"stock": -1}}' --json
+
+  $ aio app db collection updateOne posts '{"slug": "hello-world"}' '{"$set": {"status": "published"}}' --upsert
+
+  $ aio app db collection updateOne users '{"email": "john@example.com"}' '{"$set": {"lastLogin": "2024-01-01"}}' --upsert
+```
+
+### `aio app db collection replaceOne COLLECTION FILTER REPLACEMENT`
+
+Replace a single document in a collection
+
+```
+USAGE
+  $ aio app db collection replaceOne COLLECTION FILTER REPLACEMENT [--json] [-u]
+
+ARGUMENTS
+  COLLECTION   The name of the collection
+  FILTER       The filter document (JSON string)
+  REPLACEMENT  The replacement document (JSON string)
+
+FLAGS
+  -u, --upsert          If no document is found, create a new one
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Replace a single document in a collection
+
+EXAMPLES
+  $ aio app db collection replaceOne users '{"name": "John"}' '{"name": "John Doe", "age": 30, "status": "active"}'
+
+  $ aio app db collection replaceOne products '{"id": "123"}' '{"id": "123", "name": "New Product", "price": 99.99}' --json
+
+  $ aio app db collection replaceOne posts '{"slug": "hello-world"}' '{"title": "Hello World", "content": "Updated content", "status": "published"}' --upsert
+
+  $ aio app db collection replaceOne users '{"email": "john@example.com"}' '{"email": "john@example.com", "name": "John", "verified": true}' --upsert
 ```
 
 ## Index Management
