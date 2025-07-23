@@ -45,6 +45,7 @@ $ aio app db --help
 * [`aio app db collection insertOne COLLECTION DOCUMENT`](#aio-app-db-collection-insertone-collection-document)
 * [`aio app db collection deleteOne COLLECTION FILTER`](#aio-app-db-collection-deleteone-collection-filter)
 * [`aio app db collection findOne COLLECTION FILTER`](#aio-app-db-collection-findone-collection-filter)
+* [`aio app db collection find COLLECTIONNAME FILTER`](#aio-app-db-collection-find-collectionname-filter)
 * [`aio app db collection updateOne COLLECTION FILTER UPDATE`](#aio-app-db-collection-updateone-collection-filter-update)
 * [`aio app db collection replaceOne COLLECTION FILTER REPLACEMENT`](#aio-app-db-collection-replaceone-collection-filter-replacement)
 
@@ -424,7 +425,7 @@ EXAMPLES
   $ aio app db collection findOne users '{"age": {"$gte": 21}}' --projection '{"name": 1, "_id": 0}'
 ```
 
-### `aio app db collection find COLLECTION FILTER`
+### `aio app db collection find COLLECTIONNAME FILTER`
 
 Find documents in a collection based on filter criteria.
 
@@ -441,6 +442,9 @@ FLAGS
   -o, --sort=<value>        Sort specification as a JSON object (e.g. '{"field": 1}')
   -p, --projection=<value>  Projection specification as a JSON object (e.g. '{"field1": 1, "field2": 0}')
   -s, --skip=<value>        Skip the first N documents
+
+GLOBAL FLAGS
+  --json  Format output as json.
 
 DESCRIPTION
   Find documents in a collection based on filter criteria.
