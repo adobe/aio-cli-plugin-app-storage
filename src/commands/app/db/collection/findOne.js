@@ -58,10 +58,8 @@ export class FindOne extends DBBaseCommand {
           this.log(chalk.dim('   Projection applied: Yes'))
         }
 
-        if (!this.flags.json) {
-          this.log(chalk.dim('   Document:'))
-          this.log(chalk.dim(`${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
-        }
+        this.log(chalk.dim('   Document:'))
+        this.log(chalk.dim(`${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
       } else {
         this.log(chalk.yellow(`No document found in collection '${collection}' matching the filter`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
