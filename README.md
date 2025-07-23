@@ -238,7 +238,7 @@ Create a new collection in the database
 
 ```
 USAGE
-  $ aio app db collection create COLLECTIONNAME [--json] [-c <value>] [-v <value>]
+  $ aio app db collection create COLLECTIONNAME [--json] [-v <value>]
 
 ARGUMENTS
   COLLECTIONNAME  The name of the collection to create
