@@ -58,27 +58,23 @@ export class UpdateMany extends DBBaseCommand {
       }
 
       if (upsert) {
-        response.upsert = true
         response.options = updateOptions
       }
 
-      this.log(chalk.green(`Successfully updated documents in collection '${collectionName}'`))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
-      this.log(chalk.dim(`   Matched Count: ${result.matchedCount}`))
-      this.log(chalk.dim(`   Modified Count: ${result.modifiedCount}`))
-      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-
-      if (result.upsertedCount > 0) {
-        this.log(chalk.dim(`   Upserted Count: ${result.upsertedCount}`))
-        if (result.upsertedId) {
-          this.log(chalk.dim(`   Upserted ID: ${result.upsertedId}`))
-        }
+      if (result.upsertedCount) {
+        this.log(chalk.green(`No documents in collection '${collectionName}' were found matching the filter, performed an upsert instead`))
+        this.log(chalk.dim(`   Collection: ${collectionName}`))
+        this.log(chalk.dim(`   Upserted ID: ${result.upsertedId}`))
+        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      } else {
+        this.log(chalk.green(`Successfully updated documents in collection '${collectionName}'`))
+        this.log(chalk.dim(`   Collection: ${collectionName}`))
+        this.log(chalk.dim(`   Matched Count: ${result.matchedCount}`))
+        this.log(chalk.dim(`   Modified Count: ${result.modifiedCount}`))
+        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       }
 
-      if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-        this.log(chalk.dim(`   Details:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
-      }
-
+      this.log(chalk.dim(`   Details:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
       this.log(chalk.dim(`   Updated: ${new Date().toLocaleString()}`))
 
       return response

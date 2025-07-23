@@ -163,7 +163,6 @@ describe('run', () => {
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        upsert: true,
         options: { upsert: true },
         result: mockResult
       })
@@ -202,14 +201,12 @@ describe('run', () => {
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        upsert: true,
         options: { upsert: true },
         result: mockResult
       })
 
-      expect(stdout.output).toContain("Successfully updated documents in collection 'logs'")
+      expect(stdout.output).toContain("No documents in collection 'logs' were found matching the filter, performed an upsert instead")
       expect(stdout.output).toContain('Upsert enabled: Will create document if not found')
-      expect(stdout.output).toContain('Upserted Count: 1')
       expect(stdout.output).toContain('Upserted ID: new-id-123')
     })
 

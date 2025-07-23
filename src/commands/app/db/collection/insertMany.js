@@ -49,22 +49,18 @@ export class InsertMany extends DBBaseCommand {
       }
 
       if (bypassDocumentValidation) {
-        response.bypassDocumentValidation = true
         response.options = insertOptions
       }
 
       this.log(chalk.green(`Successfully inserted ${result.insertedCount} documents into collection '${collectionName}'`))
       this.log(chalk.dim(`   Collection: ${collectionName}`))
-      this.log(chalk.dim(`   Inserted Count: ${result.insertedCount}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
       if (result.insertedIds && Object.keys(result.insertedIds).length > 0) {
         this.log(chalk.dim(`   Inserted IDs: ${JSON.stringify(result.insertedIds)}`))
       }
 
-      if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-        this.log(chalk.dim(`   Details:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
-      }
+      this.log(chalk.dim(`   Details:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
 
       this.log(chalk.dim(`   Inserted: ${new Date().toLocaleString()}`))
 

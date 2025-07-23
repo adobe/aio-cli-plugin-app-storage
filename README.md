@@ -49,6 +49,10 @@ $ aio app db --help
 * [`aio app db collection updateOne COLLECTION FILTER UPDATE`](#aio-app-db-collection-updateone-collection-filter-update)
 * [`aio app db collection replaceOne COLLECTION FILTER REPLACEMENT`](#aio-app-db-collection-replaceone-collection-filter-replacement)
 
+### Multi-Document Operations
+* [`aio app db collection insertMany COLLECTION DOCUMENTS`](#aio-app-db-collection-insertmany-collection-documents)
+* [`aio app db collection updateMany COLLECTION FILTER UPDATE`](#aio-app-db-collection-updatemany-collection-filter-update)
+
 ### Index Management
 * [`aio app db collection createIndex COLLECTIONNAME SPECIFICATION`](#aio-app-db-collection-createindex-collectionname-specification)
 * [`aio app db collection dropIndex COLLECTIONNAME INDEXNAME`](#aio-app-db-collection-dropindex-collectionname-indexname)
@@ -519,6 +523,71 @@ EXAMPLES
   $ aio app db collection replaceOne posts '{"slug": "hello-world"}' '{"title": "Hello World", "content": "Updated content", "status": "published"}' --upsert
 
   $ aio app db collection replaceOne users '{"email": "john@example.com"}' '{"email": "john@example.com", "name": "John", "verified": true}' --upsert
+```
+
+## Multi-Document Operations
+
+### `aio app db collection insertMany COLLECTION DOCUMENTS`
+
+Insert multiple documents into a collection
+
+```
+USAGE
+  $ aio app db collection insertMany COLLECTION DOCUMENTS [--json] [--bypassDocumentValidation]
+
+ARGUMENTS
+  COLLECTION   The name of the collection
+  DOCUMENTS    JSON array of documents to insert
+
+FLAGS
+  --bypassDocumentValidation  Bypass schema validation if present
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Insert multiple documents into a collection
+
+EXAMPLES
+  $ aio app db collection insertMany users '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]'
+
+  $ aio app db collection insertMany products '[{"id": 1, "name": "Product A"}, {"id": 2, "name": "Product B"}]' --json
+
+  $ aio app db collection insertMany temp '[{"data": "test"}]' --bypassDocumentValidation
+
+  $ aio app db collection insertMany bulk '[{"field": "value"}]' --bypassDocumentValidation --json
+```
+
+### `aio app db collection updateMany COLLECTION FILTER UPDATE`
+
+Update multiple documents in a collection
+
+```
+USAGE
+  $ aio app db collection updateMany COLLECTION FILTER UPDATE [--json] [-u]
+
+ARGUMENTS
+  COLLECTION  The name of the collection
+  FILTER      The filter document (JSON string)
+  UPDATE      The update document (JSON string)
+
+FLAGS
+  -u, --upsert          If no document is found, create a new one
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Update multiple documents in a collection
+
+EXAMPLES
+  $ aio app db collection updateMany users '{"status": "inactive"}' '{"$set": {"status": "active"}}'
+
+  $ aio app db collection updateMany products '{"category": "electronics"}' '{"$inc": {"price": 10}}' --json
+
+  $ aio app db collection updateMany posts '{"status": "draft"}' '{"$set": {"status": "published"}}' --upsert
+
+  $ aio app db collection updateMany logs '{"level": "error"}' '{"$set": {"processed": true}}' --upsert
 ```
 
 ## Index Management

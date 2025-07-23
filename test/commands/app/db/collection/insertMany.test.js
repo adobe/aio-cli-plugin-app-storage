@@ -90,7 +90,6 @@ describe('run', () => {
       expect(stdout.output).toContain("Inserting 2 documents into collection 'users'...")
       expect(stdout.output).toContain("Successfully inserted 2 documents into collection 'users'")
       expect(stdout.output).toContain('Collection: users')
-      expect(stdout.output).toContain('Inserted Count: 2')
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Inserted IDs: {"0":"id1","1":"id2"}')
       expect(stdout.output).toContain('Inserted:')
@@ -176,7 +175,6 @@ describe('run', () => {
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        bypassDocumentValidation: true,
         options: { bypassDocumentValidation: true },
         result: mockResult
       })
@@ -210,7 +208,6 @@ describe('run', () => {
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        bypassDocumentValidation: true,
         options: { bypassDocumentValidation: true },
         result: mockResult
       })
