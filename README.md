@@ -64,6 +64,13 @@ $ aio app db --help
 * [`aio app db provision`](#aio-app-db-provision)
 * [`aio app db status`](#aio-app-db-status)
 
+### Aggregates
+* [`aio app db collection countDocuments COLLECTION [QUERY]`](#aio-app-db-collection-countdocuments-collection-query)
+* [`aio app db collection estimatedDocumentCount COLLECTION`](#aio-app-db-collection-estimateddocumentcount-collection)
+* [`aio app db collection countDocuments COLLECTION [QUERY]`](#aio-app-db-collection-countdocuments-collection-query)
+* [`aio app db collection estimatedDocumentCount COLLECTION`](#aio-app-db-collection-estimateddocumentcount-collection)
+* [`aio app db collection estimatedDocumentCount COLLECTION`](#aio-app-db-collection-estimateddocumentcount-collection)
+
 ## Other Commands
 * [`aio help [COMMAND]`](#aio-help-command)
 
@@ -745,6 +752,61 @@ EXAMPLES
   $ aio app db status --watch
 
   $ aio app db status --json
+```
+
+## Aggregates
+
+### `aio app db collection countDocuments COLLECTION [QUERY]`
+
+Count documents in a collection
+
+```
+USAGE
+  $ aio app db collection countDocuments COLLECTION [QUERY] [--json]
+
+ARGUMENTS
+  COLLECTION  The name of the collection
+  QUERY       The query filter document (JSON string). If not provided, counts all documents.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Count documents in a collection
+
+EXAMPLES
+  $ aio app db collection countDocuments users
+
+  $ aio app db collection countDocuments users '{"age": {"$gte": 21}}'
+
+  $ aio app db collection countDocuments products '{"category": "electronics"}' --json
+
+  $ aio app db collection countDocuments posts '{"status": "published"}'
+```
+
+### `aio app db collection estimatedDocumentCount COLLECTION`
+
+Get estimated document count for a collection
+
+```
+USAGE
+  $ aio app db collection estimatedDocumentCount COLLECTION [--json]
+
+ARGUMENTS
+  COLLECTION  The name of the collection
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get estimated document count for a collection
+
+EXAMPLES
+  $ aio app db collection estimatedDocumentCount users
+
+  $ aio app db collection estimatedDocumentCount products --json
+
+  $ aio app db collection estimatedDocumentCount posts
 ```
 
 # Other Commands
