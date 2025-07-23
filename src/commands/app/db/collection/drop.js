@@ -18,30 +18,30 @@ import { prettyJson } from '../../../../utils/output.js'
 
 export class DropCollection extends DBBaseCommand {
   async run () {
-    const { collectionName } = this.args
+    const { collection } = this.args
 
     try {
-      this.log(chalk.blue(`Dropping collection '${collectionName}'...`))
+      this.log(chalk.blue(`Dropping collection '${collection}'...`))
 
       const client = await this.db.connect()
 
       // Get the collection object
-      const collection = client.collection(collectionName)
+      const coll = client.collection(collection)
 
       // Drop collection
-      const result = await collection.drop()
+      const result = await coll.drop()
 
       this.debugLogger?.info?.('Collection dropped successfully:', result)
 
       const response = {
-        collectionName,
+        collection,
         status: 'dropped',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         result
       }
 
-      this.log(chalk.green(`Collection '${collectionName}' dropped successfully`))
+      this.log(chalk.green(`Collection '${collection}' dropped successfully`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
       if (result && typeof result === 'object' && Object.keys(result).length > 0) {
@@ -54,10 +54,10 @@ export class DropCollection extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Error dropping collection:', error)
 
-      const errorMessage = `Failed to drop collection '${collectionName}': ${error.message}`
+      const errorMessage = `Failed to drop collection '${collection}': ${error.message}`
 
       this.log(chalk.red('Failed to drop collection'))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
@@ -74,8 +74,8 @@ DropCollection.examples = [
 ]
 
 DropCollection.args = {
-  collectionName: Args.string({
-    name: 'collectionName',
+  collection: Args.string({
+    name: 'collection',
     description: 'The name of the collection to drop',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')

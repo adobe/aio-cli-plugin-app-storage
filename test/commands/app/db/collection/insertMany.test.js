@@ -24,12 +24,13 @@ describe('prototype', () => {
     expect(InsertMany.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(InsertMany.args)).toEqual(['collectionName', 'documents'])
-    expect(InsertMany.args.collectionName.required).toBe(true)
+    expect(Object.keys(InsertMany.args)).toEqual(['collection', 'documents'])
+    expect(InsertMany.args.collection.required).toBe(true)
     expect(InsertMany.args.documents.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(InsertMany.flags).sort()).toEqual(['bypassDocumentValidation'])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['bypassDocumentValidation']).sort()
+    expect(Object.keys(InsertMany.flags).sort()).toEqual(expectedFlags)
     expect(InsertMany.enableJsonFlag).toEqual(true)
   })
 })
@@ -78,7 +79,7 @@ describe('run', () => {
       ], {})
 
       expect(result).toEqual({
-        collectionName: 'users',
+        collection: 'users',
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -107,7 +108,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'products',
+        collection: 'products',
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -133,7 +134,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'logs',
+        collection: 'logs',
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -163,7 +164,7 @@ describe('run', () => {
       )
 
       expect(result).toEqual({
-        collectionName: 'temp',
+        collection: 'temp',
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -194,7 +195,7 @@ describe('run', () => {
       )
 
       expect(result).toEqual({
-        collectionName: 'bulk',
+        collection: 'bulk',
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),

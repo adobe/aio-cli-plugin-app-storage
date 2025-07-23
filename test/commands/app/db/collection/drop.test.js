@@ -24,11 +24,12 @@ describe('prototype', () => {
     expect(DropCollection.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(DropCollection.args)).toEqual(['collectionName'])
-    expect(DropCollection.args.collectionName.required).toBe(true)
+    expect(Object.keys(DropCollection.args)).toEqual(['collection'])
+    expect(DropCollection.args.collection.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(DropCollection.flags).sort()).toEqual([])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
+    expect(Object.keys(DropCollection.flags).sort()).toEqual(expectedFlags)
     expect(DropCollection.enableJsonFlag).toEqual(true)
   })
 })
@@ -71,7 +72,7 @@ describe('run', () => {
       expect(mockDrop).toHaveBeenCalled()
 
       expect(result).toEqual({
-        collectionName: 'users',
+        collection: 'users',
         status: 'dropped',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -94,7 +95,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'users',
+        collection: 'users',
         status: 'dropped',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -117,7 +118,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'products',
+        collection: 'products',
         status: 'dropped',
         namespace: 'test-namespace',
         timestamp: expect.any(String),

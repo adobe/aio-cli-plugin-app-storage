@@ -29,7 +29,8 @@ describe('prototype', () => {
     expect(RenameCollection.args.newName.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(RenameCollection.flags).sort()).toEqual([])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
+    expect(Object.keys(RenameCollection.flags).sort()).toEqual(expectedFlags)
     expect(RenameCollection.enableJsonFlag).toEqual(true)
   })
 })

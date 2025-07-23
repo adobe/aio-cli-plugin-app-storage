@@ -26,7 +26,8 @@ describe('prototype', () => {
     expect(Object.keys(GetCollectionInfos.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(GetCollectionInfos.flags).sort()).toEqual([])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
+    expect(Object.keys(GetCollectionInfos.flags).sort()).toEqual(expectedFlags)
     expect(GetCollectionInfos.enableJsonFlag).toEqual(true)
   })
 })

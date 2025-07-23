@@ -18,11 +18,11 @@ import { prettyJson } from '../../../../utils/output.js'
 
 export class CreateCollection extends DBBaseCommand {
   async run () {
-    const { collectionName } = this.args
+    const { collection } = this.args
     const { validator } = this.flags
 
     try {
-      this.log(chalk.blue(`Creating collection '${collectionName}'...`))
+      this.log(chalk.blue(`Creating collection '${collection}'...`))
 
       // Log flag values if set
       if (validator) {
@@ -33,10 +33,10 @@ export class CreateCollection extends DBBaseCommand {
 
       // Check if collection already exists
       const existingCollections = await client.listCollections()
-      const collectionExists = existingCollections && existingCollections.some(col => col.name === collectionName)
+      const collectionExists = existingCollections && existingCollections.some(col => col.name === collection)
 
       if (collectionExists) {
-        const errorMessage = `Collection '${collectionName}' already exists`
+        const errorMessage = `Collection '${collection}' already exists`
 
         this.log(chalk.red(errorMessage))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
@@ -51,12 +51,12 @@ export class CreateCollection extends DBBaseCommand {
       }
 
       // Create the collection
-      const result = await client.createCollection(collectionName, options)
+      const result = await client.createCollection(collection, options)
 
       this.debugLogger?.info?.('Collection created successfully:', result)
 
       const response = {
-        collectionName,
+        collection,
         status: 'created',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
@@ -64,7 +64,7 @@ export class CreateCollection extends DBBaseCommand {
         options
       }
 
-      this.log(chalk.green(`Collection '${collectionName}' created successfully`))
+      this.log(chalk.green(`Collection '${collection}' created successfully`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
       if (validator) {
@@ -83,10 +83,10 @@ export class CreateCollection extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Error creating collection:', error)
 
-      const errorMessage = `Failed to create collection '${collectionName}': ${error.message}`
+      const errorMessage = `Failed to create collection '${collection}': ${error.message}`
 
       this.log(chalk.red('Failed to create collection'))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
@@ -105,8 +105,8 @@ CreateCollection.examples = [
 ]
 
 CreateCollection.args = {
-  collectionName: Args.string({
-    name: 'collectionName',
+  collection: Args.string({
+    name: 'collection',
     description: 'The name of the collection to create',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')

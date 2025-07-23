@@ -24,11 +24,12 @@ describe('prototype', () => {
     expect(CreateCollection.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(CreateCollection.args)).toEqual(['collectionName'])
-    expect(CreateCollection.args.collectionName.required).toBe(true)
+    expect(Object.keys(CreateCollection.args)).toEqual(['collection'])
+    expect(CreateCollection.args.collection.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(CreateCollection.flags).sort()).toEqual(['validator'])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['validator']).sort()
+    expect(Object.keys(CreateCollection.flags).sort()).toEqual(expectedFlags)
     expect(CreateCollection.enableJsonFlag).toEqual(true)
   })
 })
@@ -68,7 +69,7 @@ describe('run', () => {
       expect(mockCreateCollection).toHaveBeenCalledWith('users', {})
 
       expect(result).toEqual({
-        collectionName: 'users',
+        collection: 'users',
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -93,7 +94,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'users',
+        collection: 'users',
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -118,7 +119,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'products',
+        collection: 'products',
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -145,7 +146,7 @@ describe('run', () => {
       })
 
       expect(result).toEqual({
-        collectionName: 'products',
+        collection: 'products',
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),

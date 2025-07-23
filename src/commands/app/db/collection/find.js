@@ -18,11 +18,11 @@ import { prettyJson } from '../../../../utils/output.js'
 
 export class Find extends DBBaseCommand {
   async run () {
-    const { collectionName, filter } = this.args
+    const { collection, filter } = this.args
     const { limit, skip, sort, projection } = this.flags
 
     try {
-      this.log(chalk.blue(`Finding documents in collection '${collectionName}'...`))
+      this.log(chalk.blue(`Finding documents in collection '${collection}'...`))
       this.log(chalk.dim(`   Filter:\n${prettyJson(filter)}`))
 
       // Prepare options for find
@@ -47,11 +47,11 @@ export class Find extends DBBaseCommand {
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}\n`))
 
       const client = await this.db.connect()
-      const coll = client.collection(collectionName)
+      const coll = client.collection(collection)
       const results = await coll.findArray(filter, options)
       const timestamp = new Date().toISOString()
       const response = {
-        collectionName,
+        collection,
         filter,
         options,
         results,
@@ -61,11 +61,11 @@ export class Find extends DBBaseCommand {
 
       this.debugLogger?.info?.('Find results:', results)
       if (results?.length > 0) {
-        this.log(chalk.green(`Retrieved ${results.length} document(s) from collection '${collectionName}'`))
+        this.log(chalk.green(`Retrieved ${results.length} document(s) from collection '${collection}'`))
         this.log(chalk.dim(`   Searched: ${timestamp}`))
         this.log(chalk.dim(`   Results:\n${prettyJson(results)}`))
       } else {
-        this.log(chalk.green(`No documents matching the filter criteria found in collection '${collectionName}'.`))
+        this.log(chalk.green(`No documents matching the filter criteria found in collection '${collection}'.`))
         this.log(chalk.dim(`   Searched: ${timestamp}`))
       }
 
@@ -73,10 +73,10 @@ export class Find extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Error finding documents:', error)
 
-      const errorMessage = `Failed to find documents in collection '${collectionName}': ${error.message}`
+      const errorMessage = `Failed to find documents in collection '${collection}': ${error.message}`
 
       this.log(chalk.red('Failed to find documents'))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.error(errorMessage)
     }
@@ -92,11 +92,11 @@ Find.examples = [
 ]
 
 Find.args = {
-  collectionName: Args.string({
-    name: 'collectionName',
+  collection: Args.string({
+    name: 'collection',
     description: 'The name of the collection to query',
     required: true,
-    parse: input => isNonEmptyString(input, 'Collection')
+    parse: input => isNonEmptyString(input, 'Collection name')
   }),
   filter: Args.string({
     name: 'filter',

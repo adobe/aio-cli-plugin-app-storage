@@ -24,13 +24,14 @@ describe('prototype', () => {
     expect(UpdateMany.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(UpdateMany.args)).toEqual(['collectionName', 'filter', 'update'])
-    expect(UpdateMany.args.collectionName.required).toBe(true)
+    expect(Object.keys(UpdateMany.args)).toEqual(['collection', 'filter', 'update'])
+    expect(UpdateMany.args.collection.required).toBe(true)
     expect(UpdateMany.args.filter.required).toBe(true)
     expect(UpdateMany.args.update.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(UpdateMany.flags).sort()).toEqual(['upsert'])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['upsert']).sort()
+    expect(Object.keys(UpdateMany.flags).sort()).toEqual(expectedFlags)
     expect(UpdateMany.enableJsonFlag).toEqual(true)
   })
 })
@@ -81,7 +82,7 @@ describe('run', () => {
       )
 
       expect(result).toEqual({
-        collectionName: 'users',
+        collection: 'users',
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -112,7 +113,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'products',
+        collection: 'products',
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -147,7 +148,7 @@ describe('run', () => {
       )
 
       expect(result).toEqual({
-        collectionName: 'inventory',
+        collection: 'inventory',
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -181,7 +182,7 @@ describe('run', () => {
       )
 
       expect(result).toEqual({
-        collectionName: 'logs',
+        collection: 'logs',
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -207,7 +208,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'temp',
+        collection: 'temp',
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),

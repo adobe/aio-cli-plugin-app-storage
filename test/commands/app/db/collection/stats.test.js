@@ -24,11 +24,12 @@ describe('prototype', () => {
     expect(StatsCollection.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(StatsCollection.args)).toEqual(['collectionName'])
-    expect(StatsCollection.args.collectionName.required).toBe(true)
+    expect(Object.keys(StatsCollection.args)).toEqual(['collection'])
+    expect(StatsCollection.args.collection.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(StatsCollection.flags).sort()).toEqual([])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
+    expect(Object.keys(StatsCollection.flags).sort()).toEqual(expectedFlags)
     expect(StatsCollection.enableJsonFlag).toEqual(true)
   })
 })
@@ -77,7 +78,7 @@ describe('run', () => {
       expect(mockStats).toHaveBeenCalled()
 
       expect(result).toEqual({
-        collectionName: 'users',
+        collection: 'users',
         stats: {
           documentCount: 10,
           documents: 10,
@@ -114,7 +115,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'users',
+        collection: 'users',
         stats: {
           documentCount: 10,
           documents: 10,
@@ -144,7 +145,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'products',
+        collection: 'products',
         stats: {
           documentCount: 5,
           documents: 5
@@ -169,7 +170,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName: 'empty',
+        collection: 'empty',
         stats: {
           documentCount: 0
         },

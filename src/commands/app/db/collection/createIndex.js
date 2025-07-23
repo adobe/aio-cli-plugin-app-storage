@@ -47,9 +47,10 @@ export class CreateIndex extends DBBaseCommand {
         // Check if the arg is in the form of -s=<val>/--spec=<val> or -k=<val>/--key=<val>
         const specMatch = arg.match(specFlagMatch)
         if (specMatch?.groups?.spec) {
-          // Spec is a JSON object, flag is a string
+          // Spec is a JSON object
           fullSpec.push(asObject(specMatch.groups.val))
         } else if (specMatch?.groups?.key) {
+          // Key is a string
           fullSpec.push(specMatch.groups.val)
         }
         specOption = false
@@ -60,31 +61,31 @@ export class CreateIndex extends DBBaseCommand {
   }
 
   async run () {
-    const { collectionName } = this.args
+    const { collection } = this.args
     const { name, unique } = this.flags
 
     try {
       const fullSpec = this.getOrderedSpecs()
       const prettySpec = prettyJson(fullSpec)
 
-      this.log(chalk.blue(`Creating index ${name ? `'${name}' ` : ''}on collection '${collectionName}'...`))
+      this.log(chalk.blue(`Creating index ${name ? `'${name}' ` : ''}on collection '${collection}'...`))
       this.log(chalk.dim(`   Specification:\n${prettySpec}`))
       if (unique) this.log(chalk.dim(`   Unique index: ${unique}`))
 
       const client = await this.db.connect()
-      const collection = await client.collection(collectionName)
+      const coll = await client.collection(collection)
 
       // Build options
       const options = {}
       if (name) options.name = name
       if (unique) options.unique = unique
 
-      const result = await collection.createIndex(fullSpec, options)
+      const result = await coll.createIndex(fullSpec, options)
 
       this.debugLogger?.info?.('Index created successfully:', result)
 
       const response = {
-        collectionName,
+        collection,
         indexName: result,
         specification: fullSpec,
         status: 'created',
@@ -94,7 +95,7 @@ export class CreateIndex extends DBBaseCommand {
 
       if (Object.keys(options).length > 0) response.options = options
 
-      this.log(chalk.green(`Index '${result}' created successfully in the '${collectionName}' collection`))
+      this.log(chalk.green(`Index '${result}' created successfully in the '${collection}' collection`))
       this.log(chalk.dim(`   Specification:\n${prettySpec}`))
       if (unique) this.log(chalk.dim(`   Unique: ${unique}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
@@ -105,10 +106,10 @@ export class CreateIndex extends DBBaseCommand {
       this.debugLogger?.error?.('Error creating index:', error)
 
       this.log(chalk.red('Failed to create index'))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
-      this.error(`Failed to create index on collection '${collectionName}': ${error.message}`)
+      this.error(`Failed to create index on collection '${collection}': ${error.message}`)
     }
   }
 }
@@ -125,8 +126,8 @@ CreateIndex.examples = [
 ]
 
 CreateIndex.args = {
-  collectionName: Args.string({
-    name: 'collectionName',
+  collection: Args.string({
+    name: 'collection',
     description: 'The name of the collection to create the index on',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')
@@ -137,7 +138,7 @@ CreateIndex.flags = {
   ...DBBaseCommand.flags,
   spec: Flags.string({
     char: 's',
-    helpGroup: 'Requires at least one index definition',
+    helpGroup: 'Requires at least one of the index definition',
     description: 'Index specification as a JSON object (e.g., \'{"name":1, "age":-1}\')',
     multiple: true,
     atLeastOne: ['key', 'spec'],
@@ -145,7 +146,7 @@ CreateIndex.flags = {
   }),
   key: Flags.string({
     char: 'k',
-    helpGroup: 'Requires at least one index definition',
+    helpGroup: 'Requires at least one of the index definition',
     description: 'Index key to use with default specification',
     multiple: true,
     atLeastOne: ['key', 'spec'],

@@ -18,20 +18,20 @@ import { prettyJson } from '../../../../utils/output.js'
 
 export class DropIndex extends DBBaseCommand {
   async run () {
-    const { collectionName, indexName } = this.args
+    const { collection, indexName } = this.args
 
     try {
-      this.log(chalk.blue(`Dropping index '${indexName}' from collection '${collectionName}'...`))
+      this.log(chalk.blue(`Dropping index '${indexName}' from collection '${collection}'...`))
 
       const client = await this.db.connect()
-      const collection = await client.collection(collectionName)
+      const coll = await client.collection(collection)
 
-      const result = await collection.dropIndex(indexName)
+      const result = await coll.dropIndex(indexName)
 
       this.debugLogger?.info?.('Index dropped successfully:', result)
 
       const response = {
-        collectionName,
+        collection,
         indexName,
         status: 'dropped',
         namespace: this.rtNamespace,
@@ -51,12 +51,12 @@ export class DropIndex extends DBBaseCommand {
       this.debugLogger?.error?.('Error dropping index:', error)
 
       this.log(chalk.red('Failed to drop index'))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Index: ${indexName}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
-      this.error(`Failed to drop index '${indexName}' from collection '${collectionName}': ${error.message}`)
+      this.error(`Failed to drop index '${indexName}' from collection '${collection}': ${error.message}`)
     }
   }
 }
@@ -69,8 +69,8 @@ DropIndex.examples = [
 ]
 
 DropIndex.args = {
-  collectionName: Args.string({
-    name: 'collectionName',
+  collection: Args.string({
+    name: 'collection',
     description: 'The name of the collection to drop the index from',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')

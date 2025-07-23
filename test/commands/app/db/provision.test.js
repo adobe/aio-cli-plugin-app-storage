@@ -33,7 +33,8 @@ describe('prototype', () => {
     expect(Object.keys(Provision.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(Provision.flags).sort()).toEqual(['region'])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['region']).sort()
+    expect(Object.keys(Provision.flags).sort()).toEqual(expectedFlags)
     expect(Provision.flags.region.options).toEqual(AVAILABLE_REGIONS)
     expect(Provision.flags.region.default).toBe(DEFAULT_REGION)
     expect(Provision.enableJsonFlag).toEqual(true)

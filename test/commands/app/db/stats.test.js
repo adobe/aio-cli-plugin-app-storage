@@ -26,7 +26,8 @@ describe('prototype', () => {
     expect(Object.keys(Stats.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(Stats.flags).sort()).toEqual([])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
+    expect(Object.keys(Stats.flags).sort()).toEqual(expectedFlags)
     expect(Stats.enableJsonFlag).toEqual(true)
   })
 })

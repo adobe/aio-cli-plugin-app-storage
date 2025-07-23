@@ -18,11 +18,11 @@ import { prettyJson } from '../../../../utils/output.js'
 
 export class InsertMany extends DBBaseCommand {
   async run () {
-    const { collectionName, documents } = this.args
+    const { collection, documents } = this.args
     const { bypassDocumentValidation } = this.flags
 
     try {
-      this.log(chalk.blue(`Inserting ${documents.length} documents into collection '${collectionName}'...`))
+      this.log(chalk.blue(`Inserting ${documents.length} documents into collection '${collection}'...`))
 
       // Build options object
       const insertOptions = {}
@@ -32,15 +32,15 @@ export class InsertMany extends DBBaseCommand {
       }
 
       const client = await this.db.connect()
-      const collection = await client.collection(collectionName)
+      const coll = await client.collection(collection)
 
       // Perform the insertMany operation
-      const result = await collection.insertMany(documents, insertOptions)
+      const result = await coll.insertMany(documents, insertOptions)
 
       this.debugLogger?.info?.('Documents inserted successfully:', result)
 
       const response = {
-        collectionName,
+        collection,
         status: 'inserted',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
@@ -51,8 +51,8 @@ export class InsertMany extends DBBaseCommand {
         response.options = insertOptions
       }
 
-      this.log(chalk.green(`Successfully inserted ${result.insertedCount} documents into collection '${collectionName}'`))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.green(`Successfully inserted ${result.insertedCount} documents into collection '${collection}'`))
+      this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
       if (result.insertedIds && Object.keys(result.insertedIds).length > 0) {
@@ -67,10 +67,10 @@ export class InsertMany extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Error inserting documents:', error)
 
-      const errorMessage = `Failed to insert documents into collection '${collectionName}': ${error.message}`
+      const errorMessage = `Failed to insert documents into collection '${collection}': ${error.message}`
 
       this.log(chalk.red('Failed to insert documents'))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
@@ -89,8 +89,8 @@ InsertMany.examples = [
 ]
 
 InsertMany.args = {
-  collectionName: Args.string({
-    name: 'collectionName',
+  collection: Args.string({
+    name: 'collection',
     description: 'The name of the collection to insert documents into',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')

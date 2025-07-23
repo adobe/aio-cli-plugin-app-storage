@@ -30,7 +30,8 @@ describe('prototype', () => {
     expect(Object.keys(Status.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(Status.flags).sort()).toEqual(['watch'])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['watch']).sort()
+    expect(Object.keys(Status.flags).sort()).toEqual(expectedFlags)
     expect(Status.flags.watch.type).toBe('boolean')
     expect(Status.flags.watch.default).toBe(false)
     expect(Status.enableJsonFlag).toEqual(true)
