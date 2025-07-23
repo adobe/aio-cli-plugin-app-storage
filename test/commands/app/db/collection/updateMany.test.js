@@ -82,10 +82,6 @@ describe('run', () => {
 
       expect(result).toEqual({
         collectionName: 'users',
-        matchedCount: 5,
-        modifiedCount: 5,
-        upsertedCount: 0,
-        upsertedId: undefined,
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -117,10 +113,6 @@ describe('run', () => {
 
       expect(result).toEqual({
         collectionName: 'products',
-        matchedCount: 3,
-        modifiedCount: 3,
-        upsertedCount: 0,
-        upsertedId: undefined,
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -156,10 +148,6 @@ describe('run', () => {
 
       expect(result).toEqual({
         collectionName: 'inventory',
-        matchedCount: 2,
-        modifiedCount: 2,
-        upsertedCount: 0,
-        upsertedId: undefined,
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -194,10 +182,6 @@ describe('run', () => {
 
       expect(result).toEqual({
         collectionName: 'logs',
-        matchedCount: 0,
-        modifiedCount: 0,
-        upsertedCount: 1,
-        upsertedId: 'new-id-123',
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -224,10 +208,6 @@ describe('run', () => {
 
       expect(result).toEqual({
         collectionName: 'temp',
-        matchedCount: 1,
-        modifiedCount: 1,
-        upsertedCount: undefined,
-        upsertedId: undefined,
         status: 'updated',
         namespace: 'test-namespace',
         timestamp: expect.any(String),

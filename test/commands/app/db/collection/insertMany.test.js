@@ -79,8 +79,6 @@ describe('run', () => {
 
       expect(result).toEqual({
         collectionName: 'users',
-        insertedCount: 2,
-        insertedIds: { 0: 'id1', 1: 'id2' },
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -110,8 +108,6 @@ describe('run', () => {
 
       expect(result).toEqual({
         collectionName: 'products',
-        insertedCount: 1,
-        insertedIds: { 0: 'id1' },
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -138,8 +134,6 @@ describe('run', () => {
 
       expect(result).toEqual({
         collectionName: 'logs',
-        insertedCount: 1,
-        insertedIds: undefined,
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -170,8 +164,6 @@ describe('run', () => {
 
       expect(result).toEqual({
         collectionName: 'temp',
-        insertedCount: 1,
-        insertedIds: { 0: 'id1' },
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
@@ -203,8 +195,6 @@ describe('run', () => {
 
       expect(result).toEqual({
         collectionName: 'bulk',
-        insertedCount: 1,
-        insertedIds: { 0: 'id1' },
         status: 'inserted',
         namespace: 'test-namespace',
         timestamp: expect.any(String),

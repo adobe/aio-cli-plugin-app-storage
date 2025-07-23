@@ -40,8 +40,6 @@ export class InsertMany extends DBBaseCommand {
 
       const response = {
         collectionName,
-        insertedCount: result.insertedCount,
-        insertedIds: result.insertedIds,
         status: 'inserted',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),

@@ -47,10 +47,6 @@ export class UpdateMany extends DBBaseCommand {
 
       const response = {
         collectionName,
-        matchedCount: result.matchedCount,
-        modifiedCount: result.modifiedCount,
-        upsertedCount: result.upsertedCount,
-        upsertedId: result.upsertedId,
         status: 'updated',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
