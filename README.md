@@ -50,6 +50,8 @@ $ aio app db --help
 * [`aio app db collection updateOne COLLECTION FILTER UPDATE`](#aio-app-db-collection-updateone-collection-filter-update)
 * [`aio app db collection updateMany COLLECTION FILTER UPDATE`](#aio-app-db-collection-updatemany-collection-filter-update)
 * [`aio app db collection replaceOne COLLECTION FILTER REPLACEMENT`](#aio-app-db-collection-replaceone-collection-filter-replacement)
+* [`aio app db collection countDocuments COLLECTION`](#aio-app-db-collection-countdocuments-collection)
+* [`aio app db collection estimatedDocumentCount COLLECTION`](#aio-app-db-collection-estimateddocumentcount-collection)
 
 ### Index Management
 * [`aio app db collection createIndex COLLECTION`](#aio-app-db-collection-createindex-collection)
@@ -465,7 +467,7 @@ USAGE
   $ aio app db collection find COLLECTION FILTER [--json] [-l <value>] [-s <value>] [-o <value>] [-p <value>]
 
 ARGUMENTS
-  COLLECTION  The name of the collection to query
+  COLLECTION  The name of the collection
   FILTER      Filter criteria for the documents to find (JSON string, e.g. '{"status": "active"}')
 
 FLAGS
@@ -582,6 +584,57 @@ EXAMPLES
   $ aio app db collection replaceOne posts '{"slug": "hello-world"}' '{"title": "Hello World", "content": "Updated content", "status": "published"}' --upsert
 
   $ aio app db collection replaceOne users '{"email": "john@example.com"}' '{"email": "john@example.com", "name": "John", "verified": true}' --upsert
+```
+
+### `aio app db collection countDocuments COLLECTION`
+
+Count documents in a collection
+
+```
+USAGE
+  $ aio app db collection countDocuments COLLECTION [QUERY] [--json]
+
+ARGUMENTS
+  COLLECTION  The name of the collection
+  QUERY       The query filter document (JSON string). If not provided, counts all documents.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Count documents in a collection
+
+EXAMPLES
+  $ aio app db collection countDocuments users
+
+  $ aio app db collection countDocuments users '{"age": {"$gte": 21}}'
+
+  $ aio app db collection countDocuments products '{"category": "electronics"}'
+```
+
+### `aio app db collection estimatedDocumentCount COLLECTION`
+
+Get estimated document count for a collection
+
+```
+USAGE
+  $ aio app db collection estimatedDocumentCount COLLECTION [--json]
+
+ARGUMENTS
+  COLLECTION  The name of the collection
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get estimated document count for a collection based on collection metadata
+
+EXAMPLES
+  $ aio app db collection estimatedDocumentCount users
+
+  $ aio app db collection estimatedDocumentCount products
+
+  $ aio app db collection estimatedDocumentCount posts --json
 ```
 
 ## Index Management
