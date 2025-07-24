@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
+import { isNonEmptyString } from '../../../../utils/inputValidation.js'
 
 export class EstimatedDocumentCount extends DBBaseCommand {
   async run () {
@@ -56,7 +57,7 @@ export class EstimatedDocumentCount extends DBBaseCommand {
   }
 }
 
-EstimatedDocumentCount.description = 'Get estimated document count for a collection'
+EstimatedDocumentCount.description = 'Get estimated document count for a collection based on collection metadata'
 
 EstimatedDocumentCount.examples = [
   '$ aio app db collection estimatedDocumentCount users',
@@ -68,7 +69,8 @@ EstimatedDocumentCount.args = {
   collection: Args.string({
     name: 'collection',
     description: 'The name of the collection',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Collection name')
   })
 }
 

@@ -52,7 +52,7 @@ describe('EstimatedDocumentCount', () => {
 
   describe('command structure', () => {
     test('has correct description', () => {
-      expect(EstimatedDocumentCount.description).toBe('Get estimated document count for a collection')
+      expect(EstimatedDocumentCount.description).toBe('Get estimated document count for a collection based on collection metadata')
     })
 
     test('has correct examples', () => {
