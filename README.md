@@ -434,7 +434,7 @@ USAGE
   $ aio app db collection find COLLECTIONNAME FILTER [-l <value>] [-s <value>] [-o <value>] [-p <value>]
 
 ARGUMENTS
-  COLLECTIONNAME  The name of the collection to query
+  COLLECTIONNAME  The name of the collection
   FILTER          Filter criteria for the documents to find (JSON string, e.g. '{"status": "active"}')
 
 FLAGS

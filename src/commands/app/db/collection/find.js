@@ -94,7 +94,7 @@ Find.examples = [
 Find.args = {
   collectionName: Args.string({
     name: 'collectionName',
-    description: 'The name of the collection to query',
+    description: 'The name of the collection',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection')
   }),
