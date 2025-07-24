@@ -138,7 +138,7 @@ describe('run', () => {
 
       const obj = { key: 'value' }
       const formatted = command.formatValue(obj)
-      expect(formatted).toContain('{\n  "key": "value"\n}')
+      expect(formatted).toMatch(/\{\n +"key": "value"\n *\}/)
     })
 
     test('formats other types as strings', async () => {

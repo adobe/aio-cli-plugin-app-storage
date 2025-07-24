@@ -13,7 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
-import { asObject } from '../../../../utils/inputValidation.js'
+import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
 
 export class DeleteOne extends DBBaseCommand {
   async run () {
@@ -78,7 +78,8 @@ DeleteOne.args = {
   collection: Args.string({
     name: 'collection',
     description: 'The name of the collection',
-    required: true
+    required: true,
+    parse: input => isNonEmptyString(input, 'Collection name')
   }),
   filter: Args.string({
     name: 'filter',

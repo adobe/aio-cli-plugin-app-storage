@@ -14,6 +14,7 @@ import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
 import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
+import { prettyJson } from '../../../../utils/output.js'
 
 export class CreateCollection extends DBBaseCommand {
   async run () {
@@ -73,7 +74,7 @@ export class CreateCollection extends DBBaseCommand {
       }
 
       if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-        this.log(chalk.dim(`   Details:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
+        this.log(chalk.dim(`   Details:\n${prettyJson(result)}`))
       }
 
       this.log(chalk.dim(`   Created: ${new Date().toLocaleString()}`))

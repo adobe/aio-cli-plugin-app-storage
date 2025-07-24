@@ -14,6 +14,7 @@ import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
 import { isNonEmptyString } from '../../../../utils/inputValidation.js'
+import { prettyJson } from '../../../../utils/output.js'
 
 export class GetIndexes extends DBBaseCommand {
   async run () {
@@ -40,7 +41,7 @@ export class GetIndexes extends DBBaseCommand {
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Retrieved: ${new Date().toLocaleString()}`))
       if (result && Array.isArray(result) && result.length > 0) {
-        this.log(chalk.dim(`   Indexes:\n${JSON.stringify(result, null, 2).replace(/^/gm, '     ')}`))
+        this.log(chalk.dim(`   Indexes:\n${prettyJson(result)}`))
       } else {
         this.log(chalk.dim('   No indexes found for this collection'))
       }
