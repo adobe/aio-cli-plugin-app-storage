@@ -70,7 +70,7 @@ CountDocuments.description = 'Count documents in a collection'
 CountDocuments.examples = [
   '$ aio app db collection countDocuments users',
   '$ aio app db collection countDocuments users \'{"age": {"$gte": 21}}\'',
-  '$ aio app db collection countDocuments products \'{"category": "electronics"}\''
+  '$ aio app db collection countDocuments products \'{"category": "electronics"}\' --json'
 ]
 
 CountDocuments.args = {
