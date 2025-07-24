@@ -77,3 +77,14 @@ Please make sure the 'AIO_RUNTIME_NAMESPACE' and 'AIO_RUNTIME_AUTH' environment 
     return 'db'
   }
 }
+
+// Add json flag to GLOBAL FLAGS section in --help output
+DBBaseCommand.flags = {
+  ...BaseCommand.flags,
+  json: {
+    description: 'Format output as json.',
+    default: false,
+    required: false,
+    helpGroup: 'GLOBAL'
+  }
+}

@@ -25,8 +25,8 @@ describe('prototype', () => {
   })
 
   test('args', () => {
-    expect(Object.keys(Find.args)).toEqual(['collectionName', 'filter'])
-    expect(Find.args.collectionName.required).toBe(true)
+    expect(Object.keys(Find.args)).toEqual(['collection', 'filter'])
+    expect(Find.args.collection.required).toBe(true)
     expect(Find.args.filter.required).toBe(true)
   })
 
@@ -149,7 +149,7 @@ describe('run', () => {
       await expect(async () => {
         await command.init()
         await command.run()
-      }).rejects.toThrow('Collection: Must be a non-empty string')
+      }).rejects.toThrow('Collection name: Must be a non-empty string')
       expect(mockFindArray).not.toHaveBeenCalled()
     })
 

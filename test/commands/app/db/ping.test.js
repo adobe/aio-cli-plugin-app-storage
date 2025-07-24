@@ -29,7 +29,8 @@ describe('prototype', () => {
     expect(Object.keys(Ping.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(Ping.flags).sort()).toEqual([])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
+    expect(Object.keys(Ping.flags).sort()).toEqual(expectedFlags)
     expect(Ping.enableJsonFlag).toEqual(true)
   })
 })

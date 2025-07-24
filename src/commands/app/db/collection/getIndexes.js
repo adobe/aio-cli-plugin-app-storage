@@ -18,20 +18,20 @@ import { prettyJson } from '../../../../utils/output.js'
 
 export class GetIndexes extends DBBaseCommand {
   async run () {
-    const { collectionName } = this.args
+    const { collection } = this.args
 
     try {
-      this.log(chalk.blue(`Getting indexes from collection '${collectionName}'...`))
+      this.log(chalk.blue(`Getting indexes from collection '${collection}'...`))
 
       const client = await this.db.connect()
-      const collection = await client.collection(collectionName)
+      const coll = await client.collection(collection)
 
-      const result = await collection.getIndexes()
+      const result = await coll.getIndexes()
 
       this.debugLogger?.info?.('Indexes retrieved successfully:', result)
 
       const response = {
-        collectionName,
+        collection,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         indexes: result
@@ -51,11 +51,11 @@ export class GetIndexes extends DBBaseCommand {
       this.debugLogger?.error?.('Error getting indexes:', error)
 
       this.log(chalk.red('Failed to retrieve indexes'))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
-      this.error(`Failed to retrieve indexes from collection '${collectionName}': ${error.message}`)
+      this.error(`Failed to retrieve indexes from collection '${collection}': ${error.message}`)
     }
   }
 }
@@ -68,8 +68,8 @@ GetIndexes.examples = [
 ]
 
 GetIndexes.args = {
-  collectionName: Args.string({
-    name: 'collectionName',
+  collection: Args.string({
+    name: 'collection',
     description: 'The name of the collection to retrieve indexes from',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')

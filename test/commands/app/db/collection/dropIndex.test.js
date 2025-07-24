@@ -24,11 +24,13 @@ describe('prototype', () => {
     expect(DropIndex.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(DropIndex.args)).toEqual(['collectionName', 'indexName'])
-    expect(DropIndex.args.collectionName.required).toBe(true)
+    expect(Object.keys(DropIndex.args).sort()).toEqual(['collection', 'indexName'])
+    expect(DropIndex.args.collection.required).toBe(true)
     expect(DropIndex.args.indexName.required).toBe(true)
   })
   test('flags', () => {
+    const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
+    expect(Object.keys(DropIndex.flags).sort()).toEqual(expectedFlags)
     expect(DropIndex.enableJsonFlag).toEqual(true)
   })
 })
@@ -75,7 +77,7 @@ describe('run', () => {
       expect(mockDropIndex).toHaveBeenCalledWith(indexName)
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         status: 'dropped',
         namespace: rtNamespace,
@@ -99,7 +101,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         status: 'dropped',
         namespace: rtNamespace,

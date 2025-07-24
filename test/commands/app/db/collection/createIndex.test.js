@@ -24,11 +24,12 @@ describe('prototype', () => {
     expect(CreateIndex.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(CreateIndex.args)).toEqual(['collectionName'])
-    expect(CreateIndex.args.collectionName.required).toBe(true)
+    expect(Object.keys(CreateIndex.args)).toEqual(['collection'])
+    expect(CreateIndex.args.collection.required).toBe(true)
   })
   test('flags', () => {
-    expect(Object.keys(CreateIndex.flags).sort()).toEqual(['key', 'name', 'spec', 'unique'])
+    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['key', 'name', 'spec', 'unique']).sort()
+    expect(Object.keys(CreateIndex.flags).sort()).toEqual(expectedFlags)
     expect(CreateIndex.flags.key.atLeastOne.sort()).toEqual(['key', 'spec'])
     expect(CreateIndex.flags.spec.atLeastOne.sort()).toEqual(['key', 'spec'])
     expect(CreateIndex.flags.key.multiple).toEqual(true)
@@ -82,7 +83,7 @@ describe('run', () => {
       expect(mockCreateIndex).toHaveBeenCalledWith([spec1], {})
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         specification: [spec1],
         status: 'created',
@@ -109,7 +110,7 @@ describe('run', () => {
       expect(mockCreateIndex).toHaveBeenCalledWith([spec1, spec2], {})
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         specification: [spec1, spec2],
         status: 'created',
@@ -134,7 +135,7 @@ describe('run', () => {
       expect(mockCreateIndex).toHaveBeenCalledWith([key1], {})
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         specification: [key1],
         status: 'created',
@@ -159,7 +160,7 @@ describe('run', () => {
       expect(mockCreateIndex).toHaveBeenCalledWith([key1, key2], {})
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         specification: [key1, key2],
         status: 'created',
@@ -184,7 +185,7 @@ describe('run', () => {
       expect(mockCreateIndex).toHaveBeenCalledWith([key1, spec1, spec2, key2], {})
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         specification: [key1, spec1, spec2, key2],
         status: 'created',
@@ -210,7 +211,7 @@ describe('run', () => {
       expect(mockCreateIndex).toHaveBeenCalledWith([spec1], {})
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         specification: [spec1],
         status: 'created',
@@ -237,7 +238,7 @@ describe('run', () => {
       expect(mockCreateIndex).toHaveBeenCalledWith([spec1], { name: 'custom_index_name' })
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         specification: [spec1],
         status: 'created',
@@ -262,7 +263,7 @@ describe('run', () => {
       expect(mockCreateIndex).toHaveBeenCalledWith([spec1], { unique: true })
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         specification: [spec1],
         status: 'created',
@@ -291,7 +292,7 @@ describe('run', () => {
       })
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         indexName,
         specification: [spec1],
         status: 'created',

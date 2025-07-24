@@ -37,7 +37,7 @@ describe('prototype', () => {
     expect(Object.keys(DBBaseCommand.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(DBBaseCommand.flags).sort()).toEqual([])
+    expect(Object.keys(DBBaseCommand.flags).sort()).toEqual(['json'])
     expect(DBBaseCommand.enableJsonFlag).toEqual(true)
   })
   test('getServiceName', () => {

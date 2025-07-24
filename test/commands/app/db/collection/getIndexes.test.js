@@ -41,10 +41,12 @@ describe('prototype', () => {
     expect(GetIndexes.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(GetIndexes.args)).toEqual(['collectionName'])
-    expect(GetIndexes.args.collectionName.required).toBe(true)
+    expect(Object.keys(GetIndexes.args)).toEqual(['collection'])
+    expect(GetIndexes.args.collection.required).toBe(true)
   })
   test('flags', () => {
+    const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
+    expect(Object.keys(GetIndexes.flags).sort()).toEqual(expectedFlags)
     expect(GetIndexes.enableJsonFlag).toEqual(true)
   })
 })
@@ -90,7 +92,7 @@ describe('run', () => {
       expect(mockGetIndexes).toHaveBeenCalled()
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         namespace: rtNamespace,
         timestamp: expect.any(String),
         indexes: successVal
@@ -112,7 +114,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result).toEqual({
-        collectionName,
+        collection: collectionName,
         namespace: rtNamespace,
         timestamp: expect.any(String),
         indexes: successVal

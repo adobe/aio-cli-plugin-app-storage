@@ -18,11 +18,11 @@ import { prettyJson } from '../../../../utils/output.js'
 
 export class UpdateMany extends DBBaseCommand {
   async run () {
-    const { collectionName, filter, update } = this.args
+    const { collection, filter, update } = this.args
     const { upsert } = this.flags
 
     try {
-      this.log(chalk.blue(`Updating documents in collection '${collectionName}'...`))
+      this.log(chalk.blue(`Updating documents in collection '${collection}'...`))
 
       // Log filter and update if provided
       this.log(chalk.dim(`   Filter: ${JSON.stringify(filter)}`))
@@ -33,7 +33,7 @@ export class UpdateMany extends DBBaseCommand {
       }
 
       const client = await this.db.connect()
-      const collection = await client.collection(collectionName)
+      const coll = await client.collection(collection)
 
       // Build options object
       const updateOptions = {}
@@ -42,12 +42,12 @@ export class UpdateMany extends DBBaseCommand {
       }
 
       // Perform the updateMany operation
-      const result = await collection.updateMany(filter, update, updateOptions)
+      const result = await coll.updateMany(filter, update, updateOptions)
 
       this.debugLogger?.info?.('Documents updated successfully:', result)
 
       const response = {
-        collectionName,
+        collection,
         status: 'updated',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
@@ -59,13 +59,13 @@ export class UpdateMany extends DBBaseCommand {
       }
 
       if (result.upsertedCount) {
-        this.log(chalk.green(`No documents in collection '${collectionName}' were found matching the filter, performed an upsert instead`))
-        this.log(chalk.dim(`   Collection: ${collectionName}`))
+        this.log(chalk.green(`No documents in collection '${collection}' were found matching the filter, performed an upsert instead`))
+        this.log(chalk.dim(`   Collection: ${collection}`))
         this.log(chalk.dim(`   Upserted ID: ${result.upsertedId}`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       } else {
-        this.log(chalk.green(`Successfully updated documents in collection '${collectionName}'`))
-        this.log(chalk.dim(`   Collection: ${collectionName}`))
+        this.log(chalk.green(`Successfully updated documents in collection '${collection}'`))
+        this.log(chalk.dim(`   Collection: ${collection}`))
         this.log(chalk.dim(`   Matched Count: ${result.matchedCount}`))
         this.log(chalk.dim(`   Modified Count: ${result.modifiedCount}`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
@@ -78,10 +78,10 @@ export class UpdateMany extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Error updating documents:', error)
 
-      const errorMessage = `Failed to update documents in collection '${collectionName}': ${error.message}`
+      const errorMessage = `Failed to update documents in collection '${collection}': ${error.message}`
 
       this.log(chalk.red('Failed to update documents'))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
@@ -100,8 +100,8 @@ UpdateMany.examples = [
 ]
 
 UpdateMany.args = {
-  collectionName: Args.string({
-    name: 'collectionName',
+  collection: Args.string({
+    name: 'collection',
     description: 'The name of the collection to update documents in',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')

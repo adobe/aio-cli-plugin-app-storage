@@ -36,29 +36,27 @@ $ aio app db --help
 
 ## Database Commands
 ### Collection Management
-* [`aio app db collection create COLLECTIONNAME`](#aio-app-db-collection-create-collectionname)
-* [`aio app db collection drop COLLECTIONNAME`](#aio-app-db-collection-drop-collectionname)
+* [`aio app db collection create COLLECTION`](#aio-app-db-collection-create-collection)
+* [`aio app db collection drop COLLECTION`](#aio-app-db-collection-drop-collection)
 * [`aio app db collection rename CURRENTNAME NEWNAME`](#aio-app-db-collection-rename-currentname-newname)
-* [`aio app db collection stats COLLECTIONNAME`](#aio-app-db-collection-stats-collectionname)
+* [`aio app db collection stats COLLECTION`](#aio-app-db-collection-stats-collection)
 
 ### Document Operations
 * [`aio app db collection insertOne COLLECTION DOCUMENT`](#aio-app-db-collection-insertone-collection-document)
+* [`aio app db collection insertMany COLLECTION DOCUMENTS`](#aio-app-db-collection-insertmany-collection-documents)
 * [`aio app db collection deleteOne COLLECTION FILTER`](#aio-app-db-collection-deleteone-collection-filter)
 * [`aio app db collection findOne COLLECTION FILTER`](#aio-app-db-collection-findone-collection-filter)
-* [`aio app db collection find COLLECTIONNAME FILTER`](#aio-app-db-collection-find-collectionname-filter)
+* [`aio app db collection find COLLECTION FILTER`](#aio-app-db-collection-find-collection-filter)
 * [`aio app db collection updateOne COLLECTION FILTER UPDATE`](#aio-app-db-collection-updateone-collection-filter-update)
+* [`aio app db collection updateMany COLLECTION FILTER UPDATE`](#aio-app-db-collection-updatemany-collection-filter-update)
 * [`aio app db collection replaceOne COLLECTION FILTER REPLACEMENT`](#aio-app-db-collection-replaceone-collection-filter-replacement)
-* [`aio app db collection countDocuments COLLECTION [QUERY]`](#aio-app-db-collection-countdocuments-collection-query)
+* [`aio app db collection countDocuments COLLECTION`](#aio-app-db-collection-countdocuments-collection)
 * [`aio app db collection estimatedDocumentCount COLLECTION`](#aio-app-db-collection-estimateddocumentcount-collection)
 
-### Multi-Document Operations
-* [`aio app db collection insertMany COLLECTION DOCUMENTS`](#aio-app-db-collection-insertmany-collection-documents)
-* [`aio app db collection updateMany COLLECTION FILTER UPDATE`](#aio-app-db-collection-updatemany-collection-filter-update)
-
 ### Index Management
-* [`aio app db collection createIndex COLLECTIONNAME SPECIFICATION`](#aio-app-db-collection-createindex-collectionname-specification)
-* [`aio app db collection dropIndex COLLECTIONNAME INDEXNAME`](#aio-app-db-collection-dropindex-collectionname-indexname)
-* [`aio app db collection getIndexes COLLECTIONNAME`](#aio-app-db-collection-getindexes-collectionname)
+* [`aio app db collection createIndex COLLECTION`](#aio-app-db-collection-createindex-collection)
+* [`aio app db collection dropIndex COLLECTION INDEXNAME`](#aio-app-db-collection-dropindex-collection-indexname)
+* [`aio app db collection getIndexes COLLECTION`](#aio-app-db-collection-getindexes-collection)
 
 ### Database Information
 * [`aio app db getCollectionInfos`](#aio-app-db-getcollectioninfos)
@@ -239,16 +237,16 @@ EXAMPLES
 
 ## Collection Management
 
-### `aio app db collection create COLLECTIONNAME`
+### `aio app db collection create COLLECTION`
 
 Create a new collection in the database
 
 ```
 USAGE
-  $ aio app db collection create COLLECTIONNAME [--json] [-v <value>]
+  $ aio app db collection create COLLECTION [--json] [-v <value>]
 
 ARGUMENTS
-  COLLECTIONNAME  The name of the collection to create
+  COLLECTION  The name of the collection to create
 
 FLAGS
   -v, --validator=<value>  JSON schema validator for document validation (JSON string)
@@ -265,18 +263,20 @@ EXAMPLES
   $ aio app db collection create products --json
 
   $ aio app db collection create products --validator '{"$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}'
+
+  $ aio app db collection create inventory --validator '{"type": "object", "required": ["id", "quantity"]}' --json
 ```
 
-### `aio app db collection drop COLLECTIONNAME`
+### `aio app db collection drop COLLECTION`
 
 Drop a collection from the database
 
 ```
 USAGE
-  $ aio app db collection drop COLLECTIONNAME [--json]
+  $ aio app db collection drop COLLECTION [--json]
 
 ARGUMENTS
-  COLLECTIONNAME  The name of the collection to drop
+  COLLECTION  The name of the collection to drop
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -314,16 +314,16 @@ EXAMPLES
   $ aio app db collection rename old_products new_products --json
 ```
 
-### `aio app db collection stats COLLECTIONNAME`
+### `aio app db collection stats COLLECTION`
 
 Get statistics for a collection in the database
 
 ```
 USAGE
-  $ aio app db collection stats COLLECTIONNAME [--json]
+  $ aio app db collection stats COLLECTION [--json]
 
 ARGUMENTS
-  COLLECTIONNAME  The name of the collection to get stats for
+  COLLECTION  The name of the collection to get stats for
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -366,6 +366,37 @@ EXAMPLES
   $ aio app db collection insertOne products '{"name": "Widget", "price": 10.99}' --json
 
   $ aio app db collection insertOne posts '{"title": "Hello World", "content": "This is a test post"}' --bypassDocumentValidation
+```
+
+### `aio app db collection insertMany COLLECTION DOCUMENTS`
+
+Insert multiple documents into a collection
+
+```
+USAGE
+  $ aio app db collection insertMany COLLECTION DOCUMENTS [--json] [-b]
+
+ARGUMENTS
+  COLLECTION  The name of the collection to insert documents into
+  DOCUMENTS   JSON array of documents to insert
+
+FLAGS
+  -b, --bypassDocumentValidation  Bypass schema validation if present
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Insert multiple documents into a collection
+
+EXAMPLES
+  $ aio app db collection insertMany users '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]'
+
+  $ aio app db collection insertMany products '[{"id": 1, "name": "Product A"}, {"id": 2, "name": "Product B"}]' --json
+
+  $ aio app db collection insertMany temp '[{"data": "test"}]' --bypassDocumentValidation
+
+  $ aio app db collection insertMany bulk '[{"field": "value"}]' --bypassDocumentValidation --json
 ```
 
 ### `aio app db collection deleteOne COLLECTION FILTER`
@@ -427,17 +458,17 @@ EXAMPLES
   $ aio app db collection findOne users '{"age": {"$gte": 21}}' --projection '{"name": 1, "_id": 0}'
 ```
 
-### `aio app db collection find COLLECTIONNAME FILTER`
+### `aio app db collection find COLLECTION FILTER`
 
 Find documents in a collection based on filter criteria.
 
 ```
 USAGE
-  $ aio app db collection find COLLECTIONNAME FILTER [-l <value>] [-s <value>] [-o <value>] [-p <value>]
+  $ aio app db collection find COLLECTION FILTER [--json] [-l <value>] [-s <value>] [-o <value>] [-p <value>]
 
 ARGUMENTS
-  COLLECTIONNAME  The name of the collection
-  FILTER          Filter criteria for the documents to find (JSON string, e.g. '{"status": "active"}')
+  COLLECTION  The name of the collection
+  FILTER      Filter criteria for the documents to find (JSON string, e.g. '{"status": "active"}')
 
 FLAGS
   -l, --limit=<value>       [default: 20] Limit the number of documents returned, max: 100
@@ -473,7 +504,7 @@ ARGUMENTS
   UPDATE      The update document (JSON string)
 
 FLAGS
-  -u, --upsert          If no document is found, create a new one
+  -u, --upsert  If no document is found, create a new one
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -491,6 +522,38 @@ EXAMPLES
   $ aio app db collection updateOne users '{"email": "john@example.com"}' '{"$set": {"lastLogin": "2024-01-01"}}' --upsert
 ```
 
+### `aio app db collection updateMany COLLECTION FILTER UPDATE`
+
+Update multiple documents in a collection
+
+```
+USAGE
+  $ aio app db collection updateMany COLLECTION FILTER UPDATE [--json] [-u]
+
+ARGUMENTS
+  COLLECTION  The name of the collection to update documents in
+  FILTER      Filter document to select documents to update (JSON string)
+  UPDATE      Update document with update operators (JSON string)
+
+FLAGS
+  -u, --upsert  If no document is found, create a new one
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Update multiple documents in a collection
+
+EXAMPLES
+  $ aio app db collection updateMany users '{"age": {"$lt": 30}}' '{"$set": {"status": "young"}}'
+
+  $ aio app db collection updateMany products '{"category": "electronics"}' '{"$inc": {"price": 10}}' --json
+
+  $ aio app db collection updateMany inventory '{"quantity": {"$lt": 5}}' '{"$set": {"lowStock": true}}' --upsert
+
+  $ aio app db collection updateMany logs '{"level": "error"}' '{"$set": {"processed": true}}' --upsert --json
+```
+
 ### `aio app db collection replaceOne COLLECTION FILTER REPLACEMENT`
 
 Replace a single document in a collection
@@ -505,7 +568,7 @@ ARGUMENTS
   REPLACEMENT  The replacement document (JSON string)
 
 FLAGS
-  -u, --upsert          If no document is found, create a new one
+  -u, --upsert  If no document is found, create a new one
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -523,7 +586,7 @@ EXAMPLES
   $ aio app db collection replaceOne users '{"email": "john@example.com"}' '{"email": "john@example.com", "name": "John", "verified": true}' --upsert
 ```
 
-### `aio app db collection countDocuments COLLECTION [QUERY]`
+### `aio app db collection countDocuments COLLECTION`
 
 Count documents in a collection
 
@@ -547,8 +610,6 @@ EXAMPLES
   $ aio app db collection countDocuments users '{"age": {"$gte": 21}}'
 
   $ aio app db collection countDocuments products '{"category": "electronics"}' --json
-
-  $ aio app db collection countDocuments posts '{"status": "published"}'
 ```
 
 ### `aio app db collection estimatedDocumentCount COLLECTION`
@@ -571,99 +632,34 @@ DESCRIPTION
 EXAMPLES
   $ aio app db collection estimatedDocumentCount users
 
-  $ aio app db collection estimatedDocumentCount products --json
+  $ aio app db collection estimatedDocumentCount products
 
-  $ aio app db collection estimatedDocumentCount posts
-```
-
-## Multi-Document Operations
-
-### `aio app db collection insertMany COLLECTION DOCUMENTS`
-
-Insert multiple documents into a collection
-
-```
-USAGE
-  $ aio app db collection insertMany COLLECTION DOCUMENTS [--json] [--bypassDocumentValidation]
-
-ARGUMENTS
-  COLLECTION   The name of the collection
-  DOCUMENTS    JSON array of documents to insert
-
-FLAGS
-  --bypassDocumentValidation  Bypass schema validation if present
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Insert multiple documents into a collection
-
-EXAMPLES
-  $ aio app db collection insertMany users '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]'
-
-  $ aio app db collection insertMany products '[{"id": 1, "name": "Product A"}, {"id": 2, "name": "Product B"}]' --json
-
-  $ aio app db collection insertMany temp '[{"data": "test"}]' --bypassDocumentValidation
-
-  $ aio app db collection insertMany bulk '[{"field": "value"}]' --bypassDocumentValidation --json
-```
-
-### `aio app db collection updateMany COLLECTION FILTER UPDATE`
-
-Update multiple documents in a collection
-
-```
-USAGE
-  $ aio app db collection updateMany COLLECTION FILTER UPDATE [--json] [-u]
-
-ARGUMENTS
-  COLLECTION  The name of the collection
-  FILTER      The filter document (JSON string)
-  UPDATE      The update document (JSON string)
-
-FLAGS
-  -u, --upsert          If no document is found, create a new one
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Update multiple documents in a collection
-
-EXAMPLES
-  $ aio app db collection updateMany users '{"status": "inactive"}' '{"$set": {"status": "active"}}'
-
-  $ aio app db collection updateMany products '{"category": "electronics"}' '{"$inc": {"price": 10}}' --json
-
-  $ aio app db collection updateMany posts '{"status": "draft"}' '{"$set": {"status": "published"}}' --upsert
-
-  $ aio app db collection updateMany logs '{"level": "error"}' '{"$set": {"processed": true}}' --upsert
+  $ aio app db collection estimatedDocumentCount posts --json
 ```
 
 ## Index Management
 
-### `aio app db collection createIndex COLLECTIONNAME SPECIFICATION`
+### `aio app db collection createIndex COLLECTION`
 
 Create an index on a collection in your App Builder database
 
 ```
 USAGE
-  $ aio app db collection createIndex COLLECTIONNAME [--spec <index_spec>] [--key <index_key>] [--name <index_name>] [--unique] [--json]
+  $ aio app db collection createIndex COLLECTION [--json] [-s <value>] [-k <value>] [-n <value>] [-u]
 
 ARGUMENTS
-  COLLECTIONNAME  The name of the collection to create the index on
+  COLLECTION  The name of the collection to create the index on
 
 FLAGS
   -n, --name=<value>  A name that uniquely identifies the index
   -u, --unique        Creates a unique index so that the collection will not accept insertion or update of documents where the index key value matches an existing value in the index
 
-GLOBAL FLAGS
-  --json  Format output as json
-
-REQUIRES AT LEAST ONE INDEX DEFINITION FLAGS
+REQUIRES AT LEAST ONE OF THE INDEX DEFINITION FLAGS
   -k, --key=<value>...   Index key to use with default specification
   -s, --spec=<value>...  Index specification as a JSON object (e.g., '{"name":1, "age":-1}')
+
+GLOBAL FLAGS
+  --json  Format output as json.
 
 DESCRIPTION
   Create a new index on a collection in the database
@@ -682,20 +678,20 @@ EXAMPLES
   $ aio app db collection createIndex books -s '{"author":1}' -k year
 ```
 
-### `aio app db collection dropIndex COLLECTIONNAME INDEXNAME`
+### `aio app db collection dropIndex COLLECTION INDEXNAME`
 
 Drop an index from a collection in your App Builder database
 
 ```
 USAGE
-  $ aio app db collection dropIndex COLLECTIONNAME INDEXNAME [--json]
+  $ aio app db collection dropIndex COLLECTION INDEXNAME [--json]
 
 ARGUMENTS
-  COLLECTIONNAME  The name of the collection to drop the index from
-  INDEXNAME       The name of the index to drop
+  COLLECTION  The name of the collection to drop the index from
+  INDEXNAME   The name of the index to drop
 
 GLOBAL FLAGS
-  --json  Format output as json
+  --json  Format output as json.
 
 DESCRIPTION
   Drop an index from a collection in the database
@@ -706,19 +702,19 @@ EXAMPLES
   $ aio app db collection dropIndex products category_1 --json
 ```
 
-### `aio app db collection getIndexes COLLECTIONNAME`
+### `aio app db collection getIndexes COLLECTION`
 
 Get all indexes for a collection in your App Builder database
 
 ```
 USAGE
-  $ aio app db collection getIndexes COLLECTIONNAME [--json]
+  $ aio app db collection getIndexes COLLECTION [--json]
 
 ARGUMENTS
-  COLLECTIONNAME  The name of the collection to retrieve indexes from
+  COLLECTION  The name of the collection to retrieve indexes from
 
 GLOBAL FLAGS
-  --json  Format output as json
+  --json  Format output as json.
 
 DESCRIPTION
   Get the list of indexes from a collection in the database
@@ -743,7 +739,7 @@ GLOBAL FLAGS
   --json  Format output as json.
 
 DESCRIPTION
-  Get details about your App Builder database
+  Get details of your App Builder database collections
 
 EXAMPLES
   $ aio app db getCollectionInfos
@@ -825,7 +821,7 @@ USAGE
   $ aio app db provision [--json] [--region amer|emea|apac]
 
 FLAGS
-  --region=<option>  Region in which database is to be provisioned
+  --region=<option>  [default: amer] Region in which database is to be provisioned
                      <options: amer|emea|apac>
 
 GLOBAL FLAGS

@@ -17,29 +17,29 @@ import { isNonEmptyString } from '../../../../utils/inputValidation.js'
 
 export class StatsCollection extends DBBaseCommand {
   async run () {
-    const { collectionName } = this.args
+    const { collection } = this.args
 
     try {
-      this.log(chalk.blue(`Getting stats for collection '${collectionName}'...`))
+      this.log(chalk.blue(`Getting stats for collection '${collection}'...`))
 
       const client = await this.db.connect()
 
       // Get the collection object
-      const collection = client.collection(collectionName)
+      const coll = client.collection(collection)
 
       // Get collection-level statistics
-      const stats = await collection.stats()
+      const stats = await coll.stats()
 
       this.debugLogger?.info?.('Collection stats retrieved successfully:', stats)
 
       const response = {
-        collectionName,
+        collection,
         stats,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString()
       }
 
-      this.log(chalk.green(`Stats for collection '${collectionName}':`))
+      this.log(chalk.green(`Stats for collection '${collection}':`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
       if (stats && typeof stats === 'object') {
@@ -55,10 +55,10 @@ export class StatsCollection extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Error getting collection stats:', error)
 
-      const errorMessage = `Failed to get stats for collection '${collectionName}': ${error.message}`
+      const errorMessage = `Failed to get stats for collection '${collection}': ${error.message}`
 
       this.log(chalk.red('Failed to get collection stats'))
-      this.log(chalk.dim(`   Collection: ${collectionName}`))
+      this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
@@ -75,8 +75,8 @@ StatsCollection.examples = [
 ]
 
 StatsCollection.args = {
-  collectionName: Args.string({
-    name: 'collectionName',
+  collection: Args.string({
+    name: 'collection',
     description: 'The name of the collection to get stats for',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')
