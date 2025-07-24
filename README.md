@@ -67,9 +67,6 @@ $ aio app db --help
 ### Aggregates
 * [`aio app db collection countDocuments COLLECTION [QUERY]`](#aio-app-db-collection-countdocuments-collection-query)
 * [`aio app db collection estimatedDocumentCount COLLECTION`](#aio-app-db-collection-estimateddocumentcount-collection)
-* [`aio app db collection countDocuments COLLECTION [QUERY]`](#aio-app-db-collection-countdocuments-collection-query)
-* [`aio app db collection estimatedDocumentCount COLLECTION`](#aio-app-db-collection-estimateddocumentcount-collection)
-* [`aio app db collection estimatedDocumentCount COLLECTION`](#aio-app-db-collection-estimateddocumentcount-collection)
 
 ## Other Commands
 * [`aio help [COMMAND]`](#aio-help-command)
