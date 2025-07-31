@@ -13,4 +13,4 @@ governing permissions and limitations under the License.
 // state.region is a new configuration (env=AIO_STATE_REGION)
 export const CONFIG_STATE_REGION = 'state.region'
 
-export const DEFAULT_TTL_SECONDS = 60 * 60 * 24 // 24 hours
+export const DEFAULT_TTL_SECONDS = 60 * 60 * 20 // 24 hours
