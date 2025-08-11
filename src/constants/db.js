@@ -20,6 +20,9 @@ export const DB_STATUS = {
   UNKNOWN: 'UNKNOWN'
 }
 
+// Region constants for db are separate from state in case they diverge in the future
+export const CONFIG_DB_REGION = 'db.region'
 export const DEFAULT_REGION = 'amer'
-
 export const AVAILABLE_REGIONS = ['amer', 'emea', 'apac']
+
+export const CONFIG_DB_ENDPOINT = 'db.endpoint'

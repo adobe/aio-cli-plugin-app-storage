@@ -11,13 +11,12 @@ governing permissions and limitations under the License.
 */
 
 import { DBBaseCommand } from '../../../DBBaseCommand.js'
-import { Flags } from '@oclif/core'
 import chalk from 'chalk'
-import { DB_STATUS, DEFAULT_REGION, AVAILABLE_REGIONS } from '../../../constants/db.js'
+import { DB_STATUS } from '../../../constants/db.js'
 
 export class Provision extends DBBaseCommand {
   async run () {
-    const { region } = this.flags
+    const region = this.db.region
 
     try {
       // First check if database is already provisioned
@@ -34,36 +33,35 @@ export class Provision extends DBBaseCommand {
 
       if (provisionStatusResponse) {
         const currentStatus = provisionStatusResponse.status.toUpperCase()
+        const statusRegion = provisionStatusResponse.region
 
         if (currentStatus === DB_STATUS.PROVISIONED) {
           this.log(chalk.green('Database is already provisioned and ready for use'))
           this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-          this.log(chalk.dim(`   Region: ${provisionStatusResponse.region || DEFAULT_REGION}`))
+          this.log(chalk.dim(`   Region: ${statusRegion}`))
           this.log(chalk.dim(`   Status: ${currentStatus}`))
 
           return {
             status: 'already_provisioned',
             namespace: this.rtNamespace,
-            region: provisionStatusResponse.region || DEFAULT_REGION,
             details: provisionStatusResponse
           }
         } else if (currentStatus === DB_STATUS.REQUESTED) {
           this.log(chalk.yellow('Database provisioning request has been submitted and is pending'))
           this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-          this.log(chalk.dim(`   Region: ${provisionStatusResponse.region || DEFAULT_REGION}`))
+          this.log(chalk.dim(`   Region: ${statusRegion}`))
           this.log(chalk.dim(`   Status: ${currentStatus}`))
           this.log(chalk.dim('\nUse "aio app db status --watch" to monitor progress'))
 
           return {
             status: 'in_progress',
             namespace: this.rtNamespace,
-            region: provisionStatusResponse.region || DEFAULT_REGION,
             details: provisionStatusResponse
           }
         } else if (currentStatus === DB_STATUS.PROCESSING) {
           this.log(chalk.yellow('Database is currently being provisioned'))
           this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-          this.log(chalk.dim(`   Region: ${provisionStatusResponse.region || DEFAULT_REGION}`))
+          this.log(chalk.dim(`   Region: ${statusRegion}`))
           this.log(chalk.dim(`   Status: ${currentStatus}`))
           this.log(chalk.dim('\nUse "aio app db status --watch" to monitor progress'))
           this.log(chalk.red('If provisioning takes unusually long, please contact the App Builder team'))
@@ -71,7 +69,6 @@ export class Provision extends DBBaseCommand {
           return {
             status: 'in_progress',
             namespace: this.rtNamespace,
-            region: provisionStatusResponse.region || DEFAULT_REGION,
             details: provisionStatusResponse
           }
         } else if (currentStatus === DB_STATUS.FAILED) {
@@ -113,9 +110,9 @@ export class Provision extends DBBaseCommand {
       // Start provisioning
       this.log(chalk.blue(`Submitting a request for a database to be provisioned for the '${this.rtNamespace}' namespace...`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-      this.log(chalk.dim(`   Region: ${region || DEFAULT_REGION}`))
+      this.log(chalk.dim(`   Region: ${region}`))
 
-      const provisionResult = await this.db.provisionRequest({ region })
+      const provisionResult = await this.db.provisionRequest()
       this.debugLogger?.info?.('Provision request result:', provisionResult)
 
       // Handle different provision result statuses
@@ -143,18 +140,21 @@ export class Provision extends DBBaseCommand {
       const result = {
         status: resultStatus.toLowerCase(),
         namespace: this.rtNamespace,
-        region: region || DEFAULT_REGION,
         timestamp: new Date().toISOString(),
         details: provisionResult
       }
 
+      // If region was specified as a CLI flag, include it in the output for next steps
+      const { region: regionFlag } = this.flags
+      const regionFlagString = regionFlag ? ` --region ${regionFlag}` : ''
+
       if (!this.flags.json && resultStatus !== DB_STATUS.PROVISIONED) {
         this.log(chalk.dim('\nNext steps:'))
-        this.log(chalk.dim('   - Monitor progress: aio app db status --watch'))
-        this.log(chalk.dim('   - Check status: aio app db status'))
+        this.log(chalk.dim(`   - Monitor progress: aio app db status${regionFlagString} --watch`))
+        this.log(chalk.dim(`   - Check status: aio app db status${regionFlagString}`))
       } else if (!this.flags.json && resultStatus === DB_STATUS.PROVISIONED) {
         this.log(chalk.dim('\nNext steps:'))
-        this.log(chalk.dim('   - Test connection: aio app db ping'))
+        this.log(chalk.dim(`   - Test connection: aio app db ping${regionFlagString}`))
       }
 
       return result
@@ -174,13 +174,7 @@ Provision.examples = [
 ]
 
 Provision.flags = {
-  ...DBBaseCommand.flags,
-  region: Flags.string({
-    description: 'Region in which database is to be provisioned',
-    required: false,
-    options: AVAILABLE_REGIONS,
-    default: DEFAULT_REGION
-  })
+  ...DBBaseCommand.flags
 }
 
 Provision.args = {}

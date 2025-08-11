@@ -60,7 +60,7 @@ const mockDBInstance = {
 jest.unstable_mockModule('@adobe/aio-lib-db', () => ({
   init: mockDBInit
 }))
-global.getDBInstanceMock = () => mockDBInstance
+global.mockDBInit = mockDBInit
 global.mockDBInstance = mockDBInstance
 
 // mock prompt
@@ -82,9 +82,12 @@ beforeEach(() => {
     'state.region': null,
     'runtime.namespace': 'test-namespace',
     'runtime.auth': 'auth',
-    'state.endpoint': null
+    'state.endpoint': null,
+    'db.endpoint': null,
+    'db.region': null
   }
   delete process.env.AIO_STATE_ENDPOINT
+  delete process.env.AIO_DB_ENDPOINT
 
   mockInit.mockReset()
   mockInit.mockResolvedValue(mockInstance)
