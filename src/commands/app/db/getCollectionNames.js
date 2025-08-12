@@ -26,10 +26,6 @@ export class GetCollectionNames extends DBBaseCommand {
       // Extract only the names from the collection info
       const collectionNames = collectionInfo.map(collection => collection.name)
 
-      if (this.flags.json) {
-        return collectionNames
-      }
-
       this.log(chalk.green('Collection names:'))
       this.log(JSON.stringify(collectionNames, null, 2))
 

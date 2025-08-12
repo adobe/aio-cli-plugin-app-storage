@@ -75,55 +75,25 @@ describe('init', () => {
   })
 
   test('initialization with environment-specific region', async () => {
-    const env = process.env.AIO_CLI_ENV
-    try {
-      process.env.AIO_CLI_ENV = 'stage'
-      command.argv = ['--region', 'amer2']
-      await expect(command.init()).resolves.not.toThrow()
-      expect(command.dbConfig.region).toBe('amer2')
+    global.getCliEnvMock().mockReturnValue('stage')
+    command.argv = ['--region', 'amer2']
+    await expect(command.init()).resolves.not.toThrow()
+    expect(command.dbConfig.region).toBe('amer2')
 
-      process.env.AIO_CLI_ENV = 'prod'
-      command.argv = ['--region', 'emea']
-      await expect(command.init()).resolves.not.toThrow()
-      expect(command.dbConfig.region).toBe('emea')
-
-      // default to prod if env is not recognized or not set
-      process.env.AIO_CLI_ENV = 'test'
-      command.argv = ['--region', 'emea']
-      await expect(command.init()).resolves.not.toThrow()
-      expect(command.dbConfig.region).toBe('emea')
-
-      delete process.env.AIO_CLI_ENV
-      command.argv = ['--region', 'emea']
-      await expect(command.init()).resolves.not.toThrow()
-      expect(command.dbConfig.region).toBe('emea')
-    } finally {
-      process.env.AIO_CLI_ENV = env
-    }
+    global.getCliEnvMock().mockReturnValue('prod')
+    command.argv = ['--region', 'emea']
+    await expect(command.init()).resolves.not.toThrow()
+    expect(command.dbConfig.region).toBe('emea')
   })
 
   test('initialization with environment-specific region fails in other environment', async () => {
-    const env = process.env.AIO_CLI_ENV
-    try {
-      process.env.AIO_CLI_ENV = 'stage'
-      command.argv = ['--region', 'emea']
-      await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.stage.join(', ')}`)
+    global.getCliEnvMock().mockReturnValue('stage')
+    command.argv = ['--region', 'emea']
+    await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.stage.join(', ')}`)
 
-      process.env.AIO_CLI_ENV = 'prod'
-      command.argv = ['--region', 'amer2']
-      await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.prod.join(', ')}`)
-
-      // default to prod if env is not recognized or not set
-      process.env.AIO_CLI_ENV = 'test'
-      command.argv = ['--region', 'amer2']
-      await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.prod.join(', ')}`)
-
-      delete process.env.AIO_CLI_ENV
-      command.argv = ['--region', 'amer2']
-      await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.prod.join(', ')}`)
-    } finally {
-      process.env.AIO_CLI_ENV = env
-    }
+    global.getCliEnvMock().mockReturnValue('prod')
+    command.argv = ['--region', 'amer2']
+    await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.prod.join(', ')}`)
   })
 
   test('initialization with custom endpoint', async () => {

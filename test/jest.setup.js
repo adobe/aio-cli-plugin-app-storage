@@ -73,6 +73,12 @@ jest.unstable_mockModule('@inquirer/prompts', () => ({
 }))
 global.getPromptInstanceMock = () => mockPrompt
 
+const mockEnv = jest.fn()
+jest.unstable_mockModule('@adobe/aio-lib-env', () => ({
+  getCliEnv: mockEnv
+}))
+global.getCliEnvMock = () => mockEnv
+
 beforeEach(() => {
   // trap console log
   stdout.start()
@@ -99,5 +105,8 @@ beforeEach(() => {
   Object.values(mockDBInstance).forEach(mock => mock.mockReset())
 
   Object.values(mockPrompt).forEach(mock => mock.mockReset())
+
+  mockEnv.mockReset()
+  mockEnv.mockReturnValue('prod')
 })
 afterEach(() => { stdout.stop(); stderr.stop() })

@@ -40,9 +40,7 @@ export class DropIndex extends DBBaseCommand {
       }
 
       this.log(chalk.green(`Index '${indexName}' dropped successfully`))
-      if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-        this.log(chalk.dim(`   Details:\n${prettyJson(result)}`))
-      }
+      this.log(chalk.dim(`   Details:\n${prettyJson(result)}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Dropped: ${new Date().toLocaleString()}`))
 

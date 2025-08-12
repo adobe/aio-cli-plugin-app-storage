@@ -148,11 +148,11 @@ export class Provision extends DBBaseCommand {
       const { region: regionFlag } = this.flags
       const regionFlagString = regionFlag ? ` --region ${regionFlag}` : ''
 
-      if (!this.flags.json && resultStatus !== DB_STATUS.PROVISIONED) {
+      if (resultStatus !== DB_STATUS.PROVISIONED) {
         this.log(chalk.dim('\nNext steps:'))
         this.log(chalk.dim(`   - Monitor progress: aio app db status${regionFlagString} --watch`))
         this.log(chalk.dim(`   - Check status: aio app db status${regionFlagString}`))
-      } else if (!this.flags.json && resultStatus === DB_STATUS.PROVISIONED) {
+      } else {
         this.log(chalk.dim('\nNext steps:'))
         this.log(chalk.dim(`   - Test connection: aio app db ping${regionFlagString}`))
       }

@@ -12,4 +12,3 @@ governing permissions and limitations under the License.
 
 // Set NODE_ENV to test for all Jest tests
 process.env.NODE_ENV = 'test'
-process.env.AIO_CLI_ENV = 'test'

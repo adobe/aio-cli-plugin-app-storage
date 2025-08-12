@@ -110,6 +110,27 @@ describe('run', () => {
       expect(stdout.output).toContain('Namespace: test-namespace')
     })
 
+    test('document found but no update necessary', async () => {
+      await command.init()
+
+      const updateResult = {
+        matchedCount: 1,
+        modifiedCount: 0,
+        acknowledged: true,
+        upsertedId: null,
+        upsertedCount: 0
+      }
+      mockUpdateOne.mockResolvedValue(updateResult)
+
+      const result = await command.run()
+
+      expect(mockUpdateOne).toHaveBeenCalledWith({ name: 'John' }, { $set: { age: 31 } }, {})
+      expect(result.result.matchedCount).toBe(1)
+      expect(result.result.modifiedCount).toBe(0)
+
+      expect(stdout.output).toContain('Matching document found in collection \'users\', but no update was necessary')
+    })
+
     test('updates with upsert flag', async () => {
       command.argv = ['users', '{"name": "John"}', '{"$set": {"age": 31}}', '--upsert']
       await command.init()
