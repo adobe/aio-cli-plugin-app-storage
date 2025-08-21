@@ -13,7 +13,7 @@ import { expect, jest } from '@jest/globals'
 import { StateBaseCommand } from '../src/StateBaseCommand.js'
 import { BaseCommand } from '../src/BaseCommand.js'
 import { init } from '@adobe/aio-lib-state'
-import { AVAILABLE_REGIONS, DEFAULT_REGION } from '../src/constants/db.js'
+import { AVAILABLE_REGIONS, DEFAULT_REGION } from '../src/constants/state.js'
 
 describe('prototype', () => {
   test('extends BaseCommand', () => {

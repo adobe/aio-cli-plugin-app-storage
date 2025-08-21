@@ -12,7 +12,9 @@ governing permissions and limitations under the License.
 
 import { BaseCommand } from './BaseCommand.js'
 import config from '@adobe/aio-lib-core-config'
-import { DEFAULT_REGION } from './constants/db.js'
+import { CONFIG_RUNTIME_AUTH, CONFIG_RUNTIME_NAMESPACE } from './constants/global.js'
+import { AVAILABLE_REGIONS, CONFIG_DB_ENDPOINT, CONFIG_DB_REGION, DEFAULT_REGION } from './constants/db.js'
+import { Flags } from '@oclif/core'
 
 export class DBBaseCommand extends BaseCommand {
   async init () {
@@ -29,38 +31,44 @@ export class DBBaseCommand extends BaseCommand {
    */
   async initializeDBClient () {
     try {
-      // Dynamic import of aio-lib-db (CommonJS module)
-      // eslint-disable-next-line node/no-unsupported-features/es-syntax
-      const aioLibDb = await import('@adobe/aio-lib-db')
-      const { init } = aioLibDb.default || aioLibDb
-
       // Get database configuration
       const dbConfig = {
-        namespace: config.get('runtime.namespace'),
-        auth: config.get('runtime.auth'),
-        region: this.flags?.region || config.get('db.region') || DEFAULT_REGION,
-        endpoint: config.get('db.endpoint') || process.env.AIO_DB_ENDPOINT
+        ow: {
+          namespace: config.get(CONFIG_RUNTIME_NAMESPACE),
+          auth: config.get(CONFIG_RUNTIME_AUTH)
+        },
+        region: this.flags?.region || config.get(CONFIG_DB_REGION) || DEFAULT_REGION
       }
 
       // Validate required configuration
-      if (!(dbConfig.namespace && dbConfig.auth)) {
+      if (!(dbConfig.ow.namespace && dbConfig.ow.auth)) {
         this.error(
           `Database commands require App Builder project configuration.
 Please make sure the 'AIO_RUNTIME_NAMESPACE' and 'AIO_RUNTIME_AUTH' environment variables are configured.`
         )
       }
 
+      const endpointOverride = config.get(CONFIG_DB_ENDPOINT)
+      if (endpointOverride) {
+        process.env.AIO_DB_ENDPOINT = endpointOverride
+        this.debugLogger?.info?.('Using custom endpoint: %s', process.env.AIO_DB_ENDPOINT)
+      }
+
+      // Dynamic import to be able to reload the AIO_DB_ENDPOINT var
+      // eslint-disable-next-line node/no-unsupported-features/es-syntax
+      const aioLibDb = await import('@adobe/aio-lib-db')
+      const { init } = aioLibDb.default || aioLibDb
+
       this.debugLogger?.info?.('Initializing DB client with config:', {
-        namespace: dbConfig.namespace,
+        namespace: dbConfig.ow.namespace,
         region: dbConfig.region,
-        hasAuth: !!dbConfig.auth,
-        endpoint: dbConfig.endpoint || 'default'
+        hasAuth: !!dbConfig.ow.auth
       })
 
       // Initialize the database client
-      this.db = await init(dbConfig.namespace, dbConfig.auth)
+      this.db = await init(dbConfig)
       this.dbConfig = dbConfig
-      this.rtNamespace = dbConfig.namespace
+      this.rtNamespace = dbConfig.ow.namespace
 
       this.debugLogger?.info?.('DB client initialized successfully')
     } catch (error) {
@@ -78,7 +86,7 @@ Please make sure the 'AIO_RUNTIME_NAMESPACE' and 'AIO_RUNTIME_AUTH' environment 
   }
 }
 
-// Add json flag to GLOBAL FLAGS section in --help output
+// Add json and region flags to GLOBAL FLAGS section in --help output
 DBBaseCommand.flags = {
   ...BaseCommand.flags,
   json: {
@@ -86,5 +94,12 @@ DBBaseCommand.flags = {
     default: false,
     required: false,
     helpGroup: 'GLOBAL'
-  }
+  },
+  region: Flags.string({
+    description: `Database region. Defaults to 'AIO_DB_REGION' environment variable or '${DEFAULT_REGION}' if neither is set.`,
+    required: false,
+    options: AVAILABLE_REGIONS,
+    helpGroup: 'GLOBAL'
+    // Don't set default here to let it load from the environment var if not passed as a flag
+  })
 }

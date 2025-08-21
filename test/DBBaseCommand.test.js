@@ -12,22 +12,10 @@ governing permissions and limitations under the License.
 import { expect, jest } from '@jest/globals'
 import { DBBaseCommand } from '../src/DBBaseCommand.js'
 import { BaseCommand } from '../src/BaseCommand.js'
-import { DEFAULT_REGION } from '../src/constants/db.js'
+import { AVAILABLE_REGIONS, DEFAULT_REGION } from '../src/constants/db.js'
 
-// Mock aio-lib-db
-const mockInit = jest.fn()
-const mockDbInstance = {
-  ping: jest.fn(),
-  provisionStatus: jest.fn(),
-  provisionRequest: jest.fn()
-}
-
-jest.unstable_mockModule('@adobe/aio-lib-db', () => ({
-  default: {
-    init: mockInit
-  },
-  init: mockInit
-}))
+const mockInit = global.mockDBInit
+const mockDbInstance = global.mockDBInstance
 
 describe('prototype', () => {
   test('extends BaseCommand', () => {
@@ -37,8 +25,9 @@ describe('prototype', () => {
     expect(Object.keys(DBBaseCommand.args)).toEqual([])
   })
   test('flags', () => {
-    expect(Object.keys(DBBaseCommand.flags).sort()).toEqual(['json'])
+    expect(Object.keys(DBBaseCommand.flags).sort()).toEqual(['json', 'region'])
     expect(DBBaseCommand.enableJsonFlag).toEqual(true)
+    expect(DBBaseCommand.flags.region.options).toEqual(AVAILABLE_REGIONS)
   })
   test('getServiceName', () => {
     const command = new DBBaseCommand([])
@@ -53,18 +42,19 @@ describe('init', () => {
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
-    mockInit.mockReset()
-    mockInit.mockResolvedValue(mockDbInstance)
   })
 
   test('successful initialization', async () => {
     command.argv = []
     await command.init()
 
-    expect(mockInit).toHaveBeenCalledWith(
-      global.fakeConfig['runtime.namespace'],
-      global.fakeConfig['runtime.auth']
-    )
+    expect(mockInit).toHaveBeenCalledWith({
+      ow: {
+        namespace: global.fakeConfig['runtime.namespace'],
+        auth: global.fakeConfig['runtime.auth']
+      },
+      region: DEFAULT_REGION
+    })
     expect(command.db).toBe(mockDbInstance)
     expect(command.dbConfig).toBeDefined()
     expect(command.rtNamespace).toBe(global.fakeConfig['runtime.namespace'])
@@ -90,18 +80,7 @@ describe('init', () => {
     command.argv = []
     await command.init()
 
-    expect(command.dbConfig.endpoint).toBe('https://custom.endpoint.com')
-  })
-
-  test('initialization with environment endpoint', async () => {
-    process.env.AIO_DB_ENDPOINT = 'https://env.endpoint.com'
-    command.argv = []
-    await command.init()
-
-    expect(command.dbConfig.endpoint).toBe('https://env.endpoint.com')
-
-    // Cleanup
-    delete process.env.AIO_DB_ENDPOINT
+    expect(process.env.AIO_DB_ENDPOINT).toBe('https://custom.endpoint.com')
   })
 
   test('missing namespace', async () => {
@@ -149,12 +128,9 @@ describe('initializeDBClient', () => {
       info: jest.fn(),
       error: jest.fn()
     }
-    mockInit.mockReset()
   })
 
   test('successful DB client initialization', async () => {
-    mockInit.mockResolvedValue(mockDbInstance)
-
     await command.initializeDBClient()
 
     expect(command.db).toBe(mockDbInstance)
@@ -162,8 +138,6 @@ describe('initializeDBClient', () => {
   })
 
   test('DB client initialization with debug logging', async () => {
-    mockInit.mockResolvedValue(mockDbInstance)
-
     await command.initializeDBClient()
 
     expect(command.debugLogger.info).toHaveBeenCalledWith(
@@ -171,8 +145,7 @@ describe('initializeDBClient', () => {
       expect.objectContaining({
         namespace: global.fakeConfig['runtime.namespace'],
         region: 'amer',
-        hasAuth: true,
-        endpoint: 'default'
+        hasAuth: true
       })
     )
   })
@@ -185,6 +158,11 @@ describe('initializeDBClient', () => {
 
     expect(command.debugLogger.error).toHaveBeenCalledWith('Failed to initialize DB client:', 'Connection failed')
   })
+
+  test('init fails with invalid region', async () => {
+    command.argv = ['--region', 'invalid-region']
+    await expect(command.init()).rejects.toThrow(`to be one of: ${AVAILABLE_REGIONS.join(', ')}`)
+  })
 })
 
 describe('configuration', () => {
@@ -194,34 +172,57 @@ describe('configuration', () => {
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
-    mockInit.mockReset()
-    mockInit.mockResolvedValue(mockDbInstance)
   })
 
   test('dbConfig contains expected properties', async () => {
+    const expectedConfig = {
+      ow: {
+        namespace: global.fakeConfig['runtime.namespace'],
+        auth: global.fakeConfig['runtime.auth']
+      },
+      region: 'amer'
+    }
+
     command.argv = []
     await command.init()
 
-    expect(command.dbConfig).toEqual({
-      namespace: global.fakeConfig['runtime.namespace'],
-      auth: global.fakeConfig['runtime.auth'],
-      region: 'amer',
-      endpoint: undefined
-    })
+    expect(command.dbConfig).toEqual(expectedConfig)
+    expect(mockInit).toHaveBeenCalledWith(expectedConfig)
+    expect(process.env.AIO_DB_ENDPOINT).toBeUndefined()
   })
 
   test('dbConfig with all custom values', async () => {
     global.fakeConfig['db.region'] = 'emea'
     global.fakeConfig['db.endpoint'] = 'https://custom.db.com'
+    const expectedConfig = {
+      ow: {
+        namespace: global.fakeConfig['runtime.namespace'],
+        auth: global.fakeConfig['runtime.auth']
+      },
+      region: global.fakeConfig['db.region']
+    }
 
     command.argv = []
     await command.init()
 
-    expect(command.dbConfig).toEqual({
-      namespace: global.fakeConfig['runtime.namespace'],
-      auth: global.fakeConfig['runtime.auth'],
-      region: 'emea', // Uses config value
-      endpoint: 'https://custom.db.com'
-    })
+    expect(command.dbConfig).toEqual(expectedConfig)
+    expect(mockInit).toHaveBeenCalledWith(expectedConfig)
+    expect(process.env.AIO_DB_ENDPOINT).toBe('https://custom.db.com')
+  })
+
+  test('dbConfig uses region flag', async () => {
+    const expectedConfig = {
+      ow: {
+        namespace: global.fakeConfig['runtime.namespace'],
+        auth: global.fakeConfig['runtime.auth']
+      },
+      region: 'emea'
+    }
+
+    command.argv = ['--region', 'emea']
+    await command.init()
+
+    expect(command.dbConfig).toEqual(expectedConfig)
+    expect(mockInit).toHaveBeenCalledWith(expectedConfig)
   })
 })

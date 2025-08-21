@@ -13,7 +13,7 @@ import { Provision } from '../../../../src/commands/app/db/provision.js'
 import { expect, jest } from '@jest/globals'
 import { stdout, stderr } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../src/DBBaseCommand.js'
-import { DB_STATUS, DEFAULT_REGION, AVAILABLE_REGIONS } from '../../../../src/constants/db.js'
+import { DB_STATUS, AVAILABLE_REGIONS } from '../../../../src/constants/db.js'
 
 // Use the global DB mock
 const mockProvisionStatus = global.mockDBInstance.provisionStatus
@@ -33,10 +33,9 @@ describe('prototype', () => {
     expect(Object.keys(Provision.args)).toEqual([])
   })
   test('flags', () => {
-    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['region']).sort()
+    const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
     expect(Object.keys(Provision.flags).sort()).toEqual(expectedFlags)
     expect(Provision.flags.region.options).toEqual(AVAILABLE_REGIONS)
-    expect(Provision.flags.region.default).toBe(DEFAULT_REGION)
     expect(Provision.enableJsonFlag).toEqual(true)
   })
 })
@@ -72,7 +71,6 @@ describe('run', () => {
       expect(result).toEqual({
         status: 'already_provisioned',
         namespace: 'test-namespace',
-        region: 'amer',
         details: existingStatus
       })
       expect(mockProvisionRequest).not.toHaveBeenCalled()
@@ -93,7 +91,6 @@ describe('run', () => {
       expect(result).toEqual({
         status: 'in_progress',
         namespace: 'test-namespace',
-        region: 'amer',
         details: inProgressStatus
       })
       expect(mockProvisionRequest).not.toHaveBeenCalled()
@@ -117,7 +114,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result.status).toBe('requested')
-      expect(mockProvisionRequest).toHaveBeenCalledWith({ region: 'amer' })
+      expect(mockProvisionRequest).toHaveBeenCalled()
     })
 
     test('previous provision rejected, continues with new attempt', async () => {
@@ -138,7 +135,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result.status).toBe('requested')
-      expect(mockProvisionRequest).toHaveBeenCalledWith({ region: 'amer' })
+      expect(mockProvisionRequest).toHaveBeenCalled()
       expect(stdout.output).toContain('Previous database provisioning request was rejected')
       expect(stdout.output).toContain('If the problem persists, please contact the App Builder team')
     })
@@ -162,11 +159,10 @@ describe('run', () => {
         message: "Provision database for namespace 'test-namespace'?",
         default: false
       })
-      expect(mockProvisionRequest).toHaveBeenCalledWith({ region: 'amer' })
+      expect(mockProvisionRequest).toHaveBeenCalled()
       expect(result).toEqual({
         status: 'requested',
         namespace: 'test-namespace',
-        region: 'amer',
         timestamp: expect.any(String),
         details: {
           status: DB_STATUS.REQUESTED,
@@ -191,6 +187,7 @@ describe('run', () => {
     test('provision with custom region', async () => {
       command.argv = ['--region', 'emea']
       await command.init()
+      expect(global.mockDBInit).toHaveBeenCalledWith({ ow: expect.any(Object), region: 'emea' })
 
       mockProvisionStatus.mockRejectedValue(new Error('not found'))
       mockConfirm.mockResolvedValue(true)
@@ -201,8 +198,8 @@ describe('run', () => {
 
       const result = await command.run()
 
-      expect(mockProvisionRequest).toHaveBeenCalledWith({ region: 'emea' })
-      expect(result.region).toBe('emea')
+      expect(mockProvisionRequest).toHaveBeenCalled()
+      expect(result.details.region).toBe('emea')
     })
   })
 

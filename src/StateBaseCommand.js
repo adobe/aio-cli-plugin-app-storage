@@ -12,8 +12,9 @@ governing permissions and limitations under the License.
 
 import { BaseCommand } from './BaseCommand.js'
 import config from '@adobe/aio-lib-core-config'
-import { CONFIG_STATE_REGION } from './constants/state.js'
-import { DEFAULT_REGION, AVAILABLE_REGIONS } from './constants/db.js'
+import { AVAILABLE_REGIONS, CONFIG_STATE_REGION, DEFAULT_REGION } from './constants/state.js'
+import { CONFIG_RUNTIME_NAMESPACE, CONFIG_RUNTIME_AUTH } from './constants/global.js'
+
 import semver from 'semver'
 import { Flags } from '@oclif/core'
 
@@ -41,8 +42,8 @@ export class StateBaseCommand extends BaseCommand {
 
     // init state client
     const owOptions = {
-      namespace: config.get('runtime.namespace'),
-      auth: config.get('runtime.auth')
+      namespace: config.get(CONFIG_RUNTIME_NAMESPACE),
+      auth: config.get(CONFIG_RUNTIME_AUTH)
     }
     if (!(owOptions.namespace && owOptions.auth)) {
       this.error(
