@@ -57,3 +57,18 @@ export function isNonEmptyString (input, label = undefined) {
   }
   return input
 }
+
+/**
+ * Determine if a runtime namespace corresponds to a production workspace.
+ * production if optional prefix<development-> + orgId + projectName with no trailing workspace suffix.
+ *
+ * @param {string} namespace - The runtime namespace to check
+ * @returns {boolean} - True if the namespace is a production workspace, false otherwise
+ */
+export function isProductionNamespace (namespace) {
+  if (typeof namespace !== 'string' || !namespace.trim()) {
+    throw new Error('Invalid runtime namespace')
+  }
+  const PROD_NS_REGEX = /^(?:.*-)?\d+-[a-z0-9]+$/i
+  return PROD_NS_REGEX.test(namespace)
+}
