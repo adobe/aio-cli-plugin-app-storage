@@ -41,9 +41,7 @@ export class DeleteDb extends DBBaseCommand {
         }
       }
 
-      this.log(chalk.blue(`proceeding to delete the database for the '${namespace}' namespace...`))
-      this.log(chalk.dim(`   Namespace: ${namespace}`))
-      this.log(chalk.dim(`   Region: ${region}`))
+      this.log(chalk.blue(`proceeding to delete the database for the namspace:${namespace}...`))
 
       const deleteResult = await this.db.deleteDatabase()
       this.debugLogger?.info?.('Delete request result:', deleteResult)
@@ -68,7 +66,13 @@ export class DeleteDb extends DBBaseCommand {
       return result
     } catch (error) {
       this.debugLogger?.error?.('Delete command error:', error)
-      this.error(`Database deletion failed: ${error.message}`)
+      if (error.httpStatusCode === 400) {
+        this.log(chalk.yellow('No database found for the given workspace.'))
+        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+        this.log(chalk.dim(`   Status: ${DB_STATUS.NOT_PROVISIONED}`))
+      } else {
+        this.error(`Database deletion failed: ${error.message}`)
+      }
     }
   }
 }
