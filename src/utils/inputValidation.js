@@ -69,6 +69,6 @@ export function isProductionNamespace (namespace) {
   if (typeof namespace !== 'string' || !namespace.trim()) {
     throw new Error('Invalid runtime namespace')
   }
-  const PROD_NS_REGEX = /^(?:.*-)?\d+-[a-z0-9]+$/i
+  const PROD_NS_REGEX = /^(?:development-)?\d+-[a-z0-9]+$/i
   return PROD_NS_REGEX.test(namespace)
 }

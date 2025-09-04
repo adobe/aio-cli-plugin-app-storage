@@ -41,7 +41,7 @@ export class DeleteDb extends DBBaseCommand {
         }
       }
 
-      this.log(chalk.blue(`Submitting request to delete the database for the '${namespace}' namespace...`))
+      this.log(chalk.blue(`proceeding to delete the database for the '${namespace}' namespace...`))
       this.log(chalk.dim(`   Namespace: ${namespace}`))
       this.log(chalk.dim(`   Region: ${region}`))
 
