@@ -67,9 +67,15 @@ export class DeleteDb extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Delete command error:', error)
       if (error.httpStatusCode === 400) {
-        this.log(chalk.yellow('No database found for the given workspace.'))
-        this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-        this.log(chalk.dim(`   Status: ${DB_STATUS.NOT_PROVISIONED}`))
+        const output = {
+          message: 'No database found for the given workspace.',
+          namespace: this.rtNamespace,
+          status: DB_STATUS.NOT_PROVISIONED
+        }
+        this.log(chalk.yellow('\n' + output.message))
+        this.log(chalk.dim(`   Namespace: ${output.namespace}`))
+        this.log(chalk.dim(`   Status: ${output.status}`))
+        return output
       } else {
         this.error(`Database deletion failed: ${error.message}`)
       }
