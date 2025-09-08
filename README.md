@@ -66,6 +66,7 @@ $ aio app db --help
 ### Database Management
 * [`aio app db ping`](#aio-app-db-ping)
 * [`aio app db provision`](#aio-app-db-provision)
+* [`aio app db delete`](#aio-app-db-delete)
 * [`aio app db status`](#aio-app-db-status)
 
 ## Other Commands
@@ -876,6 +877,34 @@ EXAMPLES
   $ aio app db provision --region amer
 
   $ aio app db provision --json
+```
+
+### `aio app db delete`
+
+Delete the database for your App Builder application (non-production only)
+
+```
+USAGE
+  $ aio app db delete [--json] [--region amer|emea|apac] [--force]
+
+FLAGS
+  --force  [use with caution!] force delete, skips confirmation safety prompt
+
+GLOBAL FLAGS
+  --json             Format output as json.
+  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                     <options: amer|emea|apac>
+
+DESCRIPTION
+  Delete the database for your App Builder application (non-production only).
+  When not using --force, you will be asked to confirm and to type the namespace to proceed.
+
+EXAMPLES
+  $ aio app db delete
+
+  $ aio app db delete --force
+
+  $ aio app db delete --json
 ```
 
 ### `aio app db status`
