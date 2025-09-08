@@ -24,40 +24,47 @@ export class DeleteDb extends DBBaseCommand {
     try {
       // Check if the namespace is a production namespace
       if (isProductionNamespace(namespace)) {
-        this.error('A production database may not be deleted directly. Please contact the ADP Team to have this database deleted.')
+        this.error('A production database may not be deleted directly. Please contact the App Builder team to have this database deleted.')
       }
 
       // eslint-disable-next-line node/no-unsupported-features/es-syntax
-      const { confirm } = await import('@inquirer/prompts')
+      const { confirm, input } = await import('@inquirer/prompts')
 
-      if (!this.flags.yes) {
+      if (!this.flags.force) {
+        process.stderr.write(chalk.red('❌ CAUTION, This action cannot be reverted and all stored data will be lost.') + '\n')
         const confirmed = await confirm({
-          message: `Are you sure you want to delete the database for the '${namespace}' namespace in the ${region} region? This action cannot be reverted and all stored data will be lost.`,
+          message: `Are you sure you want to delete the database for the '${namespace}' namespace in the ${region} region?`,
           default: false
         })
         if (!confirmed) {
           this.log('Database deletion cancelled')
           return { status: 'cancelled' }
         }
+        const res = await input({
+          message: chalk.yellow(`confirm deletion by typing: '${namespace}'`)
+        })
+        if (res !== namespace) {
+          return this.error('confirmation did not match, aborted')
+        }
       }
 
-      this.log(chalk.blue(`proceeding to delete the database for the namspace:${namespace}...`))
+      this.log(chalk.blue(`Proceeding to delete the database for the namespace: '${namespace}'...`))
 
       const deleteResult = await this.db.deleteDatabase()
       this.debugLogger?.info?.('Delete request result:', deleteResult)
 
-      const resultStatus = deleteResult?.status?.toUpperCase() || DB_STATUS.UNKNOWN
+      const deleteStatus = deleteResult?.status?.toUpperCase() || DB_STATUS.UNKNOWN
 
-      if (resultStatus === DB_STATUS.DELETED) {
+      if (deleteStatus === DB_STATUS.DELETED) {
         this.log(chalk.green('Database deleted successfully'))
         this.log(chalk.dim('Check database status: aio app db status'))
       } else {
-        this.warn(`Delete request returned status '${deleteResult?.status || 'undefined'}'`)
+        this.warn(`Delete request returned status '${deleteStatus}'`)
         this.warn('If the issue persists, please contact the App Builder team.')
       }
 
       const result = {
-        status: (deleteResult?.status || 'unknown').toLowerCase(),
+        status: deleteStatus,
         namespace,
         timestamp: new Date().toISOString(),
         details: deleteResult
@@ -66,19 +73,7 @@ export class DeleteDb extends DBBaseCommand {
       return result
     } catch (error) {
       this.debugLogger?.error?.('Delete command error:', error)
-      if (error.httpStatusCode === 400) {
-        const output = {
-          message: 'No database found for the given workspace.',
-          namespace: this.rtNamespace,
-          status: DB_STATUS.NOT_PROVISIONED
-        }
-        this.log(chalk.yellow('\n' + output.message))
-        this.log(chalk.dim(`   Namespace: ${output.namespace}`))
-        this.log(chalk.dim(`   Status: ${output.status}`))
-        return output
-      } else {
-        this.error(`Database deletion failed: ${error.message}`)
-      }
+      this.error(`Database deletion failed: ${error.message}`)
     }
   }
 }
@@ -87,14 +82,14 @@ DeleteDb.description = 'Delete the database for your App Builder application (no
 
 DeleteDb.examples = [
   '$ aio app db delete',
-  '$ aio app db delete --yes',
+  '$ aio app db delete --force',
   '$ aio app db delete --json'
 ]
 
 DeleteDb.flags = {
   ...DBBaseCommand.flags,
-  yes: Flags.boolean({
-    description: 'Skip confirmation prompt and proceed with deletion',
+  force: Flags.boolean({
+    description: '[use with caution!] force delete, skips confirmation safety prompt',
     default: false
   })
 }

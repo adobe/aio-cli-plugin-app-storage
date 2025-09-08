@@ -18,10 +18,12 @@ import { DB_STATUS } from '../../../../src/constants/db.js'
 // Use the global DB mock
 const mockDB = global.mockDBInstance
 
-// Mock inquirer confirm
+// Mock inquirer confirm and input
 const mockConfirm = jest.fn()
+const mockInput = jest.fn()
 jest.unstable_mockModule('@inquirer/prompts', () => ({
-  confirm: mockConfirm
+  confirm: mockConfirm,
+  input: mockInput
 }))
 
 describe('prototype', () => {
@@ -29,7 +31,7 @@ describe('prototype', () => {
     expect(DeleteDb.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('flags', () => {
-    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['yes']).sort()
+    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['force']).sort()
     expect(Object.keys(DeleteDb.flags).sort()).toEqual(expectedFlags)
     expect(DeleteDb.enableJsonFlag).toEqual(true)
   })
@@ -52,12 +54,13 @@ describe('run', () => {
     await command.init()
 
     mockConfirm.mockResolvedValue(true)
+    mockInput.mockResolvedValue('test-namespace')
     mockDB.deleteDatabase.mockResolvedValue({ status: DB_STATUS.DELETED })
 
     const result = await command.run()
     expect(mockConfirm).toHaveBeenCalled()
     expect(mockDB.deleteDatabase).toHaveBeenCalled()
-    expect(result.status).toBe('deleted')
+    expect(result.status).toBe('DELETED')
     expect(stdout.output).toContain('Database deleted successfully')
   })
 
@@ -69,10 +72,11 @@ describe('run', () => {
     await command.init()
 
     mockConfirm.mockResolvedValue(true)
+    mockInput.mockResolvedValue('test-namespace')
     mockDB.deleteDatabase.mockResolvedValue({ status: apiStatus })
 
     const result = await command.run()
-    expect(result.status).toBe(expectedStatus)
+    expect(result.status).toBe(expectedStatus.toUpperCase())
     expect(stderr.output).toContain(`Delete request returned status '${apiStatus}'`)
   })
 
@@ -81,22 +85,37 @@ describe('run', () => {
     await command.init()
 
     mockConfirm.mockResolvedValue(false)
+    mockInput.mockReset()
 
     const result = await command.run()
     expect(result).toEqual({ status: 'cancelled' })
     expect(mockDB.deleteDatabase).not.toHaveBeenCalled()
   })
 
-  test('should skip confirmation when --yes is provided', async () => {
-    command.argv = ['--yes']
+  test('should skip confirmation when --force is provided', async () => {
+    command.argv = []
     await command.init()
+
+    command.flags.force = true
 
     mockDB.deleteDatabase.mockResolvedValue({ status: DB_STATUS.DELETED })
 
     const result = await command.run()
     expect(mockConfirm).not.toHaveBeenCalled()
+    expect(mockInput).not.toHaveBeenCalled()
     expect(mockDB.deleteDatabase).toHaveBeenCalled()
-    expect(result.status).toBe('deleted')
+    expect(result.status).toBe('DELETED')
+  })
+
+  test('should abort when typed confirmation does not match', async () => {
+    command.argv = []
+    await command.init()
+
+    mockConfirm.mockResolvedValue(true)
+    mockInput.mockResolvedValue('wrong-namespace')
+
+    await expect(command.run()).rejects.toThrow('confirmation did not match, aborted')
+    expect(mockDB.deleteDatabase).not.toHaveBeenCalled()
   })
 
   test('should block production namespace', async () => {
@@ -113,6 +132,7 @@ describe('run', () => {
     await command.init()
 
     mockConfirm.mockResolvedValue(true)
+    mockInput.mockResolvedValue('test-namespace')
     mockDB.deleteDatabase.mockRejectedValue(new Error('Network error'))
 
     await expect(command.run()).rejects.toThrow('Database deletion failed: Network error')
@@ -123,11 +143,12 @@ describe('run', () => {
     await command.init()
 
     mockConfirm.mockResolvedValue(true)
+    mockInput.mockResolvedValue('test-namespace')
     // deleteDatabase returns undefined
     mockDB.deleteDatabase.mockResolvedValue(undefined)
 
     const result = await command.run()
-    expect(result.status).toBe('unknown')
-    expect(stderr.output).toContain("Delete request returned status 'undefined'")
+    expect(result.status).toBe('UNKNOWN')
+    expect(stderr.output).toContain("Delete request returned status 'UNKNOWN'")
   })
 })
