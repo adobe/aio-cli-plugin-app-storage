@@ -18,7 +18,6 @@ import { isProductionNamespace } from '../../../utils/inputValidation.js'
 
 export class DeleteDb extends DBBaseCommand {
   async run () {
-    const region = this.db.region
     const namespace = this.rtNamespace
 
     try {
@@ -28,18 +27,11 @@ export class DeleteDb extends DBBaseCommand {
       }
 
       // eslint-disable-next-line node/no-unsupported-features/es-syntax
-      const { confirm, input } = await import('@inquirer/prompts')
+      const { input } = await import('@inquirer/prompts')
 
       if (!this.flags.force) {
         process.stderr.write(chalk.red('❌ CAUTION, This action cannot be reverted and all stored data will be lost.') + '\n')
-        const confirmed = await confirm({
-          message: `Are you sure you want to delete the database for the '${namespace}' namespace in the ${region} region?`,
-          default: false
-        })
-        if (!confirmed) {
-          this.log('Database deletion cancelled')
-          return { status: 'cancelled' }
-        }
+
         const res = await input({
           message: chalk.yellow(`confirm deletion by typing: '${namespace}'`)
         })

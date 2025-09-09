@@ -53,12 +53,11 @@ describe('run', () => {
     command.argv = []
     await command.init()
 
-    mockConfirm.mockResolvedValue(true)
     mockInput.mockResolvedValue('test-namespace')
     mockDB.deleteDatabase.mockResolvedValue({ status: DB_STATUS.DELETED })
 
     const result = await command.run()
-    expect(mockConfirm).toHaveBeenCalled()
+    expect(mockInput).toHaveBeenCalled()
     expect(mockDB.deleteDatabase).toHaveBeenCalled()
     expect(result.status).toBe('DELETED')
     expect(stdout.output).toContain('Database deleted successfully')
@@ -71,7 +70,6 @@ describe('run', () => {
     command.argv = []
     await command.init()
 
-    mockConfirm.mockResolvedValue(true)
     mockInput.mockResolvedValue('test-namespace')
     mockDB.deleteDatabase.mockResolvedValue({ status: apiStatus })
 
@@ -84,24 +82,20 @@ describe('run', () => {
     command.argv = []
     await command.init()
 
-    mockConfirm.mockResolvedValue(false)
-    mockInput.mockReset()
+    mockInput.mockResolvedValue('wrong-namespace')
 
-    const result = await command.run()
-    expect(result).toEqual({ status: 'cancelled' })
+    await expect(command.run()).rejects.toThrow('confirmation did not match, aborted')
     expect(mockDB.deleteDatabase).not.toHaveBeenCalled()
   })
 
   test('should skip confirmation when --force is provided', async () => {
-    command.argv = []
+    command.argv = ['--force']
     await command.init()
 
-    command.flags.force = true
-
+    mockInput.mockReset()
     mockDB.deleteDatabase.mockResolvedValue({ status: DB_STATUS.DELETED })
 
     const result = await command.run()
-    expect(mockConfirm).not.toHaveBeenCalled()
     expect(mockInput).not.toHaveBeenCalled()
     expect(mockDB.deleteDatabase).toHaveBeenCalled()
     expect(result.status).toBe('DELETED')
