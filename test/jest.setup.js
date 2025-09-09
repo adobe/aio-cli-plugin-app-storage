@@ -55,6 +55,7 @@ const mockDBInstance = {
   ping: jest.fn(),
   provisionStatus: jest.fn(),
   provisionRequest: jest.fn(),
+  deleteDatabase: jest.fn(),
   connect: jest.fn()
 }
 jest.unstable_mockModule('@adobe/aio-lib-db', () => ({
