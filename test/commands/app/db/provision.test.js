@@ -13,7 +13,7 @@ import { Provision } from '../../../../src/commands/app/db/provision.js'
 import { expect, jest } from '@jest/globals'
 import { stdout, stderr } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../src/DBBaseCommand.js'
-import { DB_STATUS, AVAILABLE_REGIONS } from '../../../../src/constants/db.js'
+import { DB_STATUS } from '../../../../src/constants/db.js'
 
 // Use the global DB mock
 const mockProvisionStatus = global.mockDBInstance.provisionStatus
@@ -35,7 +35,6 @@ describe('prototype', () => {
   test('flags', () => {
     const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
     expect(Object.keys(Provision.flags).sort()).toEqual(expectedFlags)
-    expect(Provision.flags.region.options).toEqual(AVAILABLE_REGIONS)
     expect(Provision.enableJsonFlag).toEqual(true)
   })
 })

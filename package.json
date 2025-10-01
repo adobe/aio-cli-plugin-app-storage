@@ -5,6 +5,7 @@
     "@adobe/aio-lib-core-config": "^5",
     "@adobe/aio-lib-core-logging": "^3",
     "@adobe/aio-lib-db": "git+https://github.com/adobe/aio-lib-db.git",
+    "@adobe/aio-lib-env": "^3.0.1",
     "@adobe/aio-lib-state": "^5",
     "@inquirer/prompts": "^5",
     "@oclif/core": "^4",
@@ -80,6 +81,8 @@
     "collectCoverage": true,
     "testEnvironment": "node",
     "transform": {},
-    "setupFiles": ["<rootDir>/test/jest.env.js"]
+    "setupFiles": [
+      "<rootDir>/test/jest.env.js"
+    ]
   }
 }
