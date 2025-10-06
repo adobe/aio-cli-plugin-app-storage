@@ -15,6 +15,7 @@ import config from '@adobe/aio-lib-core-config'
 import { CONFIG_RUNTIME_AUTH, CONFIG_RUNTIME_NAMESPACE } from './constants/global.js'
 import { AVAILABLE_REGIONS, CONFIG_DB_ENDPOINT, CONFIG_DB_REGION, DEFAULT_REGION } from './constants/db.js'
 import { Flags } from '@oclif/core'
+import { getCliEnv } from '@adobe/aio-lib-env'
 
 export class DBBaseCommand extends BaseCommand {
   async init () {
@@ -31,13 +32,20 @@ export class DBBaseCommand extends BaseCommand {
    */
   async initializeDBClient () {
     try {
+      const region = this.flags?.region || config.get(CONFIG_DB_REGION) || DEFAULT_REGION
       // Get database configuration
       const dbConfig = {
         ow: {
           namespace: config.get(CONFIG_RUNTIME_NAMESPACE),
           auth: config.get(CONFIG_RUNTIME_AUTH)
         },
-        region: this.flags?.region || config.get(CONFIG_DB_REGION) || DEFAULT_REGION
+        region
+      }
+
+      // Validate region based on environment
+      const allowedRegions = AVAILABLE_REGIONS[getCliEnv()] || AVAILABLE_REGIONS.prod
+      if (!allowedRegions.includes(region)) {
+        this.error(`Invalid region '${region}'. Valid options: ${allowedRegions.join(', ')}`)
       }
 
       // Validate required configuration
@@ -96,9 +104,8 @@ DBBaseCommand.flags = {
     helpGroup: 'GLOBAL'
   },
   region: Flags.string({
-    description: `Database region. Defaults to 'AIO_DB_REGION' environment variable or '${DEFAULT_REGION}' if neither is set.`,
+    description: `Database region. Defaults to 'AIO_DB_REGION' environment variable or '${DEFAULT_REGION}' if neither is set.\n<options: ${AVAILABLE_REGIONS.prod.join('|')}>`,
     required: false,
-    options: AVAILABLE_REGIONS,
     helpGroup: 'GLOBAL'
     // Don't set default here to let it load from the environment var if not passed as a flag
   })

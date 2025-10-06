@@ -27,7 +27,6 @@ describe('prototype', () => {
   test('flags', () => {
     expect(Object.keys(DBBaseCommand.flags).sort()).toEqual(['json', 'region'])
     expect(DBBaseCommand.enableJsonFlag).toEqual(true)
-    expect(DBBaseCommand.flags.region.options).toEqual(AVAILABLE_REGIONS)
   })
   test('getServiceName', () => {
     const command = new DBBaseCommand([])
@@ -73,6 +72,58 @@ describe('init', () => {
     await command.init()
 
     expect(command.dbConfig.region).toBe(DEFAULT_REGION)
+  })
+
+  test('initialization with environment-specific region', async () => {
+    const env = process.env.AIO_CLI_ENV
+    try {
+      process.env.AIO_CLI_ENV = 'stage'
+      command.argv = ['--region', 'amer2']
+      await expect(command.init()).resolves.not.toThrow()
+      expect(command.dbConfig.region).toBe('amer2')
+
+      process.env.AIO_CLI_ENV = 'prod'
+      command.argv = ['--region', 'emea']
+      await expect(command.init()).resolves.not.toThrow()
+      expect(command.dbConfig.region).toBe('emea')
+
+      // default to prod if env is not recognized or not set
+      process.env.AIO_CLI_ENV = 'test'
+      command.argv = ['--region', 'emea']
+      await expect(command.init()).resolves.not.toThrow()
+      expect(command.dbConfig.region).toBe('emea')
+
+      delete process.env.AIO_CLI_ENV
+      command.argv = ['--region', 'emea']
+      await expect(command.init()).resolves.not.toThrow()
+      expect(command.dbConfig.region).toBe('emea')
+    } finally {
+      process.env.AIO_CLI_ENV = env
+    }
+  })
+
+  test('initialization with environment-specific region fails in other environment', async () => {
+    const env = process.env.AIO_CLI_ENV
+    try {
+      process.env.AIO_CLI_ENV = 'stage'
+      command.argv = ['--region', 'emea']
+      await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.stage.join(', ')}`)
+
+      process.env.AIO_CLI_ENV = 'prod'
+      command.argv = ['--region', 'amer2']
+      await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.prod.join(', ')}`)
+
+      // default to prod if env is not recognized or not set
+      process.env.AIO_CLI_ENV = 'test'
+      command.argv = ['--region', 'amer2']
+      await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.prod.join(', ')}`)
+
+      delete process.env.AIO_CLI_ENV
+      command.argv = ['--region', 'amer2']
+      await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.prod.join(', ')}`)
+    } finally {
+      process.env.AIO_CLI_ENV = env
+    }
   })
 
   test('initialization with custom endpoint', async () => {
@@ -157,11 +208,6 @@ describe('initializeDBClient', () => {
     await expect(command.initializeDBClient()).rejects.toThrow('Failed to initialize database client: Connection failed')
 
     expect(command.debugLogger.error).toHaveBeenCalledWith('Failed to initialize DB client:', 'Connection failed')
-  })
-
-  test('init fails with invalid region', async () => {
-    command.argv = ['--region', 'invalid-region']
-    await expect(command.init()).rejects.toThrow(`to be one of: ${AVAILABLE_REGIONS.join(', ')}`)
   })
 })
 
