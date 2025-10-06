@@ -104,6 +104,26 @@ describe('run', () => {
       expect(stdout.output).toContain('Indexes:')
     })
 
+    test('gets empty list of indexes', async () => {
+      command.argv = [collectionName]
+      await command.init()
+      mockGetIndexes.mockResolvedValue([])
+
+      const result = await command.run()
+
+      expect(result).toEqual({
+        collection: collectionName,
+        namespace: rtNamespace,
+        timestamp: expect.any(String),
+        indexes: []
+      })
+
+      expect(stdout.output).toContain(`Getting indexes from collection '${collectionName}'...`)
+      expect(stdout.output).toContain('Indexes retrieved successfully')
+      expect(stdout.output).toContain(`Namespace: ${rtNamespace}`)
+      expect(stdout.output).toContain('No indexes found for this collection')
+    })
+
     test('Gets indexes with --json flag', async () => {
       command.argv = [collectionName, '--json']
       await command.init()

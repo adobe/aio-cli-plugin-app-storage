@@ -9,24 +9,91 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { describe, expect, test } from '@jest/globals'
-import { isProductionNamespace } from '../../src/utils/inputValidation.js'
+import { asObject, isNonEmptyString, isProductionNamespace } from '../../src/utils/inputValidation.js'
 
-describe('utils/inputValidation isProductionNamespace', () => {
-  test('treats production namespaces with no suffix as prod', () => {
-    expect(isProductionNamespace('284026-myproject')).toBe(true)
-    expect(isProductionNamespace('development-284026-myproject')).toBe(true)
+describe('asObject()', () => {
+  test('successfully parses string as object', () => {
+    const input = '{"key1": "value", "key2": [123, 456], "key3": {"nestedKey": "nestedValue"}}'
+    const result = asObject(input)
+    expect(result).toEqual({
+      key1: 'value',
+      key2: [123, 456],
+      key3: { nestedKey: 'nestedValue' }
+    })
   })
 
-  test('treats non-production namespaces with suffix as non-prod', () => {
-    expect(isProductionNamespace('284026-myproject-stage')).toBe(false)
-    expect(isProductionNamespace('development-284026-myproject-test')).toBe(false)
-    expect(isProductionNamespace('development-284026-myproject-dev')).toBe(false)
+  test('returns object directly', () => {
+    const input = { key1: 'value', key2: [123, 456] }
+    const result = asObject(input)
+    expect(result).toBe(input)
   })
 
-  test('rejects invalid input', () => {
+  test('throws error for invalid JSON string', () => {
+    const input = '{"key1": "value", "key2": [123, 456], "key3": {"nestedKey": "nestedValue"'
+    expect(() => asObject(input)).toThrow('JSON parse error: Unexpected end of JSON input')
+  })
+
+  test('throws error for empty input', () => {
+    const input = ''
+    expect(() => asObject(input)).toThrow("Value '' is not a JSON object")
+  })
+
+  test('throws error for non-object input', () => {
+    const input = ['not', 'an', 'object']
+    expect(() => asObject(input)).toThrow("Value 'not,an,object' is not a JSON object")
+  })
+
+  test('uses custom label in error messages', () => {
+    expect(() => asObject(null, 'Test Label')).toThrow("Test Label: Value 'null' is not a JSON object")
+  })
+})
+
+describe('isNonEmptyString()', () => {
+  test('validates non-empty string', () => {
+    const input = 'valid string'
+    const result = isNonEmptyString(input)
+    expect(result).toBe(input)
+  })
+
+  test('throws error for empty string', () => {
+    const input = ''
+    expect(() => isNonEmptyString(input)).toThrow('Must be a non-empty string')
+  })
+
+  test('throws error for non-string input', () => {
+    const input = 12345
+    expect(() => isNonEmptyString(input)).toThrow('Must be a non-empty string')
+  })
+
+  test('uses custom label in error messages', () => {
+    expect(() => isNonEmptyString('', 'Test Label')).toThrow('Test Label: Must be a non-empty string')
+  })
+})
+
+describe('isProductionNamespace()', () => {
+  test('validates production namespace without prefix or suffix', () => {
+    expect(() => isProductionNamespace('123456-testNamespace123')).not.toThrow()
+    expect(isProductionNamespace('123456-testNamespace123')).toBe(true)
+  })
+
+  test('validates production namespace with development prefix', () => {
+    expect(() => isProductionNamespace('development-123456-testNamespace123')).not.toThrow()
+    expect(isProductionNamespace('development-123456-testNamespace123')).toBe(true)
+  })
+
+  test('invalidates namespace with workspace suffix', () => {
+    expect(() => isProductionNamespace('123456-testNamespace123-dev')).not.toThrow()
+    expect(isProductionNamespace('123456-testNamespace123-dev')).toBe(false)
+  })
+
+  test('invalidates namespace with improper format', () => {
+    expect(() => isProductionNamespace('invalidNamespace')).not.toThrow()
+    expect(isProductionNamespace('invalidNamespace')).toBe(false)
+  })
+
+  test('throws error for non-string or empty input', () => {
     expect(() => isProductionNamespace('')).toThrow('Invalid runtime namespace')
-
     expect(() => isProductionNamespace(null)).toThrow('Invalid runtime namespace')
+    expect(() => isProductionNamespace(12345)).toThrow('Invalid runtime namespace')
   })
 })

@@ -30,10 +30,6 @@ export class Stats extends DBBaseCommand {
         timestamp: new Date().toISOString()
       }
 
-      if (this.flags.json) {
-        return result
-      }
-
       this.displayStats(stats)
 
       return result

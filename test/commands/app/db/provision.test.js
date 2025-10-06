@@ -53,7 +53,28 @@ describe('run', () => {
     mockConfirm.mockReset()
   })
 
-  describe('already provisioned', () => {
+  describe('existing database status', () => {
+    test('database not yet provisioned', async () => {
+      command.argv = []
+      await command.init()
+
+      const unprovisionedStatus = {
+        status: DB_STATUS.NOT_PROVISIONED,
+        region: 'amer'
+      }
+      mockProvisionStatus.mockResolvedValue(unprovisionedStatus)
+      mockConfirm.mockResolvedValue(true)
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.REQUESTED,
+        region: 'amer'
+      })
+
+      const result = await command.run()
+
+      expect(result.status).toBe('requested')
+      expect(mockProvisionRequest).toHaveBeenCalled()
+    })
+
     test('database already provisioned', async () => {
       command.argv = []
       await command.init()
@@ -91,6 +112,26 @@ describe('run', () => {
         status: 'in_progress',
         namespace: 'test-namespace',
         details: inProgressStatus
+      })
+      expect(mockProvisionRequest).not.toHaveBeenCalled()
+    })
+
+    test('provision request already pending', async () => {
+      command.argv = []
+      await command.init()
+
+      const pendingStatus = {
+        status: DB_STATUS.REQUESTED,
+        region: 'amer'
+      }
+      mockProvisionStatus.mockResolvedValue(pendingStatus)
+
+      const result = await command.run()
+
+      expect(result).toEqual({
+        status: 'in_progress',
+        namespace: 'test-namespace',
+        details: pendingStatus
       })
       expect(mockProvisionRequest).not.toHaveBeenCalled()
     })
@@ -137,6 +178,29 @@ describe('run', () => {
       expect(mockProvisionRequest).toHaveBeenCalled()
       expect(stdout.output).toContain('Previous database provisioning request was rejected')
       expect(stdout.output).toContain('If the problem persists, please contact the App Builder team')
+    })
+
+    test('unknown current status, continues with new attempt', async () => {
+      command.argv = []
+      await command.init()
+
+      const unknownStatus = {
+        status: 'UNKNOWN_STATUS',
+        region: 'amer'
+      }
+      mockProvisionStatus.mockResolvedValue(unknownStatus)
+      mockConfirm.mockResolvedValue(true)
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.REQUESTED,
+        region: 'amer'
+      })
+
+      const result = await command.run()
+
+      expect(result.status).toBe('requested')
+      expect(mockProvisionRequest).toHaveBeenCalled()
+      expect(stdout.output).toContain('Database status is \'UNKNOWN_STATUS\' - attempting to provision...')
+      expect(stdout.output).toContain('If you encounter issues, please contact the App Builder team')
     })
   })
 
@@ -263,6 +327,10 @@ describe('run', () => {
       })
 
       await expect(command.run()).rejects.toThrow('Database provisioning failed: Provisioning failed due to quota limits')
+
+      // Test fallback output if error message is missing
+      mockProvisionRequest.mockResolvedValue({ status: DB_STATUS.FAILED })
+      await expect(command.run()).rejects.toThrow('Database provisioning failed: Unknown error')
     })
 
     test('provision rejected', async () => {
@@ -275,9 +343,26 @@ describe('run', () => {
       })
 
       await expect(command.run()).rejects.toThrow('Database provisioning request was rejected: Request rejected due to policy violation')
+
+      // Test fallback output if error message is missing
+      mockProvisionRequest.mockResolvedValue({ status: DB_STATUS.REJECTED })
+      await expect(command.run()).rejects.toThrow('Database provisioning request was rejected: Unknown reason')
     })
 
-    test('provision unknown status', async () => {
+    test('provision missing status', async () => {
+      command.argv = []
+      await command.init()
+
+      mockProvisionRequest.mockResolvedValue({ region: 'amer' })
+
+      const result = await command.run()
+
+      expect(result.status).toBe('unknown')
+      expect(stderr.output).toContain('Database provisioning request returned unrecognized status \'undefined\'')
+      expect(stderr.output).toContain('If the issue persists, please contact the App Builder team.')
+    })
+
+    test('provision unexpected status', async () => {
       command.argv = []
       await command.init()
 

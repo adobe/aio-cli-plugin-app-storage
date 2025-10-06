@@ -42,12 +42,10 @@ export class StatsCollection extends DBBaseCommand {
       this.log(chalk.green(`Stats for collection '${collection}':`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
-      if (stats && typeof stats === 'object') {
-        // Display stats in a formatted way
-        Object.entries(stats).forEach(([key, value]) => {
-          this.log(chalk.dim(`   ${key}: ${value}`))
-        })
-      }
+      // Display stats in a formatted way
+      Object.entries(stats).forEach(([key, value]) => {
+        this.log(chalk.dim(`   ${key}: ${value}`))
+      })
 
       this.log(chalk.dim(`   Retrieved: ${new Date().toLocaleString()}`))
 

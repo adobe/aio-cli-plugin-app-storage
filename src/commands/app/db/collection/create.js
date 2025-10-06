@@ -69,7 +69,7 @@ export class CreateCollection extends DBBaseCommand {
 
       if (validator) {
         // Display the final validator object (after parsing) in compact JSON format
-        const validatorDisplay = typeof options.validator === 'object' ? JSON.stringify(options.validator) : options.validator
+        const validatorDisplay = JSON.stringify(options.validator)
         this.log(chalk.dim(`   Validator: ${validatorDisplay}`))
       }
 

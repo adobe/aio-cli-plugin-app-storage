@@ -26,11 +26,8 @@ export class Find extends DBBaseCommand {
       this.log(chalk.dim(`   Filter:\n${prettyJson(filter)}`))
 
       // Prepare options for find
-      const options = {}
-      if (limit !== undefined) {
-        this.log(chalk.dim(`   Limit: ${limit}`))
-        options.limit = limit
-      }
+      const options = { limit }
+      this.log(chalk.dim(`   Limit: ${limit}`))
       if (skip !== undefined) {
         this.log(chalk.dim(`   Skip: ${skip}`))
         options.skip = skip

@@ -24,10 +24,6 @@ export class GetCollectionInfos extends DBBaseCommand {
 
       this.debugLogger?.info?.(`Retrieved ${collectionInfo.length} collections with full details:`, collectionInfo)
 
-      if (this.flags.json) {
-        return collectionInfo
-      }
-
       this.log(chalk.green('Collection Information:'))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 

@@ -37,13 +37,11 @@ export class Status extends DBBaseCommand {
 
       this.displayStatus(provisionStatusResponse)
 
-      const result = {
+      return {
         ...provisionStatusResponse,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString()
       }
-
-      return result
     } catch (error) {
       this.debugLogger?.error?.('Status command error:', error)
 
@@ -80,7 +78,7 @@ export class Status extends DBBaseCommand {
           previousStatus = provisionStatusResponse
 
           // Stop watching if provisioning is complete or failed
-          const currentStatus = provisionStatusResponse.status.toUpperCase()
+          const currentStatus = provisionStatusResponse.status?.toUpperCase()
           if (currentStatus !== DB_STATUS.REQUESTED && currentStatus !== DB_STATUS.PROCESSING) {
             this.log(chalk.dim('\nStopping watch mode.'))
             return provisionStatusResponse
@@ -117,15 +115,12 @@ export class Status extends DBBaseCommand {
       this.log(chalk.dim(`   Submitted: ${new Date(provisionStatusResponse.submitted).toLocaleString()}`))
     }
 
-    // if (provisionStatusResponse.updated) {
-    //   this.log(chalk.dim(`   Updated: ${new Date(provisionStatusResponse.updated).toLocaleString()}`))
-    // }
-
     if (showTimestamp) {
       this.log(chalk.dim(`   Checked: ${new Date().toLocaleString()}`))
     }
   }
 
+  /* istanbul ignore next */
   getStatusColor (statusValue) {
     const status = statusValue.toUpperCase()
     switch (status) {

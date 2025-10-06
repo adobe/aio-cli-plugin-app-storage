@@ -263,6 +263,18 @@ describe('run', () => {
       expect(mockInsertMany).not.toHaveBeenCalled()
     })
 
+    test('fails when documents is not valid JSON', async () => {
+      command.argv = ['users', '["John"']
+
+      await expect(async () => {
+        await command.init()
+        await command.run()
+      }).rejects.toThrow('Documents: JSON parse error:')
+
+      expect(mockCollection).not.toHaveBeenCalled()
+      expect(mockInsertMany).not.toHaveBeenCalled()
+    })
+
     test('fails when documents is not a JSON array', async () => {
       command.argv = ['users', '{"name": "John"}']
 

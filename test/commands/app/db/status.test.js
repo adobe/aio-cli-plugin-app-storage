@@ -22,6 +22,21 @@ const mockProvisionStatus = global.mockDBInstance.provisionStatus
 const originalSetTimeout = global.setTimeout
 const mockSetTimeout = jest.fn()
 
+/**
+ * Mock setTimeout to immediately call the callback a few times but not infinitely
+ *
+ * @param {number} times - The number of times to execute the callback
+ */
+function mockWatchLoop (times = 5) {
+  for (let i = 0; i < times; i++) {
+    mockSetTimeout.mockImplementationOnce((callback) => {
+      callback()
+      return 'mock-timeout-id'
+    })
+  }
+  mockSetTimeout.mockImplementationOnce(() => 'mock-timeout-id')
+}
+
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
     expect(Status.prototype instanceof DBBaseCommand).toBe(true)
@@ -246,6 +261,63 @@ describe('run', () => {
       const result = await command.run()
 
       expect(result.status).toBe('REJECTED')
+      expect(stdout.output).toContain('Stopping watch mode.')
+    })
+
+    test('watch continues after error', async () => {
+      mockWatchLoop()
+
+      command.argv = ['--watch']
+      await command.init()
+
+      mockProvisionStatus
+        .mockResolvedValueOnce({
+          status: DB_STATUS.PROCESSING,
+          region: 'amer'
+        })
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockRejectedValueOnce(new Error('Another error'))
+        .mockResolvedValueOnce({
+          status: DB_STATUS.FAILED,
+          region: 'amer'
+        })
+
+      await command.run()
+
+      expect(stdout.output).toContain('Database Status: PROCESSING')
+      expect(stdout.output).toContain('Error: Network error')
+      expect(stdout.output).toContain('Error: Another error')
+      expect(stdout.output).toContain('Database Status: FAILED')
+      expect(stdout.output).toContain('Stopping watch mode.')
+    })
+
+    test('watch only displays status changes', async () => {
+      mockWatchLoop()
+
+      command.argv = ['--watch']
+      await command.init()
+
+      const processing = {
+        status: DB_STATUS.PROCESSING,
+        region: 'amer'
+      }
+      const provisioned = {
+        status: DB_STATUS.PROVISIONED,
+        region: 'amer'
+      }
+
+      mockProvisionStatus
+        .mockResolvedValueOnce(processing)
+        .mockResolvedValueOnce(processing)
+        .mockResolvedValueOnce(processing)
+        .mockResolvedValueOnce(provisioned)
+
+      await command.run()
+
+      expect(stdout.output).toContain('Database Status: PROCESSING')
+      const processingCount = (stdout.output.match(/Database Status: PROCESSING/g) || []).length
+      expect(processingCount).toBe(1) // Should only show once
+      expect(stdout.output).toContain('Database Status: PROVISIONED')
       expect(stdout.output).toContain('Stopping watch mode.')
     })
   })
