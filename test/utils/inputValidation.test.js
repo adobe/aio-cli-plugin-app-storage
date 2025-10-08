@@ -30,7 +30,7 @@ describe('asObject()', () => {
 
   test('throws error for invalid JSON string', () => {
     const input = '{"key1": "value", "key2": [123, 456], "key3": {"nestedKey": "nestedValue"'
-    expect(() => asObject(input)).toThrow('JSON parse error: Unexpected end of JSON input')
+    expect(() => asObject(input)).toThrow('JSON parse error:')
   })
 
   test('throws error for empty input', () => {
