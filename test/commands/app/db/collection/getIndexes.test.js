@@ -21,17 +21,17 @@ const mockGetIndexes = jest.fn()
 const successVal = [
   {
     v: 2,
-    ley: { _id: 1 },
+    key: { _id: 1 },
     name: '_id_'
   },
   {
     v: 2,
-    ley: { category: 1 },
+    key: { category: 1 },
     name: 'CategoryPriceIndex'
   },
   {
     v: 2,
-    ley: { price: 1 },
+    key: { price: 1 },
     name: 'price_1'
   }
 ]
