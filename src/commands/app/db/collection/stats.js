@@ -14,6 +14,7 @@ import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args } from '@oclif/core'
 import chalk from 'chalk'
 import { isNonEmptyString } from '../../../../utils/inputValidation.js'
+import { prettyJson } from '../../../../utils/output.js'
 
 export class StatsCollection extends DBBaseCommand {
   async run () {
@@ -44,7 +45,11 @@ export class StatsCollection extends DBBaseCommand {
 
       // Display stats in a formatted way
       Object.entries(stats).forEach(([key, value]) => {
-        this.log(chalk.dim(`   ${key}: ${value}`))
+        if (typeof value === 'object' && value !== null) {
+          this.log(chalk.dim(`   ${key}:\n${prettyJson(value)}`))
+        } else {
+          this.log(chalk.dim(`   ${key}: ${value}`))
+        }
       })
 
       this.log(chalk.dim(`   Retrieved: ${new Date().toLocaleString()}`))

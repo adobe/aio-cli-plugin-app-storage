@@ -55,9 +55,9 @@ describe('run', () => {
       await command.init()
 
       const collectionInfo = [
-        { name: 'users', documentCount: 100, size: 1024 },
-        { name: 'products', documentCount: 50, size: 512 },
-        { name: 'orders', documentCount: 200, size: 2048 }
+        { name: 'users', idIndex: { key: { _id: 1 }, name: '_id_' }, info: { readOnly: false } },
+        { name: 'products', idIndex: { key: { _sku: 1 }, name: '_sku_' }, info: { readOnly: false } },
+        { name: 'orders', idIndex: { key: { _orderId: -1 }, name: '_orderId_' }, info: { readOnly: false } }
       ]
       mockListCollections.mockResolvedValue(collectionInfo)
 
@@ -71,11 +71,9 @@ describe('run', () => {
       expect(stdout.output).toContain('Collection Information:')
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Total Collections: 3')
-      expect(stdout.output).toContain('Collection 1:')
-      expect(stdout.output).toContain('name: users')
-      expect(stdout.output).toContain('documentCount: 100')
-      expect(stdout.output).toContain('size: 1,024')
-      expect(stdout.output).toContain('Retrieved:')
+      expect(stdout.output).toContain('users')
+      expect(stdout.output).toContain('products')
+      expect(stdout.output).toContain('orders')
     })
 
     test('returns collection information with --json flag', async () => {
@@ -83,8 +81,8 @@ describe('run', () => {
       await command.init()
 
       const collectionInfo = [
-        { name: 'users', documentCount: 100, size: 1024 },
-        { name: 'products', documentCount: 50, size: 512 }
+        { name: 'users', idIndex: { key: { _id: 1 }, name: '_id_' }, info: { readOnly: false } },
+        { name: 'products', idIndex: { key: { _sku: 1 }, name: '_sku_' }, info: { readOnly: false } }
       ]
       mockListCollections.mockResolvedValue(collectionInfo)
 
@@ -96,6 +94,33 @@ describe('run', () => {
       expect(stdout.output).not.toContain('Fetching collection info...')
       expect(stdout.output).not.toContain('Collection Information:')
       expect(stdout.output).not.toContain('Namespace:')
+    })
+
+    test('displays validator information when present', async () => {
+      command.argv = []
+      await command.init()
+
+      const collectionInfo = [
+        {
+          name: 'users',
+          idIndex: { key: { _id: 1 }, name: '_id_' },
+          info: { readOnly: false },
+          options: {
+            validator: { $jsonSchema: { type: 'object' } },
+            validationLevel: 'strict',
+            validationAction: 'error'
+          }
+        }
+      ]
+      mockListCollections.mockResolvedValue(collectionInfo)
+
+      const result = await command.run()
+
+      expect(result).toEqual(collectionInfo)
+
+      expect(stdout.output).toContain('validator')
+      expect(stdout.output).toContain('validationLevel')
+      expect(stdout.output).toContain('validationAction')
     })
 
     test('handles empty collection list', async () => {

@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../DBBaseCommand.js'
 import chalk from 'chalk'
 import { prettyJson } from '../../../utils/output.js'
+import { makeTable } from '@oclif/table'
 
 export class GetCollectionInfos extends DBBaseCommand {
   async run () {
@@ -31,15 +32,26 @@ export class GetCollectionInfos extends DBBaseCommand {
         this.log(chalk.dim(`   Total Collections: ${collectionInfo.length}`))
         this.log('')
 
-        collectionInfo.forEach((collection, index) => {
-          this.log(chalk.cyan(`   Collection ${index + 1}:`))
-          Object.entries(collection).forEach(([key, value]) => {
-            this.log(chalk.dim(`     ${key}: ${this.formatValue(value)}`))
-          })
-          if (index < collectionInfo.length - 1) {
-            this.log('')
+        const formattedInfo = collectionInfo.map(col => {
+          const info = {
+            name: col.name,
+            idIndex: `key: ${JSON.stringify(col.idIndex.key)}\nname: ${col.idIndex.name}`,
+            info: Object.entries(col.info).map(([key, value]) => {
+              return `${key}: ${JSON.stringify(value)}`
+            }).join('\n')
           }
+          if (col.options?.validator) {
+            info.validator = prettyJson(col.options.validator.$jsonSchema, 0)
+          }
+          if (col.options?.validationLevel) {
+            info.validationLevel = prettyJson(col.options.validationLevel, 0)
+          }
+          if (col.options?.validationAction) {
+            info.validationAction = prettyJson(col.options.validationAction, 0)
+          }
+          return info
         })
+        this.log(makeTable({ data: formattedInfo, overflow: 'wrap', trimWhitespace: false }))
       } else {
         this.log(chalk.dim('   No collections found'))
       }

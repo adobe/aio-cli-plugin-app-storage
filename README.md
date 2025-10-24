@@ -265,7 +265,7 @@ EXAMPLES
 
   $ aio app db collection create products --json
 
-  $ aio app db collection create products --validator '{"$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}'
+  $ aio app db collection create products --validator '{"type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}'
 
   $ aio app db collection create inventory --validator '{"type": "object", "required": ["id", "quantity"]}' --json
 ```

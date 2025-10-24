@@ -73,7 +73,6 @@ describe('run', () => {
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        result: { ok: 1, info: 'Collection created' },
         options: {}
       })
 
@@ -98,7 +97,6 @@ describe('run', () => {
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        result: { ok: 1, info: 'Collection created' },
         options: {}
       })
 
@@ -123,7 +121,6 @@ describe('run', () => {
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        result: null,
         options: {}
       })
 
@@ -142,7 +139,7 @@ describe('run', () => {
       const result = await command.run()
 
       expect(mockCreateCollection).toHaveBeenCalledWith('products', {
-        validator: { type: 'object', required: ['name'] }
+        validator: { $jsonSchema: { type: 'object', required: ['name'] } }
       })
 
       expect(result).toEqual({
@@ -150,8 +147,7 @@ describe('run', () => {
         status: 'created',
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        options: { validator: { type: 'object', required: ['name'] } },
-        result: { ok: 1, info: 'Collection created' }
+        options: { validator: { $jsonSchema: { type: 'object', required: ['name'] } } }
       })
 
       expect(stdout.output).toContain("Collection 'products' created successfully")
@@ -263,9 +259,9 @@ describe('run', () => {
       const result = await command.run()
 
       expect(mockCreateCollection).toHaveBeenCalledWith('users', {
-        validator: { type: 'object' }
+        validator: { $jsonSchema: { type: 'object' } }
       })
-      expect(result.options.validator).toEqual({ type: 'object' })
+      expect(result.options.validator).toEqual({ $jsonSchema: { type: 'object' } })
     })
   })
 

@@ -68,6 +68,10 @@ describe('run', () => {
         documents: 10,
         size: 1024,
         indexes: 2,
+        indexSizes: {
+          _id_: 512,
+          otherIndex: 512
+        },
         avgDocumentSize: 102.4
       })
 
@@ -84,6 +88,10 @@ describe('run', () => {
           documents: 10,
           size: 1024,
           indexes: 2,
+          indexSizes: {
+            _id_: 512,
+            otherIndex: 512
+          },
           avgDocumentSize: 102.4
         },
         namespace: 'test-namespace',
@@ -96,6 +104,8 @@ describe('run', () => {
       expect(stdout.output).toContain('documents: 10')
       expect(stdout.output).toContain('size: 1024')
       expect(stdout.output).toContain('indexes: 2')
+      expect(stdout.output).toContain('"_id_": 512')
+      expect(stdout.output).toContain('"otherIndex": 512')
       expect(stdout.output).toContain('avgDocumentSize: 102.4')
       expect(stdout.output).toContain('Retrieved:')
     })

@@ -14,7 +14,6 @@ import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
 import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
-import { prettyJson } from '../../../../utils/output.js'
 
 export class CreateCollection extends DBBaseCommand {
   async run () {
@@ -47,7 +46,7 @@ export class CreateCollection extends DBBaseCommand {
       // Build collection options
       const options = {}
       if (validator) {
-        options.validator = validator
+        options.validator = { $jsonSchema: validator }
       }
 
       // Create the collection
@@ -60,7 +59,6 @@ export class CreateCollection extends DBBaseCommand {
         status: 'created',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
-        result,
         options
       }
 
@@ -69,12 +67,8 @@ export class CreateCollection extends DBBaseCommand {
 
       if (validator) {
         // Display the final validator object (after parsing) in compact JSON format
-        const validatorDisplay = JSON.stringify(options.validator)
+        const validatorDisplay = JSON.stringify(options.validator.$jsonSchema)
         this.log(chalk.dim(`   Validator: ${validatorDisplay}`))
-      }
-
-      if (result && typeof result === 'object' && Object.keys(result).length > 0) {
-        this.log(chalk.dim(`   Details:\n${prettyJson(result)}`))
       }
 
       this.log(chalk.dim(`   Created: ${new Date().toLocaleString()}`))
@@ -100,7 +94,7 @@ CreateCollection.description = 'Create a new collection in the database'
 CreateCollection.examples = [
   '$ aio app db collection create users',
   '$ aio app db collection create products --json',
-  '$ aio app db collection create products --validator \'{"$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}\'',
+  '$ aio app db collection create products --validator \'{"type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}\'',
   '$ aio app db collection create inventory --validator \'{"type": "object", "required": ["id", "quantity"]}\' --json'
 ]
 
