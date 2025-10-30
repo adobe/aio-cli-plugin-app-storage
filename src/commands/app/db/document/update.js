@@ -15,13 +15,16 @@ import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
 import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
 
-export class ReplaceOne extends DBBaseCommand {
+export class Update extends DBBaseCommand {
   async run () {
-    const { collection, filter, replacement } = this.args
-    const { upsert } = this.flags
+    const { collection, filter, update } = this.args
+    const { many, upsert } = this.flags
+    const docPlural = many ? '(s)' : ''
 
     try {
-      this.log(chalk.blue(`Replacing document in collection '${collection}'...`))
+      this.log(chalk.blue(`Updating document${docPlural} in collection '${collection}'...`))
+      this.log(chalk.dim(`   Filter: ${JSON.stringify(filter)}`))
+      this.log(chalk.dim(`   Update: ${JSON.stringify(update)}`))
 
       if (upsert) {
         this.log(chalk.dim('   Upsert enabled: Will create document if not found'))
@@ -36,24 +39,38 @@ export class ReplaceOne extends DBBaseCommand {
         options.upsert = true
       }
 
-      // Replace the document
-      const result = await coll.replaceOne(filter, replacement, options)
+      // Update the document
+      const result = await (many ? coll.updateMany(filter, update, options) : coll.updateOne(filter, update, options))
 
-      this.debugLogger?.info?.('Document replaced successfully:', result)
+      this.debugLogger?.info?.(`Document${docPlural} updated successfully:`, result)
 
       const response = {
         collection,
         filter,
-        replacement,
+        update,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         result
       }
+      const optionOutput = { ...options }
+      if (many) {
+        optionOutput.many = true
+      }
+      if (Object.keys(optionOutput).length > 0) {
+        response.options = optionOutput
+      }
 
       if (result.matchedCount > 0) {
-        this.log(chalk.green(`Document replaced successfully in collection '${collection}'`))
+        if (result.modifiedCount > 0) {
+          this.log(chalk.green(`Document${docPlural} updated successfully in collection '${collection}'`))
+          this.log(chalk.dim(`   Collection: ${collection}`))
+          this.log(chalk.dim(`   Matched Count: ${result.matchedCount}`))
+          this.log(chalk.dim(`   Modified Count: ${result.modifiedCount}`))
+        } else {
+          this.log(chalk.green(`${result.matchedCount} matching document${docPlural} found in collection '${collection}', but no update was necessary`))
+        }
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-      } else if (upsert && result.upsertedId) {
+      } else if (result.upsertedId) {
         this.log(chalk.green(`Document created (upserted) in collection '${collection}'`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
         this.log(chalk.dim(`   Upserted ID: ${result.upsertedId}`))
@@ -63,15 +80,15 @@ export class ReplaceOne extends DBBaseCommand {
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       }
 
-      this.log(chalk.dim(`   Replaced: ${new Date().toLocaleString()}`))
+      this.log(chalk.dim(`   Updated: ${new Date().toLocaleString()}`))
 
       return response
     } catch (error) {
-      this.debugLogger?.error?.('Error replacing document:', error)
+      this.debugLogger?.error?.(`Error updating document${docPlural}:`, error)
 
-      const errorMessage = `Failed to replace document in collection '${collection}': ${error.message}`
+      const errorMessage = `Failed to update document${docPlural} in collection '${collection}': ${error.message}`
 
-      this.log(chalk.red('Failed to replace document'))
+      this.log(chalk.red(`Failed to update document${docPlural}`))
       this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
@@ -80,16 +97,16 @@ export class ReplaceOne extends DBBaseCommand {
   }
 }
 
-ReplaceOne.description = 'Replace a single document in a collection'
+Update.description = 'Update document(s) in a collection'
 
-ReplaceOne.examples = [
-  '$ aio app db collection replaceOne users \'{"name": "John"}\' \'{"name": "John Doe", "age": 30, "status": "active"}\'',
-  '$ aio app db collection replaceOne products \'{"id": "123"}\' \'{"id": "123", "name": "New Product", "price": 99.99}\' --json',
-  '$ aio app db collection replaceOne posts \'{"slug": "hello-world"}\' \'{"title": "Hello World", "content": "Updated content", "status": "published"}\' --upsert',
-  '$ aio app db collection replaceOne users \'{"email": "john@example.com"}\' \'{"email": "john@example.com", "name": "John", "verified": true}\' --upsert'
+Update.examples = [
+  '$ aio app db document update users \'{"name": "John"}\' \'{"$set": {"age": 31}}\'',
+  '$ aio app db document update products \'{"id": "123"}\' \'{"$inc": {"stock": -1}}\' --json',
+  '$ aio app db document update posts \'{"slug": "hello-world"}\' \'{"$set": {"status": "published"}}\' --many',
+  '$ aio app db doc update users \'{"email": "john@example.com"}\' \'{"$set": {"lastLogin": "2024-01-01"}}\' --upsert'
 ]
 
-ReplaceOne.args = {
+Update.args = {
   collection: Args.string({
     name: 'collection',
     description: 'The name of the collection',
@@ -102,19 +119,26 @@ ReplaceOne.args = {
     required: true,
     parse: input => asObject(input, 'Filter')
   }),
-  replacement: Args.string({
-    name: 'replacement',
-    description: 'The replacement document (JSON string)',
+  update: Args.string({
+    name: 'update',
+    description: 'The update document (JSON string)',
     required: true,
-    parse: input => asObject(input, 'Replacement')
+    parse: input => asObject(input, 'Update')
   })
 }
 
-ReplaceOne.flags = {
+Update.flags = {
   ...DBBaseCommand.flags,
   upsert: Flags.boolean({
     char: 'u',
     description: 'If no document is found, create a new one',
     default: false
+  }),
+  many: Flags.boolean({
+    char: 'm',
+    description: 'Update all documents matching the filter. Without this option, only the first matching document is updated.',
+    default: false
   })
 }
+
+Update.aliases = ['app:db:doc:update']

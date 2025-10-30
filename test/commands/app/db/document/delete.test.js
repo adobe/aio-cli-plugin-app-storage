@@ -9,7 +9,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { DeleteOne } from '../../../../../src/commands/app/db/collection/deleteOne.js'
+import { Delete } from '../../../../../src/commands/app/db/document/delete.js'
 import { expect, jest } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
@@ -26,28 +26,28 @@ const mockConnect = global.mockDBInstance.connect
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
-    expect(DeleteOne.prototype instanceof DBBaseCommand).toBe(true)
+    expect(Delete.prototype instanceof DBBaseCommand).toBe(true)
   })
 
   test('args', () => {
-    expect(Object.keys(DeleteOne.args)).toEqual(['collection', 'filter'])
-    expect(DeleteOne.args.collection.required).toBe(true)
-    expect(DeleteOne.args.filter.required).toBe(true)
+    expect(Object.keys(Delete.args)).toEqual(['collection', 'filter'])
+    expect(Delete.args.collection.required).toBe(true)
+    expect(Delete.args.filter.required).toBe(true)
   })
 
   test('flags', () => {
     const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
-    expect(Object.keys(DeleteOne.flags).sort()).toEqual(expectedFlags)
-    expect(DeleteOne.enableJsonFlag).toEqual(true)
+    expect(Object.keys(Delete.flags).sort()).toEqual(expectedFlags)
+    expect(Delete.enableJsonFlag).toEqual(true)
   })
 
   test('description', () => {
-    expect(DeleteOne.description).toBe('Delete a single document from a collection')
+    expect(Delete.description).toBe('Delete a single document from a collection')
   })
 
   test('examples', () => {
-    expect(DeleteOne.examples).toBeDefined()
-    expect(DeleteOne.examples.length).toBeGreaterThan(0)
+    expect(Delete.examples).toBeDefined()
+    expect(Delete.examples.length).toBeGreaterThan(0)
   })
 })
 
@@ -55,7 +55,7 @@ describe('run', () => {
   let command
 
   beforeEach(async () => {
-    command = new DeleteOne(['users', '{"name": "John"}'])
+    command = new Delete(['users', '{"name": "John"}'])
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }

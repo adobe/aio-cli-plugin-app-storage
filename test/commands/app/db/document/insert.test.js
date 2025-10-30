@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { InsertMany } from '../../../../../src/commands/app/db/collection/insertMany.js'
+import { Insert } from '../../../../../src/commands/app/db/document/insert.js'
 import { expect, jest } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
@@ -21,24 +21,24 @@ const mockInsertMany = jest.fn()
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
-    expect(InsertMany.prototype instanceof DBBaseCommand).toBe(true)
+    expect(Insert.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(InsertMany.args)).toEqual(['collection', 'documents'])
-    expect(InsertMany.args.collection.required).toBe(true)
-    expect(InsertMany.args.documents.required).toBe(true)
+    expect(Object.keys(Insert.args)).toEqual(['collection', 'documents'])
+    expect(Insert.args.collection.required).toBe(true)
+    expect(Insert.args.documents.required).toBe(true)
   })
   test('flags', () => {
     const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['bypassDocumentValidation']).sort()
-    expect(Object.keys(InsertMany.flags).sort()).toEqual(expectedFlags)
-    expect(InsertMany.enableJsonFlag).toEqual(true)
+    expect(Object.keys(Insert.flags).sort()).toEqual(expectedFlags)
+    expect(Insert.enableJsonFlag).toEqual(true)
   })
 })
 
 describe('run', () => {
   let command
   beforeEach(async () => {
-    command = new InsertMany(['users', '[{"name": "John", "age": 30}]'])
+    command = new Insert(['users', '[{"name": "John", "age": 30}]'])
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
@@ -58,7 +58,7 @@ describe('run', () => {
   })
 
   describe('successful document insertion', () => {
-    test('inserts documents without --json flag', async () => {
+    test('inserts array of documents without --json flag', async () => {
       command.argv = ['users', '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]']
       await command.init()
 
@@ -91,6 +91,41 @@ describe('run', () => {
       expect(stdout.output).toContain('Collection: users')
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Inserted IDs: {"0":"id1","1":"id2"}')
+      expect(stdout.output).toContain('Inserted:')
+    })
+
+    test('inserts single document object without --json flag', async () => {
+      command.argv = ['users', '{"name": "John", "age": 30}']
+      await command.init()
+
+      const mockResult = {
+        insertedCount: 1,
+        insertedIds: { 0: 'id1' },
+        acknowledged: true
+      }
+      mockInsertMany.mockResolvedValue(mockResult)
+
+      const result = await command.run()
+
+      expect(global.mockDBInstance.connect).toHaveBeenCalled()
+      expect(mockCollection).toHaveBeenCalledWith('users')
+      expect(mockInsertMany).toHaveBeenCalledWith([
+        { name: 'John', age: 30 }
+      ], {})
+
+      expect(result).toEqual({
+        collection: 'users',
+        status: 'inserted',
+        namespace: 'test-namespace',
+        timestamp: expect.any(String),
+        result: mockResult
+      })
+
+      expect(stdout.output).toContain("Inserting 1 documents into collection 'users'...")
+      expect(stdout.output).toContain("Successfully inserted 1 documents into collection 'users'")
+      expect(stdout.output).toContain('Collection: users')
+      expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).toContain('Inserted IDs: {"0":"id1"}')
       expect(stdout.output).toContain('Inserted:')
     })
 
@@ -210,7 +245,7 @@ describe('run', () => {
 
   describe('argument validation', () => {
     test('fails when collection name is missing', async () => {
-      command = new InsertMany([])
+      command = new Insert([])
       command.config = {
         runHook: jest.fn().mockResolvedValue({})
       }
@@ -223,7 +258,7 @@ describe('run', () => {
     })
 
     test('fails when documents argument is missing', async () => {
-      command = new InsertMany(['users'])
+      command = new Insert(['users'])
       command.config = {
         runHook: jest.fn().mockResolvedValue({})
       }
@@ -236,7 +271,7 @@ describe('run', () => {
     })
 
     test('fails when collection name is empty string', async () => {
-      command = new InsertMany(['', '[{"name": "John"}]'])
+      command = new Insert(['', '[{"name": "John"}]'])
       command.config = {
         runHook: jest.fn().mockResolvedValue({})
       }
@@ -257,7 +292,7 @@ describe('run', () => {
       await expect(async () => {
         await command.init()
         await command.run()
-      }).rejects.toThrow('Documents: Must be a non-empty JSON array string')
+      }).rejects.toThrow('Documents: Must be a JSON string representing an object or non-empty array')
 
       expect(mockCollection).not.toHaveBeenCalled()
       expect(mockInsertMany).not.toHaveBeenCalled()
@@ -275,13 +310,13 @@ describe('run', () => {
       expect(mockInsertMany).not.toHaveBeenCalled()
     })
 
-    test('fails when documents is not a JSON array', async () => {
-      command.argv = ['users', '{"name": "John"}']
+    test('fails when documents is not a JSON object or array', async () => {
+      command.argv = ['users', 'null']
 
       await expect(async () => {
         await command.init()
         await command.run()
-      }).rejects.toThrow('Documents: Must be a JSON array')
+      }).rejects.toThrow('Documents: Must be a JSON string representing an object or non-empty array')
 
       expect(mockCollection).not.toHaveBeenCalled()
       expect(mockInsertMany).not.toHaveBeenCalled()
@@ -293,7 +328,7 @@ describe('run', () => {
       await expect(async () => {
         await command.init()
         await command.run()
-      }).rejects.toThrow('Documents: Array cannot be empty')
+      }).rejects.toThrow('Documents: Cannot be empty')
 
       expect(mockCollection).not.toHaveBeenCalled()
       expect(mockInsertMany).not.toHaveBeenCalled()
@@ -380,7 +415,7 @@ describe('run', () => {
       expect(stdout.output).toContain('Error: Collection not found')
     })
 
-    test('insertMany error', async () => {
+    test('insert error', async () => {
       command.argv = ['users', '[{"name": "John"}]']
       await command.init()
 

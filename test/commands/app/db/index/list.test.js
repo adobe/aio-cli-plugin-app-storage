@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { GetIndexes } from '../../../../../src/commands/app/db/collection/getIndexes.js'
+import { List } from '../../../../../src/commands/app/db/index/list.js'
 import { expect, jest } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
@@ -38,16 +38,16 @@ const successVal = [
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
-    expect(GetIndexes.prototype instanceof DBBaseCommand).toBe(true)
+    expect(List.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(GetIndexes.args)).toEqual(['collection'])
-    expect(GetIndexes.args.collection.required).toBe(true)
+    expect(Object.keys(List.args)).toEqual(['collection'])
+    expect(List.args.collection.required).toBe(true)
   })
   test('flags', () => {
     const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
-    expect(Object.keys(GetIndexes.flags).sort()).toEqual(expectedFlags)
-    expect(GetIndexes.enableJsonFlag).toEqual(true)
+    expect(Object.keys(List.flags).sort()).toEqual(expectedFlags)
+    expect(List.enableJsonFlag).toEqual(true)
   })
 })
 
@@ -57,7 +57,7 @@ describe('run', () => {
 
   let command
   beforeEach(async () => {
-    command = new GetIndexes([collectionName])
+    command = new List([collectionName])
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
@@ -150,7 +150,7 @@ describe('run', () => {
 
   describe('missing collection name', () => {
     test('fails when collection name is missing', async () => {
-      command = new GetIndexes([])
+      command = new List([])
       command.config = {
         runHook: jest.fn().mockResolvedValue({})
       }
@@ -163,7 +163,7 @@ describe('run', () => {
     })
 
     test('fails when collection name is empty string', async () => {
-      command = new GetIndexes([''])
+      command = new List([''])
       command.config = {
         runHook: jest.fn().mockResolvedValue({})
       }

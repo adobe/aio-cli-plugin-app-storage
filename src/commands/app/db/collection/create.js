@@ -93,9 +93,9 @@ CreateCollection.description = 'Create a new collection in the database'
 
 CreateCollection.examples = [
   '$ aio app db collection create users',
-  '$ aio app db collection create products --json',
-  '$ aio app db collection create products --validator \'{"type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}\'',
-  '$ aio app db collection create inventory --validator \'{"type": "object", "required": ["id", "quantity"]}\' --json'
+  '$ aio app db collection create inventory --validator \'{"type": "object", "required": ["id", "quantity"]}\' --json',
+  '$ aio app db col create products --json',
+  '$ aio app db col create products --validator \'{"type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}\''
 ]
 
 CreateCollection.args = {
@@ -115,3 +115,5 @@ CreateCollection.flags = {
     parse: input => asObject(input, 'Validator')
   })
 }
+
+CreateCollection.aliases = ['app:db:col:create']

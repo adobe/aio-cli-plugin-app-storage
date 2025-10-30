@@ -83,9 +83,10 @@ export class Find extends DBBaseCommand {
 Find.description = 'Find documents in a collection based on filter criteria.'
 
 Find.examples = [
-  '$ aio app db collection find users \'{}\'',
-  '$ aio app db collection find products \'{"category": "Computer Accessories"}\' --json',
-  '$ aio app db collection find products \'{"name": {"$regex": "Speakers$"}}\' --sort \'{"price": -1}\' --limit 10 --skip 5 --projection \'{"name": 1, "price": 1}\''
+  '$ aio app db document find users \'{}\'',
+  '$ aio app db document find products \'{"category": "Computer Accessories"}\' --json',
+  '$ aio app db document find products \'{"name": {"$regex": "Speakers$"}}\' --sort \'{"price": -1}\' --limit 10 --skip 5 --projection \'{"name": 1, "price": 1}\'',
+  '$ aio app db doc find orders \'{"status": "pending"}\' --sort \'{"orderDate": -1}\''
 ]
 
 Find.args = {
@@ -128,3 +129,5 @@ Find.flags = {
     parse: input => asObject(input, 'Projection')
   })
 }
+
+Find.aliases = ['app:db:doc:find']

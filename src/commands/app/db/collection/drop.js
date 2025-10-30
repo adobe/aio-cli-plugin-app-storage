@@ -70,7 +70,8 @@ DropCollection.description = 'Drop a collection from the database'
 
 DropCollection.examples = [
   '$ aio app db collection drop users',
-  '$ aio app db collection drop products --json'
+  '$ aio app db collection drop products --json',
+  '$ aio app db col drop inventory'
 ]
 
 DropCollection.args = {
@@ -85,3 +86,5 @@ DropCollection.args = {
 DropCollection.flags = {
   ...DBBaseCommand.flags
 }
+
+DropCollection.aliases = ['app:db:col:drop']

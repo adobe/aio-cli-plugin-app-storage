@@ -72,7 +72,8 @@ RenameCollection.description = 'Rename a collection in the database'
 
 RenameCollection.examples = [
   '$ aio app db collection rename users customers',
-  '$ aio app db collection rename old_products new_products --json'
+  '$ aio app db collection rename old_products new_products --json',
+  '$ aio app db col rename inventory stock'
 ]
 
 RenameCollection.args = {
@@ -93,3 +94,5 @@ RenameCollection.args = {
 RenameCollection.flags = {
   ...DBBaseCommand.flags
 }
+
+RenameCollection.aliases = ['app:db:col:rename']

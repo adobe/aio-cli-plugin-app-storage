@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { CountDocuments } from '../../../../../src/commands/app/db/collection/countDocuments.js'
+import { Count } from '../../../../../src/commands/app/db/document/count.js'
 import { expect, jest } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
@@ -23,7 +23,7 @@ describe('CountDocuments', () => {
   let mockCountDocuments
 
   beforeEach(() => {
-    command = new CountDocuments(['users'])
+    command = new Count(['users'])
     command.config = { runHook: jest.fn().mockResolvedValue({}) }
     command.db = global.mockDBInstance
     command.rtNamespace = 'test-namespace'
@@ -49,28 +49,29 @@ describe('CountDocuments', () => {
 
   describe('command structure', () => {
     test('has correct description', () => {
-      expect(CountDocuments.description).toBe('Count documents in a collection')
+      expect(Count.description).toBe('Count documents in a collection')
     })
 
     test('has correct examples', () => {
-      expect(CountDocuments.examples).toEqual([
-        '$ aio app db collection countDocuments users',
-        '$ aio app db collection countDocuments users \'{"age": {"$gte": 21}}\'',
-        '$ aio app db collection countDocuments products \'{"category": "electronics"}\' --json'
+      expect(Count.examples).toEqual([
+        '$ aio app db document countDocuments users',
+        '$ aio app db document countDocuments users \'{"age": {"$gte": 21}}\'',
+        '$ aio app db document countDocuments products \'{"category": "electronics"}\' --json',
+        '$ aio app db doc count orders \'{"status": "shipped"}\''
       ])
     })
 
     test('has correct args', () => {
-      expect(CountDocuments.args.collection.required).toBe(true)
-      expect(CountDocuments.args.collection.description).toBe('The name of the collection')
-      expect(CountDocuments.args.query.required).toBe(false)
-      expect(CountDocuments.args.query.description).toBe('The query filter document (JSON string). If not provided, counts all documents.')
+      expect(Count.args.collection.required).toBe(true)
+      expect(Count.args.collection.description).toBe('The name of the collection')
+      expect(Count.args.query.required).toBe(false)
+      expect(Count.args.query.description).toBe('The query filter document (JSON string). If not provided, counts all documents.')
     })
 
     test('flags', () => {
       const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
-      expect(Object.keys(CountDocuments.flags).sort()).toEqual(expectedFlags)
-      expect(CountDocuments.enableJsonFlag).toEqual(true)
+      expect(Object.keys(Count.flags).sort()).toEqual(expectedFlags)
+      expect(Count.enableJsonFlag).toEqual(true)
     })
   })
 
@@ -97,7 +98,7 @@ describe('CountDocuments', () => {
     })
 
     test('counts documents with query filter', async () => {
-      command = new CountDocuments(['users', '{"age": {"$gte": 21}}'])
+      command = new Count(['users', '{"age": {"$gte": 21}}'])
       command.config = { runHook: jest.fn().mockResolvedValue({}) }
       command.db = global.mockDBInstance
       command.rtNamespace = 'test-namespace'
@@ -179,7 +180,7 @@ describe('CountDocuments', () => {
 
     test('displays query filter when provided', async () => {
       stdout.start()
-      command = new CountDocuments(['users', '{"age": {"$gte": 21}}'])
+      command = new Count(['users', '{"age": {"$gte": 21}}'])
       command.config = { runHook: jest.fn().mockResolvedValue({}) }
       command.db = global.mockDBInstance
       command.rtNamespace = 'test-namespace'

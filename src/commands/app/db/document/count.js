@@ -15,7 +15,7 @@ import { Args } from '@oclif/core'
 import chalk from 'chalk'
 import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
 
-export class CountDocuments extends DBBaseCommand {
+export class Count extends DBBaseCommand {
   async run () {
     const { collection, query } = this.args
 
@@ -65,15 +65,16 @@ export class CountDocuments extends DBBaseCommand {
   }
 }
 
-CountDocuments.description = 'Count documents in a collection'
+Count.description = 'Count documents in a collection'
 
-CountDocuments.examples = [
-  '$ aio app db collection countDocuments users',
-  '$ aio app db collection countDocuments users \'{"age": {"$gte": 21}}\'',
-  '$ aio app db collection countDocuments products \'{"category": "electronics"}\' --json'
+Count.examples = [
+  '$ aio app db document countDocuments users',
+  '$ aio app db document countDocuments users \'{"age": {"$gte": 21}}\'',
+  '$ aio app db document countDocuments products \'{"category": "electronics"}\' --json',
+  '$ aio app db doc count orders \'{"status": "shipped"}\''
 ]
 
-CountDocuments.args = {
+Count.args = {
   collection: Args.string({
     name: 'collection',
     description: 'The name of the collection',
@@ -88,6 +89,8 @@ CountDocuments.args = {
   })
 }
 
-CountDocuments.flags = {
+Count.flags = {
   ...DBBaseCommand.flags
 }
+
+Count.aliases = ['app:db:doc:count']

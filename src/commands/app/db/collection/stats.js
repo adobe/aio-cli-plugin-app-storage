@@ -74,7 +74,8 @@ StatsCollection.description = 'Get statistics for a collection in the database'
 
 StatsCollection.examples = [
   '$ aio app db collection stats users',
-  '$ aio app db collection stats products --json'
+  '$ aio app db collection stats products --json',
+  '$ aio app db col stats inventory'
 ]
 
 StatsCollection.args = {
@@ -89,3 +90,5 @@ StatsCollection.args = {
 StatsCollection.flags = {
   ...DBBaseCommand.flags
 }
+
+StatsCollection.aliases = ['app:db:col:stats']

@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { CreateIndex } from '../../../../../src/commands/app/db/collection/createIndex.js'
+import { Create } from '../../../../../src/commands/app/db/index/create.js'
 import { expect, jest, test } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
@@ -21,20 +21,20 @@ const mockCreateIndex = jest.fn()
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
-    expect(CreateIndex.prototype instanceof DBBaseCommand).toBe(true)
+    expect(Create.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(CreateIndex.args)).toEqual(['collection'])
-    expect(CreateIndex.args.collection.required).toBe(true)
+    expect(Object.keys(Create.args)).toEqual(['collection'])
+    expect(Create.args.collection.required).toBe(true)
   })
   test('flags', () => {
     const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['key', 'name', 'spec', 'unique']).sort()
-    expect(Object.keys(CreateIndex.flags).sort()).toEqual(expectedFlags)
-    expect(CreateIndex.flags.key.atLeastOne.sort()).toEqual(['key', 'spec'])
-    expect(CreateIndex.flags.spec.atLeastOne.sort()).toEqual(['key', 'spec'])
-    expect(CreateIndex.flags.key.multiple).toEqual(true)
-    expect(CreateIndex.flags.spec.multiple).toEqual(true)
-    expect(CreateIndex.enableJsonFlag).toEqual(true)
+    expect(Object.keys(Create.flags).sort()).toEqual(expectedFlags)
+    expect(Create.flags.key.atLeastOne.sort()).toEqual(['key', 'spec'])
+    expect(Create.flags.spec.atLeastOne.sort()).toEqual(['key', 'spec'])
+    expect(Create.flags.key.multiple).toEqual(true)
+    expect(Create.flags.spec.multiple).toEqual(true)
+    expect(Create.enableJsonFlag).toEqual(true)
   })
 })
 
@@ -50,7 +50,7 @@ describe('run', () => {
   let command
 
   beforeEach(async () => {
-    command = new CreateIndex([collectionName])
+    command = new Create([collectionName])
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }

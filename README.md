@@ -36,38 +36,32 @@ $ aio app db --help
 
 ## Database Commands
 ### Collection Management
+* [`aio app db collection list`](#aio-app-db-collection-list)
 * [`aio app db collection create COLLECTION`](#aio-app-db-collection-create-collection)
 * [`aio app db collection drop COLLECTION`](#aio-app-db-collection-drop-collection)
 * [`aio app db collection rename CURRENTNAME NEWNAME`](#aio-app-db-collection-rename-currentname-newname)
 * [`aio app db collection stats COLLECTION`](#aio-app-db-collection-stats-collection)
 
 ### Document Operations
-* [`aio app db collection insertOne COLLECTION DOCUMENT`](#aio-app-db-collection-insertone-collection-document)
-* [`aio app db collection insertMany COLLECTION DOCUMENTS`](#aio-app-db-collection-insertmany-collection-documents)
-* [`aio app db collection deleteOne COLLECTION FILTER`](#aio-app-db-collection-deleteone-collection-filter)
-* [`aio app db collection findOne COLLECTION FILTER`](#aio-app-db-collection-findone-collection-filter)
-* [`aio app db collection find COLLECTION FILTER`](#aio-app-db-collection-find-collection-filter)
-* [`aio app db collection updateOne COLLECTION FILTER UPDATE`](#aio-app-db-collection-updateone-collection-filter-update)
-* [`aio app db collection updateMany COLLECTION FILTER UPDATE`](#aio-app-db-collection-updatemany-collection-filter-update)
-* [`aio app db collection replaceOne COLLECTION FILTER REPLACEMENT`](#aio-app-db-collection-replaceone-collection-filter-replacement)
-* [`aio app db collection countDocuments COLLECTION`](#aio-app-db-collection-countdocuments-collection)
-* [`aio app db collection estimatedDocumentCount COLLECTION`](#aio-app-db-collection-estimateddocumentcount-collection)
+* [`aio app db document insert COLLECTION DOCUMENTS`](#aio-app-db-document-insert-collection-documents)
+* [`aio app db document delete COLLECTION FILTER`](#aio-app-db-document-delete-collection-filter)
+* [`aio app db document find COLLECTION FILTER`](#aio-app-db-document-find-collection-filter)
+* [`aio app db document update COLLECTION FILTER UPDATE`](#aio-app-db-document-update-collection-filter-update)
+* [`aio app db document replace COLLECTION FILTER REPLACEMENT`](#aio-app-db-document-replace-collection-filter-replacement)
+* [`aio app db document count COLLECTION`](#aio-app-db-document-count-collection)
 
 ### Index Management
-* [`aio app db collection createIndex COLLECTION`](#aio-app-db-collection-createindex-collection)
-* [`aio app db collection dropIndex COLLECTION INDEXNAME`](#aio-app-db-collection-dropindex-collection-indexname)
-* [`aio app db collection getIndexes COLLECTION`](#aio-app-db-collection-getindexes-collection)
-
-### Database Information
-* [`aio app db getCollectionInfos`](#aio-app-db-getcollectioninfos)
-* [`aio app db getCollectionNames`](#aio-app-db-getcollectionnames)
-* [`aio app db stats`](#aio-app-db-stats)
+* [`aio app db index create COLLECTION`](#aio-app-db-index-create-collection)
+* [`aio app db index drop COLLECTION INDEXNAME`](#aio-app-db-index-drop-collection-indexname)
+* [`aio app db index list COLLECTION`](#aio-app-db-index-list-collection)
 
 ### Database Management
 * [`aio app db ping`](#aio-app-db-ping)
 * [`aio app db provision`](#aio-app-db-provision)
 * [`aio app db delete`](#aio-app-db-delete)
 * [`aio app db status`](#aio-app-db-status)
+* [`aio app db stats`](#aio-app-db-stats)
+* `aio app db show collections` - Alias for [`aio app db collection list`](#aio-app-db-collection-list)
 
 ## Other Commands
 * [`aio help [COMMAND]`](#aio-help-command)
@@ -238,13 +232,48 @@ EXAMPLES
 
 ## Collection Management
 
+> Note: The commands under `aio app db collection <command>` are also available as `aio app db col <command>` shorthand aliases.
+
+### `aio app db collection list`
+
+Get the list of collections in your App Builder database
+
+```
+USAGE
+  $ aio app db collection list [--json] [--region <value>] [-i]
+
+FLAGS
+  -i, --info  Show detailed collection information instead of just names
+
+GLOBAL FLAGS
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
+
+DESCRIPTION
+  Get the list of collections in your App Builder database
+
+ALIASES
+  $ aio app db col list
+  $ aio app db show collections
+
+EXAMPLES
+  $ aio app db collection list
+
+  $ aio app db collection list --info
+
+  $ aio app db collection list --json
+
+  $ aio app db col list --info --json
+```
+
 ### `aio app db collection create COLLECTION`
 
 Create a new collection in the database
 
 ```
 USAGE
-  $ aio app db collection create COLLECTION [--json] [--region amer|emea|apac] [-v <value>]
+  $ aio app db collection create COLLECTION [--json] [--region <value>] [-v <value>]
 
 ARGUMENTS
   COLLECTION  The name of the collection to create
@@ -253,21 +282,24 @@ FLAGS
   -v, --validator=<value>  JSON schema validator for document validation (JSON string)
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Create a new collection in the database
 
+ALIASES
+  $ aio app db col create
+
 EXAMPLES
   $ aio app db collection create users
 
-  $ aio app db collection create products --json
-
-  $ aio app db collection create products --validator '{"type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}'
-
   $ aio app db collection create inventory --validator '{"type": "object", "required": ["id", "quantity"]}' --json
+
+  $ aio app db col create products --json
+
+  $ aio app db col create products --validator '{"type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number", "minimum": 0}}, "required": ["name", "price"]}'
 ```
 
 ### `aio app db collection drop COLLECTION`
@@ -276,23 +308,28 @@ Drop a collection from the database
 
 ```
 USAGE
-  $ aio app db collection drop COLLECTION [--json] [--region amer|emea|apac]
+  $ aio app db collection drop COLLECTION [--json] [--region <value>]
 
 ARGUMENTS
   COLLECTION  The name of the collection to drop
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Drop a collection from the database
+
+ALIASES
+  $ aio app db col drop
 
 EXAMPLES
   $ aio app db collection drop users
 
   $ aio app db collection drop products --json
+
+  $ aio app db col drop inventory
 ```
 
 ### `aio app db collection rename CURRENTNAME NEWNAME`
@@ -301,24 +338,29 @@ Rename a collection in the database
 
 ```
 USAGE
-  $ aio app db collection rename CURRENTNAME NEWNAME [--json] [--region amer|emea|apac]
+  $ aio app db collection rename CURRENTNAME NEWNAME [--json] [--region <value>]
 
 ARGUMENTS
   CURRENTNAME  The current name of the collection to rename
   NEWNAME      The new name for the collection
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Rename a collection in the database
+
+ALIASES
+  $ aio app db col rename
 
 EXAMPLES
   $ aio app db collection rename users customers
 
   $ aio app db collection rename old_products new_products --json
+
+  $ aio app db col rename inventory stock
 ```
 
 ### `aio app db collection stats COLLECTION`
@@ -327,161 +369,108 @@ Get statistics for a collection in the database
 
 ```
 USAGE
-  $ aio app db collection stats COLLECTION [--json] [--region amer|emea|apac]
+  $ aio app db collection stats COLLECTION [--json] [--region <value>]
 
 ARGUMENTS
   COLLECTION  The name of the collection to get stats for
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Get statistics for a collection in the database
+
+ALIASES
+  $ aio app db col stats
 
 EXAMPLES
   $ aio app db collection stats users
 
   $ aio app db collection stats products --json
+
+  $ aio app db col stats inventory
 ```
 
 ## Document Operations
 
-### `aio app db collection insertOne COLLECTION DOCUMENT`
+> Note: The commands under `aio app db document <command>` are also available as `aio app db doc <command>` shorthand aliases.
 
-Insert a single document into a collection
+### `aio app db document insert COLLECTION DOCUMENTS`
 
-```
-USAGE
-  $ aio app db collection insertOne COLLECTION DOCUMENT [--json] [--region amer|emea|apac] [--bypassDocumentValidation]
-
-ARGUMENTS
-  COLLECTION  The name of the collection
-  DOCUMENT    The document to insert (JSON string)
-
-FLAGS
-  --bypassDocumentValidation  Bypass schema validation if present
-
-GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
-
-DESCRIPTION
-  Insert a single document into a collection
-
-EXAMPLES
-  $ aio app db collection insertOne users '{"name": "John", "age": 30}'
-
-  $ aio app db collection insertOne products '{"name": "Widget", "price": 10.99}' --json
-
-  $ aio app db collection insertOne posts '{"title": "Hello World", "content": "This is a test post"}' --bypassDocumentValidation
-```
-
-### `aio app db collection insertMany COLLECTION DOCUMENTS`
-
-Insert multiple documents into a collection
+Insert one or more documents into a collection
 
 ```
 USAGE
-  $ aio app db collection insertMany COLLECTION DOCUMENTS [--json] [--region amer|emea|apac] [-b]
+  $ aio app db document insert COLLECTION DOCUMENTS [--json] [--region <value>] [-b]
 
 ARGUMENTS
   COLLECTION  The name of the collection to insert documents into
-  DOCUMENTS   JSON array of documents to insert
+  DOCUMENTS   JSON object or array of documents to insert
 
 FLAGS
   -b, --bypassDocumentValidation  Bypass schema validation if present
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
-  Insert multiple documents into a collection
+  Insert one or more documents into a collection
+
+ALIASES
+  $ aio app db doc insert
 
 EXAMPLES
-  $ aio app db collection insertMany users '[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]'
+  $ aio app db document insert users '{"name": "John", "age": 30}'
 
-  $ aio app db collection insertMany products '[{"id": 1, "name": "Product A"}, {"id": 2, "name": "Product B"}]' --json
+  $ aio app db document insert products '[{"id": 1, "name": "Product A"}, {"id": 2, "name": "Product B"}]' --json
 
-  $ aio app db collection insertMany temp '[{"data": "test"}]' --bypassDocumentValidation
+  $ aio app db document insert temp '{"data": "test"}' --bypassDocumentValidation
 
-  $ aio app db collection insertMany bulk '[{"field": "value"}]' --bypassDocumentValidation --json
+  $ aio app db doc insert bulk '[{"field": "foo"}, {"field": "bar"}]' --bypassDocumentValidation --json
 ```
 
-### `aio app db collection deleteOne COLLECTION FILTER`
+### `aio app db document delete COLLECTION FILTER`
 
 Delete a single document from a collection
 
 ```
 USAGE
-  $ aio app db collection deleteOne COLLECTION FILTER [--json] [--region amer|emea|apac]
+  $ aio app db document delete COLLECTION FILTER [--json] [--region <value>]
 
 ARGUMENTS
   COLLECTION  The name of the collection
   FILTER      The filter document (JSON string)
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Delete a single document from a collection
 
-EXAMPLES
-  $ aio app db collection deleteOne users '{"name": "John"}'
-
-  $ aio app db collection deleteOne products '{"id": "123"}' --json
-
-  $ aio app db collection deleteOne posts '{"status": "draft"}'
-
-  $ aio app db collection deleteOne users '{"email": "john@example.com"}'
-```
-
-### `aio app db collection findOne COLLECTION FILTER`
-
-Find a single document in a collection
-
-```
-USAGE
-  $ aio app db collection findOne COLLECTION FILTER [--json] [--region amer|emea|apac] [-p <value>]
-
-ARGUMENTS
-  COLLECTION  The name of the collection
-  FILTER      The filter document (JSON string)
-
-FLAGS
-  -p, --projection=<value>  The fields to return (JSON string, e.g., '{"name": 1, "_id": 0}')
-
-GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
-
-DESCRIPTION
-  Find a single document in a collection
+ALIASES
+  $ aio app db doc delete
 
 EXAMPLES
-  $ aio app db collection findOne users '{"name": "John"}'
+  $ aio app db document delete users '{"name": "John"}'
 
-  $ aio app db collection findOne products '{"price": {"$lt": 50}}' --json
+  $ aio app db document delete products '{"id": "123"}' --json
 
-  $ aio app db collection findOne posts '{"status": "published"}' --projection '{"title": 1, "author": 1}'
-
-  $ aio app db collection findOne users '{"age": {"$gte": 21}}' --projection '{"name": 1, "_id": 0}'
+  $ aio app db doc delete posts '{"status": "draft"}'
 ```
 
-### `aio app db collection find COLLECTION FILTER`
+### `aio app db document find COLLECTION FILTER`
 
 Find documents in a collection based on filter criteria.
 
 ```
 USAGE
-  $ aio app db collection find COLLECTION FILTER [--json] [--region amer|emea|apac] [-l <value>] [-s <value>] [-o <value>] [-p <value>]
+  $ aio app db document find COLLECTION FILTER [--json] [--region <value>] [-l <value>] [-s <value>] [-o <value>] [-p <value>]
 
 ARGUMENTS
   COLLECTION  The name of the collection
@@ -494,28 +483,33 @@ FLAGS
   -s, --skip=<value>        Skip the first N documents
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Find documents in a collection based on filter criteria.
 
+ALIASES
+  $ aio app db doc find
+
 EXAMPLES
-  $ aio app db collection find users '{}'
+  $ aio app db document find users '{}'
 
-  $ aio app db collection find products '{"category": "Computer Accessories"}' --json
+  $ aio app db document find products '{"category": "Computer Accessories"}' --json
 
-  $ aio app db collection find products '{"name": {"$regex": "Speakers$"}}' --sort '{"price": -1}' --limit 10 --skip 5 --projection '{"name": 1, "price": 1}'
+  $ aio app db document find products '{"name": {"$regex": "Speakers$"}}' --sort '{"price": -1}' --limit 10 --skip 5 --projection '{"name": 1, "price": 1}'
+
+  $ aio app db doc find orders '{"status": "pending"}' --sort '{"orderDate": -1}'
 ```
 
-### `aio app db collection updateOne COLLECTION FILTER UPDATE`
+### `aio app db document update COLLECTION FILTER UPDATE`
 
-Update a single document in a collection
+Update document(s) in a collection
 
 ```
 USAGE
-  $ aio app db collection updateOne COLLECTION FILTER UPDATE [--json] [--region amer|emea|apac] [-u]
+  $ aio app db document update COLLECTION FILTER UPDATE [--json] [--region <value>] [-u] [-m]
 
 ARGUMENTS
   COLLECTION  The name of the collection
@@ -523,67 +517,37 @@ ARGUMENTS
   UPDATE      The update document (JSON string)
 
 FLAGS
+  -m, --many    Update all documents matching the filter. Without this option, only the first matching document is updated.
   -u, --upsert  If no document is found, create a new one
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
-  Update a single document in a collection
+  Update document(s) in a collection
+
+ALIASES
+  $ aio app db doc update
 
 EXAMPLES
-  $ aio app db collection updateOne users '{"name": "John"}' '{"$set": {"age": 31}}'
+  $ aio app db document update users '{"name": "John"}' '{"$set": {"age": 31}}'
 
-  $ aio app db collection updateOne products '{"id": "123"}' '{"$inc": {"stock": -1}}' --json
+  $ aio app db document update products '{"id": "123"}' '{"$inc": {"stock": -1}}' --json
 
-  $ aio app db collection updateOne posts '{"slug": "hello-world"}' '{"$set": {"status": "published"}}' --upsert
+  $ aio app db document update posts '{"slug": "hello-world"}' '{"$set": {"status": "published"}}' --many
 
-  $ aio app db collection updateOne users '{"email": "john@example.com"}' '{"$set": {"lastLogin": "2024-01-01"}}' --upsert
+  $ aio app db doc update users '{"email": "john@example.com"}' '{"$set": {"lastLogin": "2024-01-01"}}' --upsert
 ```
 
-### `aio app db collection updateMany COLLECTION FILTER UPDATE`
-
-Update multiple documents in a collection
-
-```
-USAGE
-  $ aio app db collection updateMany COLLECTION FILTER UPDATE [--json] [--region amer|emea|apac] [-u]
-
-ARGUMENTS
-  COLLECTION  The name of the collection to update documents in
-  FILTER      Filter document to select documents to update (JSON string)
-  UPDATE      Update document with update operators (JSON string)
-
-FLAGS
-  -u, --upsert  If no document is found, create a new one
-
-GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
-
-DESCRIPTION
-  Update multiple documents in a collection
-
-EXAMPLES
-  $ aio app db collection updateMany users '{"age": {"$lt": 30}}' '{"$set": {"status": "young"}}'
-
-  $ aio app db collection updateMany products '{"category": "electronics"}' '{"$inc": {"price": 10}}' --json
-
-  $ aio app db collection updateMany inventory '{"quantity": {"$lt": 5}}' '{"$set": {"lowStock": true}}' --upsert
-
-  $ aio app db collection updateMany logs '{"level": "error"}' '{"$set": {"processed": true}}' --upsert --json
-```
-
-### `aio app db collection replaceOne COLLECTION FILTER REPLACEMENT`
+### `aio app db document replace COLLECTION FILTER REPLACEMENT`
 
 Replace a single document in a collection
 
 ```
 USAGE
-  $ aio app db collection replaceOne COLLECTION FILTER REPLACEMENT [--json] [--region amer|emea|apac] [-u]
+  $ aio app db document replace COLLECTION FILTER REPLACEMENT [--json] [--region <value>] [-u]
 
 ARGUMENTS
   COLLECTION   The name of the collection
@@ -594,241 +558,169 @@ FLAGS
   -u, --upsert  If no document is found, create a new one
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Replace a single document in a collection
 
+ALIASES
+  $ aio app db doc replace
+
 EXAMPLES
-  $ aio app db collection replaceOne users '{"name": "John"}' '{"name": "John Doe", "age": 30, "status": "active"}'
+  $ aio app db document replace users '{"name": "John"}' '{"name": "John Doe", "age": 30, "status": "active"}'
 
-  $ aio app db collection replaceOne products '{"id": "123"}' '{"id": "123", "name": "New Product", "price": 99.99}' --json
+  $ aio app db document replace products '{"id": "123"}' '{"id": "123", "name": "New Product", "price": 99.99}' --json
 
-  $ aio app db collection replaceOne posts '{"slug": "hello-world"}' '{"title": "Hello World", "content": "Updated content", "status": "published"}' --upsert
+  $ aio app db document replace posts '{"slug": "hello-world"}' '{"title": "Hello World", "content": "Updated content", "status": "published"}' --upsert
 
-  $ aio app db collection replaceOne users '{"email": "john@example.com"}' '{"email": "john@example.com", "name": "John", "verified": true}' --upsert
+  $ aio app db doc replace users '{"email": "john@example.com"}' '{"email": "john@example.com", "name": "John", "verified": true}' --upsert --json
 ```
 
-### `aio app db collection countDocuments COLLECTION`
+### `aio app db document count COLLECTION`
 
 Count documents in a collection
 
 ```
 USAGE
-  $ aio app db collection countDocuments COLLECTION [QUERY] [--json] [--region amer|emea|apac]
+  $ aio app db document count COLLECTION [QUERY] [--json] [--region <value>]
 
 ARGUMENTS
   COLLECTION  The name of the collection
   QUERY       The query filter document (JSON string). If not provided, counts all documents.
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Count documents in a collection
 
-EXAMPLES
-  $ aio app db collection countDocuments users
-
-  $ aio app db collection countDocuments users '{"age": {"$gte": 21}}'
-
-  $ aio app db collection countDocuments products '{"category": "electronics"}' --json
-```
-
-### `aio app db collection estimatedDocumentCount COLLECTION`
-
-Get estimated document count for a collection
-
-```
-USAGE
-  $ aio app db collection estimatedDocumentCount COLLECTION [--json] [--region amer|emea|apac]
-
-ARGUMENTS
-  COLLECTION  The name of the collection
-
-GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
-
-DESCRIPTION
-  Get estimated document count for a collection based on collection metadata
+ALIASES
+  $ aio app db doc count
 
 EXAMPLES
-  $ aio app db collection estimatedDocumentCount users
+  $ aio app db document countDocuments users
 
-  $ aio app db collection estimatedDocumentCount products
+  $ aio app db document countDocuments users '{"age": {"$gte": 21}}'
 
-  $ aio app db collection estimatedDocumentCount posts --json
+  $ aio app db document countDocuments products '{"category": "electronics"}' --json
+
+  $ aio app db doc count orders '{"status": "shipped"}'
 ```
 
 ## Index Management
 
-### `aio app db collection createIndex COLLECTION`
+> Note: The commands under `aio app db index <command>` are also available as `aio app db ind <command>` shorthand aliases.
 
-Create an index on a collection in your App Builder database
+### `aio app db index create COLLECTION`
+
+Create a new index on a collection in the database
 
 ```
 USAGE
-  $ aio app db collection createIndex COLLECTION [--json] [--region amer|emea|apac] [-s <value>] [-k <value>] [-n <value>] [-u]
+  $ aio app db index create COLLECTION [--json] [--region <value>] [-s <value>] [-k <value>] [-n <value>] [-u]
 
 ARGUMENTS
   COLLECTION  The name of the collection to create the index on
 
 FLAGS
   -n, --name=<value>  A name that uniquely identifies the index
-  -u, --unique        Creates a unique index so that the collection will not accept insertion or update of documents where the index key value matches an existing value in the index
+  -u, --unique        Creates a unique index so that the collection will not accept insertion or update of documents where the index key value matches an
+                      existing value in the index
 
 REQUIRES AT LEAST ONE OF THE INDEX DEFINITION FLAGS
   -k, --key=<value>...   Index key to use with default specification
   -s, --spec=<value>...  Index specification as a JSON object (e.g., '{"name":1, "age":-1}')
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Create a new index on a collection in the database
 
+ALIASES
+  $ aio app db ind create
+
 EXAMPLES
-  $ aio app db collection createIndex users --spec '{"name":1, "age":-1}'
+  $ aio app db index create users --spec '{"name":1, "age":-1}'
 
-  $ aio app db collection createIndex users -s '{"name":1, "age":-1}' --name "name_age_index"
+  $ aio app db index create users -s '{"name":1, "age":-1}' --name "name_age_index"
 
-  $ aio app db collection createIndex students -s '{"name":1}' --key grade --unique
+  $ aio app db index create students -s '{"name":1}' --key grade --unique
 
-  $ aio app db collection createIndex reviews -k sku -k rating
+  $ aio app db index create reviews -k sku -k rating
 
-  $ aio app db collection createIndex products -s '{"name":"text", "category":"text"}' --json
+  $ aio app db index create products -s '{"name":"text", "category":"text"}' --json
 
-  $ aio app db collection createIndex books -s '{"author":1}' -k year
+  $ aio app db index create books -s '{"author":1}' -k year
+
+  $ aio app db ind create orders --spec '{"customerId":1}' --spec '{"orderDate":-1}' --name "customer_order_index" --unique
 ```
 
-### `aio app db collection dropIndex COLLECTION INDEXNAME`
+### `aio app db index drop COLLECTION INDEXNAME`
 
-Drop an index from a collection in your App Builder database
+Drop an index from a collection in the database
 
 ```
 USAGE
-  $ aio app db collection dropIndex COLLECTION INDEXNAME [--json] [--region amer|emea|apac]
+  $ aio app db index drop COLLECTION INDEXNAME [--json] [--region <value>]
 
 ARGUMENTS
   COLLECTION  The name of the collection to drop the index from
   INDEXNAME   The name of the index to drop
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Drop an index from a collection in the database
 
-EXAMPLES
-  $ aio app db collection dropIndex users name_age_index
+ALIASES
+  $ aio app db ind drop
 
-  $ aio app db collection dropIndex products category_1 --json
+EXAMPLES
+  $ aio app db index drop users name_age_index
+
+  $ aio app db index drop products category_1 --json
+
+  $ aio app db ind drop orders orderDate_index
 ```
 
-### `aio app db collection getIndexes COLLECTION`
+### `aio app db index list COLLECTION`
 
-Get all indexes for a collection in your App Builder database
+Get the list of indexes from a collection in the database
 
 ```
 USAGE
-  $ aio app db collection getIndexes COLLECTION [--json] [--region amer|emea|apac]
+  $ aio app db index list COLLECTION [--json] [--region <value>]
 
 ARGUMENTS
   COLLECTION  The name of the collection to retrieve indexes from
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Get the list of indexes from a collection in the database
 
-EXAMPLES
-  $ aio app db collection getIndexes users
-
-  $ aio app db collection getIndexes products --json
-```
-
-## Database Information
-
-### `aio app db getCollectionInfos`
-
-Get details about your App Builder database
-
-```
-USAGE
-  $ aio app db getCollectionInfos [--json] [--region amer|emea|apac]
-
-GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
-
-DESCRIPTION
-  Get details of your App Builder database collections
-
-EXAMPLES
-  $ aio app db getCollectionInfos
-
-  $ aio app db getCollectionInfos --json
-```
-
-### `aio app db getCollectionNames`
-
-Get collection names from your App Builder database
-
-```
-USAGE
-  $ aio app db getCollectionNames [--json] [--region amer|emea|apac]
-
-GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
-
-DESCRIPTION
-  Get collection names from your App Builder database
-
 ALIASES
-  $ aio app db show collections
+  $ aio app db ind list
 
 EXAMPLES
-  $ aio app db getCollectionNames
+  $ aio app db index list users
 
-  $ aio app db getCollectionNames --json
-```
+  $ aio app db index list products --json
 
-### `aio app db stats`
-
-Get statistics about your App Builder database
-
-```
-USAGE
-  $ aio app db stats [--json] [--region amer|emea|apac]
-
-GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
-
-DESCRIPTION
-  Get statistics about your App Builder database
-
-EXAMPLES
-  $ aio app db stats
-
-  $ aio app db stats --json
+  $ aio app db ind list orders
 ```
 
 ## Database Management
@@ -839,12 +731,12 @@ Test connectivity to your App Builder database
 
 ```
 USAGE
-  $ aio app db ping [--json] [--region amer|emea|apac]
+  $ aio app db ping [--json] [--region <value>]
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Test connectivity to your App Builder database
@@ -861,12 +753,12 @@ Provision a new database for your App Builder application
 
 ```
 USAGE
-  $ aio app db provision [--json] [--region amer|emea|apac]
+  $ aio app db provision [--json] [--region <value>]
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Provision a new database for your App Builder application
@@ -885,19 +777,18 @@ Delete the database for your App Builder application (non-production only)
 
 ```
 USAGE
-  $ aio app db delete [--json] [--region amer|emea|apac] [--force]
+  $ aio app db delete [--json] [--region <value>] [--force]
 
 FLAGS
   --force  [use with caution!] force delete, skips confirmation safety prompt
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
-  Delete the database for your App Builder application (non-production only).
-  When not using --force, you will be asked to confirm and to type the namespace to proceed.
+  Delete the database for your App Builder application (non-production only)
 
 EXAMPLES
   $ aio app db delete
@@ -913,15 +804,15 @@ Check the provisioning status of your App Builder database
 
 ```
 USAGE
-  $ aio app db status [--json] [--region amer|emea|apac] [--watch]
+  $ aio app db status [--json] [--region <value>] [--watch]
 
 FLAGS
   --watch  Watch for status changes (press Ctrl+C to stop)
 
 GLOBAL FLAGS
-  --json             Format output as json.
-  --region=<option>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
-                     <options: amer|emea|apac>
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
 
 DESCRIPTION
   Check the provisioning status of your App Builder database
@@ -932,6 +823,28 @@ EXAMPLES
   $ aio app db status --watch
 
   $ aio app db status --json
+```
+
+### `aio app db stats`
+
+Get statistics about your App Builder database
+
+```
+USAGE
+  $ aio app db stats [--json] [--region <value>]
+
+GLOBAL FLAGS
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    <options: amer|emea|apac>
+
+DESCRIPTION
+  Get statistics about your App Builder database
+
+EXAMPLES
+  $ aio app db stats
+
+  $ aio app db stats --json
 ```
 
 # Other Commands

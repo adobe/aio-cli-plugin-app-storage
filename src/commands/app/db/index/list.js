@@ -16,69 +16,67 @@ import chalk from 'chalk'
 import { isNonEmptyString } from '../../../../utils/inputValidation.js'
 import { prettyJson } from '../../../../utils/output.js'
 
-export class DropIndex extends DBBaseCommand {
+export class List extends DBBaseCommand {
   async run () {
-    const { collection, indexName } = this.args
+    const { collection } = this.args
 
     try {
-      this.log(chalk.blue(`Dropping index '${indexName}' from collection '${collection}'...`))
+      this.log(chalk.blue(`Getting indexes from collection '${collection}'...`))
 
       const client = await this.db.connect()
       const coll = await client.collection(collection)
 
-      const result = await coll.dropIndex(indexName)
+      const result = await coll.getIndexes()
 
-      this.debugLogger?.info?.('Index dropped successfully:', result)
+      this.debugLogger?.info?.('Indexes retrieved successfully:', result)
 
       const response = {
         collection,
-        indexName,
-        status: 'dropped',
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
-        result
+        indexes: result
       }
 
-      this.log(chalk.green(`Index '${indexName}' dropped successfully`))
-      this.log(chalk.dim(`   Details:\n${prettyJson(result)}`))
+      this.log(chalk.green('Indexes retrieved successfully'))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
-      this.log(chalk.dim(`   Dropped: ${new Date().toLocaleString()}`))
+      this.log(chalk.dim(`   Retrieved: ${new Date().toLocaleString()}`))
+      if (result && Array.isArray(result) && result.length > 0) {
+        this.log(chalk.dim(`   Indexes:\n${prettyJson(result)}`))
+      } else {
+        this.log(chalk.dim('   No indexes found for this collection'))
+      }
 
       return response
     } catch (error) {
-      this.debugLogger?.error?.('Error dropping index:', error)
+      this.debugLogger?.error?.('Error getting indexes:', error)
 
-      this.log(chalk.red('Failed to drop index'))
+      this.log(chalk.red('Failed to retrieve indexes'))
       this.log(chalk.dim(`   Collection: ${collection}`))
-      this.log(chalk.dim(`   Index: ${indexName}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
-      this.error(`Failed to drop index '${indexName}' from collection '${collection}': ${error.message}`)
+      this.error(`Failed to retrieve indexes from collection '${collection}': ${error.message}`)
     }
   }
 }
 
-DropIndex.description = 'Drop an index from a collection in the database'
+List.description = 'Get the list of indexes from a collection in the database'
 
-DropIndex.examples = [
-  '$ aio app db collection dropIndex users name_age_index',
-  '$ aio app db collection dropIndex products category_1 --json'
+List.examples = [
+  '$ aio app db index list users',
+  '$ aio app db index list products --json',
+  '$ aio app db ind list orders'
 ]
 
-DropIndex.args = {
+List.args = {
   collection: Args.string({
     name: 'collection',
-    description: 'The name of the collection to drop the index from',
+    description: 'The name of the collection to retrieve indexes from',
     required: true,
     parse: input => isNonEmptyString(input, 'Collection name')
-  }),
-  indexName: Args.string({
-    name: 'indexName',
-    description: 'The name of the index to drop',
-    required: true,
-    parse: input => isNonEmptyString(input, 'Index name')
   })
 }
 
-DropIndex.flags = DBBaseCommand.flags
+List.flags = DBBaseCommand.flags
+
+List.aliases = ['app:db:ind:list']

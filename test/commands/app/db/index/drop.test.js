@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DropIndex } from '../../../../../src/commands/app/db/collection/dropIndex.js'
+import { Drop } from '../../../../../src/commands/app/db/index/drop.js'
 import { expect, jest } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
@@ -21,17 +21,17 @@ const mockDropIndex = jest.fn()
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
-    expect(DropIndex.prototype instanceof DBBaseCommand).toBe(true)
+    expect(Drop.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(DropIndex.args).sort()).toEqual(['collection', 'indexName'])
-    expect(DropIndex.args.collection.required).toBe(true)
-    expect(DropIndex.args.indexName.required).toBe(true)
+    expect(Object.keys(Drop.args).sort()).toEqual(['collection', 'indexName'])
+    expect(Drop.args.collection.required).toBe(true)
+    expect(Drop.args.indexName.required).toBe(true)
   })
   test('flags', () => {
     const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
-    expect(Object.keys(DropIndex.flags).sort()).toEqual(expectedFlags)
-    expect(DropIndex.enableJsonFlag).toEqual(true)
+    expect(Object.keys(Drop.flags).sort()).toEqual(expectedFlags)
+    expect(Drop.enableJsonFlag).toEqual(true)
   })
 })
 
@@ -42,7 +42,7 @@ describe('run', () => {
 
   let command
   beforeEach(async () => {
-    command = new DropIndex([collectionName, indexName])
+    command = new Drop([collectionName, indexName])
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
@@ -118,7 +118,7 @@ describe('run', () => {
 
   describe('argument validation', () => {
     test('fails when a required parameter is missing', async () => {
-      command = new DropIndex([])
+      command = new Drop([])
       command.config = {
         runHook: jest.fn().mockResolvedValue({})
       }
@@ -131,7 +131,7 @@ describe('run', () => {
     })
 
     test('fails when collection name is empty string', async () => {
-      command = new DropIndex([''])
+      command = new Drop([''])
       command.config = {
         runHook: jest.fn().mockResolvedValue({})
       }
@@ -146,7 +146,7 @@ describe('run', () => {
     })
 
     test('fails when index name is empty string', async () => {
-      command = new DropIndex([''])
+      command = new Drop([''])
       command.config = {
         runHook: jest.fn().mockResolvedValue({})
       }

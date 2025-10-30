@@ -16,7 +16,7 @@ import chalk from 'chalk'
 import { isNonEmptyString } from '../../../../utils/inputValidation.js'
 import { prettyJson } from '../../../../utils/output.js'
 
-export class InsertMany extends DBBaseCommand {
+export class Insert extends DBBaseCommand {
   async run () {
     const { collection, documents } = this.args
     const { bypassDocumentValidation } = this.flags
@@ -34,7 +34,7 @@ export class InsertMany extends DBBaseCommand {
       const client = await this.db.connect()
       const coll = await client.collection(collection)
 
-      // Perform the insertMany operation
+      // Perform the insert operation
       const result = await coll.insertMany(documents, insertOptions)
 
       this.debugLogger?.info?.('Documents inserted successfully:', result)
@@ -79,16 +79,16 @@ export class InsertMany extends DBBaseCommand {
   }
 }
 
-InsertMany.description = 'Insert multiple documents into a collection'
+Insert.description = 'Insert one or more documents into a collection'
 
-InsertMany.examples = [
-  '$ aio app db collection insertMany users \'[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]\'',
-  '$ aio app db collection insertMany products \'[{"id": 1, "name": "Product A"}, {"id": 2, "name": "Product B"}]\' --json',
-  '$ aio app db collection insertMany temp \'[{"data": "test"}]\' --bypassDocumentValidation',
-  '$ aio app db collection insertMany bulk \'[{"field": "value"}]\' --bypassDocumentValidation --json'
+Insert.examples = [
+  '$ aio app db document insert users \'{"name": "John", "age": 30}\'',
+  '$ aio app db document insert products \'[{"id": 1, "name": "Product A"}, {"id": 2, "name": "Product B"}]\' --json',
+  '$ aio app db document insert temp \'{"data": "test"}\' --bypassDocumentValidation',
+  '$ aio app db doc insert bulk \'[{"field": "foo"}, {"field": "bar"}]\' --bypassDocumentValidation --json'
 ]
 
-InsertMany.args = {
+Insert.args = {
   collection: Args.string({
     name: 'collection',
     description: 'The name of the collection to insert documents into',
@@ -97,11 +97,11 @@ InsertMany.args = {
   }),
   documents: Args.string({
     name: 'documents',
-    description: 'JSON array of documents to insert',
+    description: 'JSON object or array of documents to insert',
     required: true,
     parse: input => {
       if (typeof input !== 'string' || input.trim().length === 0) {
-        throw new Error('Documents: Must be a non-empty JSON array string')
+        throw new Error('Documents: Must be a JSON string representing an object or non-empty array')
       }
 
       let result
@@ -111,17 +111,21 @@ InsertMany.args = {
         throw new Error(`Documents: JSON parse error: ${e.message}`)
       }
 
-      if (!Array.isArray(result)) {
-        throw new Error('Documents: Must be a JSON array')
+      const isSingleDoc = !Array.isArray(result)
+      if (isSingleDoc) {
+        result = [result]
       }
 
       if (result.length === 0) {
-        throw new Error('Documents: Array cannot be empty')
+        throw new Error('Documents: Cannot be empty')
       }
 
       // Validate each document is an object
       for (let i = 0; i < result.length; i++) {
         if (typeof result[i] !== 'object' || result[i] === null || Array.isArray(result[i])) {
+          if (isSingleDoc) {
+            throw new Error('Documents: Must be a JSON string representing an object or non-empty array')
+          }
           throw new Error(`Documents: Element at index ${i} must be an object`)
         }
       }
@@ -131,7 +135,7 @@ InsertMany.args = {
   })
 }
 
-InsertMany.flags = {
+Insert.flags = {
   ...DBBaseCommand.flags,
   bypassDocumentValidation: Flags.boolean({
     char: 'b',
@@ -139,3 +143,5 @@ InsertMany.flags = {
     default: false
   })
 }
+
+Insert.aliases = ['app:db:doc:insert']

@@ -15,13 +15,13 @@ import { Args, Flags } from '@oclif/core'
 import chalk from 'chalk'
 import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
 
-export class UpdateOne extends DBBaseCommand {
+export class Replace extends DBBaseCommand {
   async run () {
-    const { collection, filter, update } = this.args
+    const { collection, filter, replacement } = this.args
     const { upsert } = this.flags
 
     try {
-      this.log(chalk.blue(`Updating document in collection '${collection}'...`))
+      this.log(chalk.blue(`Replacing document in collection '${collection}'...`))
 
       if (upsert) {
         this.log(chalk.dim('   Upsert enabled: Will create document if not found'))
@@ -36,26 +36,22 @@ export class UpdateOne extends DBBaseCommand {
         options.upsert = true
       }
 
-      // Update the document
-      const result = await coll.updateOne(filter, update, options)
+      // Replace the document
+      const result = await coll.replaceOne(filter, replacement, options)
 
-      this.debugLogger?.info?.('Document updated successfully:', result)
+      this.debugLogger?.info?.('Document replaced successfully:', result)
 
       const response = {
         collection,
         filter,
-        update,
+        replacement,
         namespace: this.rtNamespace,
         timestamp: new Date().toISOString(),
         result
       }
 
       if (result.matchedCount > 0) {
-        if (result.modifiedCount > 0) {
-          this.log(chalk.green(`Document updated successfully in collection '${collection}'`))
-        } else {
-          this.log(chalk.green(`Matching document found in collection '${collection}', but no update was necessary`))
-        }
+        this.log(chalk.green(`Document replaced successfully in collection '${collection}'`))
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       } else if (upsert && result.upsertedId) {
         this.log(chalk.green(`Document created (upserted) in collection '${collection}'`))
@@ -67,15 +63,15 @@ export class UpdateOne extends DBBaseCommand {
         this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       }
 
-      this.log(chalk.dim(`   Updated: ${new Date().toLocaleString()}`))
+      this.log(chalk.dim(`   Replaced: ${new Date().toLocaleString()}`))
 
       return response
     } catch (error) {
-      this.debugLogger?.error?.('Error updating document:', error)
+      this.debugLogger?.error?.('Error replacing document:', error)
 
-      const errorMessage = `Failed to update document in collection '${collection}': ${error.message}`
+      const errorMessage = `Failed to replace document in collection '${collection}': ${error.message}`
 
-      this.log(chalk.red('Failed to update document'))
+      this.log(chalk.red('Failed to replace document'))
       this.log(chalk.dim(`   Collection: ${collection}`))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
 
@@ -84,16 +80,16 @@ export class UpdateOne extends DBBaseCommand {
   }
 }
 
-UpdateOne.description = 'Update a single document in a collection'
+Replace.description = 'Replace a single document in a collection'
 
-UpdateOne.examples = [
-  '$ aio app db collection updateOne users \'{"name": "John"}\' \'{"$set": {"age": 31}}\'',
-  '$ aio app db collection updateOne products \'{"id": "123"}\' \'{"$inc": {"stock": -1}}\' --json',
-  '$ aio app db collection updateOne posts \'{"slug": "hello-world"}\' \'{"$set": {"status": "published"}}\' --upsert',
-  '$ aio app db collection updateOne users \'{"email": "john@example.com"}\' \'{"$set": {"lastLogin": "2024-01-01"}}\' --upsert'
+Replace.examples = [
+  '$ aio app db document replace users \'{"name": "John"}\' \'{"name": "John Doe", "age": 30, "status": "active"}\'',
+  '$ aio app db document replace products \'{"id": "123"}\' \'{"id": "123", "name": "New Product", "price": 99.99}\' --json',
+  '$ aio app db document replace posts \'{"slug": "hello-world"}\' \'{"title": "Hello World", "content": "Updated content", "status": "published"}\' --upsert',
+  '$ aio app db doc replace users \'{"email": "john@example.com"}\' \'{"email": "john@example.com", "name": "John", "verified": true}\' --upsert --json'
 ]
 
-UpdateOne.args = {
+Replace.args = {
   collection: Args.string({
     name: 'collection',
     description: 'The name of the collection',
@@ -106,15 +102,15 @@ UpdateOne.args = {
     required: true,
     parse: input => asObject(input, 'Filter')
   }),
-  update: Args.string({
-    name: 'update',
-    description: 'The update document (JSON string)',
+  replacement: Args.string({
+    name: 'replacement',
+    description: 'The replacement document (JSON string)',
     required: true,
-    parse: input => asObject(input, 'Update')
+    parse: input => asObject(input, 'Replacement')
   })
 }
 
-UpdateOne.flags = {
+Replace.flags = {
   ...DBBaseCommand.flags,
   upsert: Flags.boolean({
     char: 'u',
@@ -122,3 +118,5 @@ UpdateOne.flags = {
     default: false
   })
 }
+
+Replace.aliases = ['app:db:doc:replace']

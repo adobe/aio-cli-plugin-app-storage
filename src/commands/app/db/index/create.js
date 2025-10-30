@@ -21,7 +21,7 @@ import { prettyJson } from '../../../../utils/output.js'
 // if match.groups.key is defined, it means the flag was -k or --key
 const specFlagMatch = /^((?<spec>-s|--spec)|(?<key>-k|--key))=(?<val>.+)/
 
-export class CreateIndex extends DBBaseCommand {
+export class Create extends DBBaseCommand {
   getOrderedSpecs () {
     // Key/spec order matters when creating an index and both key and spec can be specified,
     // so we need to parse argv to obtain the proper order since using this.flags loses the order between the two
@@ -114,18 +114,19 @@ export class CreateIndex extends DBBaseCommand {
   }
 }
 
-CreateIndex.description = 'Create a new index on a collection in the database'
+Create.description = 'Create a new index on a collection in the database'
 
-CreateIndex.examples = [
-  '$ aio app db collection createIndex users --spec \'{"name":1, "age":-1}\'',
-  '$ aio app db collection createIndex users -s \'{"name":1, "age":-1}\' --name "name_age_index"',
-  '$ aio app db collection createIndex students -s \'{"name":1}\' --key grade --unique',
-  '$ aio app db collection createIndex reviews -k sku -k rating',
-  '$ aio app db collection createIndex products -s \'{"name":"text", "category":"text"}\' --json',
-  '$ aio app db collection createIndex books -s \'{"author":1}\' -k year'
+Create.examples = [
+  '$ aio app db index create users --spec \'{"name":1, "age":-1}\'',
+  '$ aio app db index create users -s \'{"name":1, "age":-1}\' --name "name_age_index"',
+  '$ aio app db index create students -s \'{"name":1}\' --key grade --unique',
+  '$ aio app db index create reviews -k sku -k rating',
+  '$ aio app db index create products -s \'{"name":"text", "category":"text"}\' --json',
+  '$ aio app db index create books -s \'{"author":1}\' -k year',
+  '$ aio app db ind create orders --spec \'{"customerId":1}\' --spec \'{"orderDate":-1}\' --name "customer_order_index" --unique'
 ]
 
-CreateIndex.args = {
+Create.args = {
   collection: Args.string({
     name: 'collection',
     description: 'The name of the collection to create the index on',
@@ -134,7 +135,7 @@ CreateIndex.args = {
   })
 }
 
-CreateIndex.flags = {
+Create.flags = {
   ...DBBaseCommand.flags,
   spec: Flags.string({
     char: 's',
@@ -165,3 +166,5 @@ CreateIndex.flags = {
     default: false
   })
 }
+
+Create.aliases = ['app:db:ind:create']

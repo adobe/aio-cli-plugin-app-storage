@@ -15,7 +15,7 @@ import { Args } from '@oclif/core'
 import chalk from 'chalk'
 import { asObject, isNonEmptyString } from '../../../../utils/inputValidation.js'
 
-export class DeleteOne extends DBBaseCommand {
+export class Delete extends DBBaseCommand {
   async run () {
     const { collection, filter } = this.args
 
@@ -65,16 +65,15 @@ export class DeleteOne extends DBBaseCommand {
   }
 }
 
-DeleteOne.description = 'Delete a single document from a collection'
+Delete.description = 'Delete a single document from a collection'
 
-DeleteOne.examples = [
-  '$ aio app db collection deleteOne users \'{"name": "John"}\'',
-  '$ aio app db collection deleteOne products \'{"id": "123"}\' --json',
-  '$ aio app db collection deleteOne posts \'{"status": "draft"}\'',
-  '$ aio app db collection deleteOne users \'{"email": "john@example.com"}\''
+Delete.examples = [
+  '$ aio app db document delete users \'{"name": "John"}\'',
+  '$ aio app db document delete products \'{"id": "123"}\' --json',
+  '$ aio app db doc delete posts \'{"status": "draft"}\''
 ]
 
-DeleteOne.args = {
+Delete.args = {
   collection: Args.string({
     name: 'collection',
     description: 'The name of the collection',
@@ -89,6 +88,8 @@ DeleteOne.args = {
   })
 }
 
-DeleteOne.flags = {
+Delete.flags = {
   ...DBBaseCommand.flags
 }
+
+Delete.aliases = ['app:db:doc:delete']

@@ -9,15 +9,17 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { ReplaceOne } from '../../../../../src/commands/app/db/collection/replaceOne.js'
+import { Update } from '../../../../../src/commands/app/db/document/update.js'
 import { expect, jest } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
 import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
 
 // Use the global DB mock and set up collection methods
-const mockReplaceOne = jest.fn()
+const mockUpdateOne = jest.fn()
+const mockUpdateMany = jest.fn()
 const mockCollection = {
-  replaceOne: mockReplaceOne
+  updateOne: mockUpdateOne,
+  updateMany: mockUpdateMany
 }
 const mockClient = {
   collection: jest.fn().mockReturnValue(mockCollection)
@@ -26,31 +28,33 @@ const mockConnect = global.mockDBInstance.connect
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
-    expect(ReplaceOne.prototype instanceof DBBaseCommand).toBe(true)
+    expect(Update.prototype instanceof DBBaseCommand).toBe(true)
   })
 
   test('args', () => {
-    expect(Object.keys(ReplaceOne.args)).toEqual(['collection', 'filter', 'replacement'])
-    expect(ReplaceOne.args.collection.required).toBe(true)
-    expect(ReplaceOne.args.filter.required).toBe(true)
-    expect(ReplaceOne.args.replacement.required).toBe(true)
+    expect(Object.keys(Update.args)).toEqual(['collection', 'filter', 'update'])
+    expect(Update.args.collection.required).toBe(true)
+    expect(Update.args.filter.required).toBe(true)
+    expect(Update.args.update.required).toBe(true)
   })
 
   test('flags', () => {
-    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['upsert']).sort()
-    expect(Object.keys(ReplaceOne.flags).sort()).toEqual(expectedFlags)
-    expect(ReplaceOne.flags.upsert.char).toBe('u')
-    expect(ReplaceOne.flags.upsert.default).toBe(false)
-    expect(ReplaceOne.enableJsonFlag).toEqual(true)
+    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['upsert', 'many']).sort()
+    expect(Object.keys(Update.flags).sort()).toEqual(expectedFlags)
+    expect(Update.flags.upsert.char).toBe('u')
+    expect(Update.flags.upsert.default).toBe(false)
+    expect(Update.flags.many.char).toBe('m')
+    expect(Update.flags.many.default).toBe(false)
+    expect(Update.enableJsonFlag).toEqual(true)
   })
 
   test('description', () => {
-    expect(ReplaceOne.description).toBe('Replace a single document in a collection')
+    expect(Update.description).toBe('Update document(s) in a collection')
   })
 
   test('examples', () => {
-    expect(ReplaceOne.examples).toBeDefined()
-    expect(ReplaceOne.examples.length).toBeGreaterThan(0)
+    expect(Update.examples).toBeDefined()
+    expect(Update.examples.length).toBeGreaterThan(0)
   })
 })
 
@@ -58,7 +62,7 @@ describe('run', () => {
   let command
 
   beforeEach(async () => {
-    command = new ReplaceOne(['users', '{"name": "John"}', '{"name": "John Doe", "age": 30, "status": "active"}'])
+    command = new Update(['users', '{"name": "John"}', '{"$set": {"age": 31}}'])
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
@@ -70,70 +74,118 @@ describe('run', () => {
     }
 
     // Reset mocks
-    mockReplaceOne.mockReset()
-    mockCollection.replaceOne = mockReplaceOne
+    mockUpdateOne.mockReset()
+    mockCollection.updateOne = mockUpdateOne
+    mockUpdateMany.mockReset()
+    mockCollection.updateMany = mockUpdateMany
     mockClient.collection.mockClear()
     mockConnect.mockClear()
     mockConnect.mockResolvedValue(mockClient)
   })
 
-  describe('successful replacement', () => {
-    test('replaces document successfully', async () => {
+  describe('successful update', () => {
+    test('updates single document successfully', async () => {
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 1,
         modifiedCount: 1,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       const result = await command.run()
 
       expect(mockConnect).toHaveBeenCalled()
       expect(mockClient.collection).toHaveBeenCalledWith('users')
-      expect(mockReplaceOne).toHaveBeenCalledWith(
-        { name: 'John' },
-        { name: 'John Doe', age: 30, status: 'active' },
-        {}
-      )
+      expect(mockUpdateOne).toHaveBeenCalledWith({ name: 'John' }, { $set: { age: 31 } }, {})
+      expect(mockUpdateMany).not.toHaveBeenCalled()
 
       expect(result).toEqual({
         collection: 'users',
         filter: { name: 'John' },
-        replacement: { name: 'John Doe', age: 30, status: 'active' },
+        update: { $set: { age: 31 } },
         namespace: 'test-namespace',
         timestamp: expect.any(String),
-        result: replaceResult
+        result: updateResult
       })
 
-      expect(stdout.output).toContain('Replacing document in collection \'users\'...')
-      expect(stdout.output).toContain('Document replaced successfully in collection \'users\'')
+      expect(stdout.output).toContain('Updating document in collection \'users\'...')
+      expect(stdout.output).toContain('Document updated successfully in collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
     })
 
-    test('replaces with upsert flag', async () => {
-      command.argv = ['users', '{"name": "John"}', '{"name": "John Doe", "age": 30}', '--upsert']
+    test('updates many documents successfully', async () => {
+      command.argv = ['users', '{"name": "John"}', '{"$set": {"age": 31}}', '--many']
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
+        matchedCount: 3,
+        modifiedCount: 3,
+        acknowledged: true,
+        upsertedId: null,
+        upsertedCount: 0
+      }
+      // const error = new Error('Testing updateMany call')
+      mockUpdateMany.mockResolvedValue(updateResult)
+
+      const result = await command.run()
+
+      expect(mockUpdateMany).toHaveBeenCalledWith({ name: 'John' }, { $set: { age: 31 } }, {})
+      expect(mockUpdateOne).not.toHaveBeenCalled()
+
+      expect(result.result.matchedCount).toBe(3)
+      expect(result.result.modifiedCount).toBe(3)
+
+      expect(stdout.output).toContain('Updating document(s) in collection \'users\'...')
+      expect(stdout.output).toContain('Document(s) updated successfully in collection \'users\'')
+    })
+
+    test('document found but no update necessary', async () => {
+      await command.init()
+
+      const updateResult = {
+        matchedCount: 1,
+        modifiedCount: 0,
+        acknowledged: true,
+        upsertedId: null,
+        upsertedCount: 0
+      }
+      mockUpdateOne.mockResolvedValue(updateResult)
+
+      const result = await command.run()
+
+      expect(mockUpdateOne).toHaveBeenCalledWith({ name: 'John' }, { $set: { age: 31 } }, {})
+      expect(mockUpdateMany).not.toHaveBeenCalled()
+      expect(result.result.matchedCount).toBe(1)
+      expect(result.result.modifiedCount).toBe(0)
+
+      expect(stdout.output).toContain('1 matching document found in collection \'users\', but no update was necessary')
+    })
+
+    test('updates with upsert flag', async () => {
+      command.argv = ['users', '{"name": "John"}', '{"$set": {"age": 31}}', '--upsert']
+      await command.init()
+
+      const updateResult = {
         matchedCount: 0,
         modifiedCount: 0,
         acknowledged: true,
         upsertedId: '507f1f77bcf86cd799439011',
         upsertedCount: 1
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       const result = await command.run()
 
-      expect(mockReplaceOne).toHaveBeenCalledWith(
+      expect(mockUpdateOne).toHaveBeenCalledWith(
         { name: 'John' },
-        { name: 'John Doe', age: 30 },
+        { $set: { age: 31 } },
         { upsert: true }
       )
+      expect(mockUpdateMany).not.toHaveBeenCalled()
 
       expect(result.result.upsertedId).toBe('507f1f77bcf86cd799439011')
       expect(result.result.upsertedCount).toBe(1)
@@ -146,14 +198,14 @@ describe('run', () => {
     test('handles no document found without upsert', async () => {
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 0,
         modifiedCount: 0,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       const result = await command.run()
 
@@ -162,63 +214,60 @@ describe('run', () => {
       expect(stdout.output).toContain('No document found in collection \'users\' matching the filter')
     })
 
-    test('replaces with complex filter and replacement', async () => {
+    test('updates with complex filter and update', async () => {
       const complexFilter = {
         $and: [
           { age: { $gte: 18 } },
           { status: 'active' }
         ]
       }
-      const complexReplacement = {
-        name: 'Jane Doe',
-        age: 25,
-        status: 'premium',
-        joinDate: '2024-01-01T00:00:00.000Z',
-        preferences: {
-          theme: 'dark',
-          notifications: true
-        }
+      const complexUpdate = {
+        $set: { lastLogin: '2024-01-01T00:00:00.000Z' },
+        $inc: { loginCount: 1 }
       }
 
-      command.argv = ['users', JSON.stringify(complexFilter), JSON.stringify(complexReplacement)]
+      command.argv = ['users', JSON.stringify(complexFilter), JSON.stringify(complexUpdate)]
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 1,
         modifiedCount: 1,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       const result = await command.run()
 
-      expect(mockReplaceOne).toHaveBeenCalledWith(complexFilter, complexReplacement, {})
+      expect(mockUpdateOne).toHaveBeenCalledWith(complexFilter, complexUpdate, {})
+      expect(mockUpdateMany).not.toHaveBeenCalled()
       expect(result.filter).toEqual(complexFilter)
-      expect(result.replacement).toEqual(complexReplacement)
+      expect(result.update).toEqual(complexUpdate)
     })
   })
 
   describe('error handling', () => {
     test('handles invalid JSON filter', async () => {
-      command.argv = ['users', '{"invalid": json}', '{"name": "John"}']
+      command.argv = ['users', '{"invalid": json}', '{"$set": {"age": 31}}']
 
       await expect(async () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
-      expect(mockReplaceOne).not.toHaveBeenCalled()
+      expect(mockUpdateOne).not.toHaveBeenCalled()
+      expect(mockUpdateMany).not.toHaveBeenCalled()
     })
 
-    test('handles invalid JSON replacement', async () => {
-      command.argv = ['users', '{"name": "John"}', '{"invalid": json}']
+    test('handles invalid JSON update', async () => {
+      command.argv = ['users', '{"name": "John"}', '{"$set": invalid}']
 
       await expect(async () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
-      expect(mockReplaceOne).not.toHaveBeenCalled()
+      expect(mockUpdateOne).not.toHaveBeenCalled()
+      expect(mockUpdateMany).not.toHaveBeenCalled()
     })
 
     test('handles database connection error', async () => {
@@ -227,155 +276,156 @@ describe('run', () => {
       const error = new Error('Database connection failed')
       mockConnect.mockRejectedValue(error)
 
-      await expect(command.run()).rejects.toThrow('Failed to replace document in collection \'users\': Database connection failed')
+      await expect(command.run()).rejects.toThrow('Failed to update document in collection \'users\': Database connection failed')
 
-      expect(stdout.output).toContain('Failed to replace document')
+      expect(stdout.output).toContain('Failed to update document')
       expect(stdout.output).toContain('Collection: users')
       expect(stdout.output).toContain('Namespace: test-namespace')
     })
 
-    test('handles replace operation error', async () => {
+    test('handles update operation error', async () => {
       await command.init()
 
-      const error = new Error('Replace operation failed')
-      mockReplaceOne.mockRejectedValue(error)
+      const error = new Error('Update operation failed')
+      mockUpdateOne.mockRejectedValue(error)
 
-      await expect(command.run()).rejects.toThrow('Failed to replace document in collection \'users\': Replace operation failed')
+      await expect(command.run()).rejects.toThrow('Failed to update document in collection \'users\': Update operation failed')
+      expect(mockUpdateMany).not.toHaveBeenCalled()
 
-      expect(stdout.output).toContain('Failed to replace document')
+      expect(stdout.output).toContain('Failed to update document')
     })
 
     test('handles validation error', async () => {
       await command.init()
 
       const error = new Error('Document validation failed')
-      mockReplaceOne.mockRejectedValue(error)
+      mockUpdateOne.mockRejectedValue(error)
 
-      await expect(command.run()).rejects.toThrow('Failed to replace document in collection \'users\': Document validation failed')
+      await expect(command.run()).rejects.toThrow('Failed to update document in collection \'users\': Document validation failed')
+      expect(mockUpdateMany).not.toHaveBeenCalled()
     })
   })
 
   describe('JSON parsing', () => {
-    test('parses simple JSON filter and replacement', async () => {
-      command.argv = ['products', '{"category": "electronics"}', '{"name": "New Product", "category": "electronics", "price": 99.99}']
+    test('parses simple JSON filter and update', async () => {
+      command.argv = ['products', '{"category": "electronics"}', '{"$set": {"discount": 0.1}}']
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 1,
         modifiedCount: 1,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       const result = await command.run()
 
       expect(result.filter).toEqual({ category: 'electronics' })
-      expect(result.replacement).toEqual({ name: 'New Product', category: 'electronics', price: 99.99 })
+      expect(result.update).toEqual({ $set: { discount: 0.1 } })
     })
 
-    test('parses JSON with nested objects', async () => {
-      const nestedReplacement = {
-        name: 'Updated Product',
-        specs: {
-          cpu: 'Intel i7',
-          ram: '16GB',
-          storage: '1TB SSD'
-        },
-        features: ['wireless', 'bluetooth', 'touchscreen']
+    test('parses JSON with various update operators', async () => {
+      const updateOps = {
+        $set: { name: 'Updated Name' },
+        $inc: { count: 1 },
+        $unset: { oldField: '' },
+        $push: { tags: 'new-tag' }
       }
 
-      command.argv = ['products', '{"_id": "123"}', JSON.stringify(nestedReplacement)]
+      command.argv = ['products', '{"_id": "123"}', JSON.stringify(updateOps)]
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 1,
         modifiedCount: 1,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       const result = await command.run()
 
-      expect(result.replacement).toEqual(nestedReplacement)
+      expect(result.update).toEqual(updateOps)
     })
 
     test('handles malformed JSON filter', async () => {
-      command.argv = ['users', '{"name": "John", "age":}', '{"name": "John"}']
+      command.argv = ['users', '{"name": "John", "age":}', '{"$set": {"age": 31}}']
 
       await expect(async () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
-      expect(mockReplaceOne).not.toHaveBeenCalled()
+      expect(mockUpdateOne).not.toHaveBeenCalled()
+      expect(mockUpdateMany).not.toHaveBeenCalled()
     })
 
-    test('handles malformed JSON replacement', async () => {
-      command.argv = ['users', '{"name": "John"}', '{"name": "John", "age":}']
+    test('handles malformed JSON update', async () => {
+      command.argv = ['users', '{"name": "John"}', '{"$set": {"age":}}']
 
       await expect(async () => {
         await command.init()
         await command.run()
       }).rejects.toThrow('JSON parse error:')
-      expect(mockReplaceOne).not.toHaveBeenCalled()
+      expect(mockUpdateOne).not.toHaveBeenCalled()
+      expect(mockUpdateMany).not.toHaveBeenCalled()
     })
 
     test('handles empty JSON objects', async () => {
-      command.argv = ['users', '{}', '{"name": "Default User"}']
+      command.argv = ['users', '{}', '{"$set": {"updated": true}}']
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 1,
         modifiedCount: 1,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       const result = await command.run()
 
       expect(result.filter).toEqual({})
-      expect(result.replacement).toEqual({ name: 'Default User' })
+      expect(result.update).toEqual({ $set: { updated: true } })
     })
   })
 
   describe('console output', () => {
-    test('displays proper console output for successful replacement', async () => {
+    test('displays proper console output for successful update', async () => {
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 1,
         modifiedCount: 1,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       await command.run()
 
-      expect(stdout.output).toContain('Replacing document in collection \'users\'...')
-      expect(stdout.output).toContain('Document replaced successfully in collection \'users\'')
+      expect(stdout.output).toContain('Updating document in collection \'users\'...')
+      expect(stdout.output).toContain('Document updated successfully in collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Replaced:')
+      expect(stdout.output).toContain('Updated:')
     })
 
     test('displays proper console output for upsert', async () => {
-      command.argv = ['users', '{"name": "John"}', '{"name": "John Doe", "age": 30}', '--upsert']
+      command.argv = ['users', '{"name": "John"}', '{"$set": {"age": 31}}', '--upsert']
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 0,
         modifiedCount: 0,
         acknowledged: true,
         upsertedId: '507f1f77bcf86cd799439011',
         upsertedCount: 1
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       await command.run()
 
@@ -388,14 +438,14 @@ describe('run', () => {
     test('displays proper console output when no document found', async () => {
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 0,
         modifiedCount: 0,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       await command.run()
 
@@ -405,14 +455,14 @@ describe('run', () => {
     test('does not display upsert message when flag is not used', async () => {
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 1,
         modifiedCount: 1,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       await command.run()
 
@@ -422,25 +472,25 @@ describe('run', () => {
 
   describe('JSON flag', () => {
     test('suppresses console output with --json flag', async () => {
-      command.argv = ['users', '{"name": "John"}', '{"name": "John Doe", "age": 30}', '--json']
+      command.argv = ['users', '{"name": "John"}', '{"$set": {"age": 31}}', '--json']
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 1,
         modifiedCount: 1,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       const result = await command.run()
 
       expect(result.result.matchedCount).toBe(1)
       expect(result.result.modifiedCount).toBe(1)
       // Should not show console messages with --json
-      expect(stdout.output).not.toContain('Replacing document in collection')
-      expect(stdout.output).not.toContain('Document replaced successfully')
+      expect(stdout.output).not.toContain('Updating document in collection')
+      expect(stdout.output).not.toContain('Document updated successfully')
     })
   })
 
@@ -448,14 +498,14 @@ describe('run', () => {
     test('includes ISO timestamp in result', async () => {
       await command.init()
 
-      const replaceResult = {
+      const updateResult = {
         matchedCount: 1,
         modifiedCount: 1,
         acknowledged: true,
         upsertedId: null,
         upsertedCount: 0
       }
-      mockReplaceOne.mockResolvedValue(replaceResult)
+      mockUpdateOne.mockResolvedValue(updateResult)
 
       const result = await command.run()
 
