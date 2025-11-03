@@ -613,7 +613,7 @@ EXAMPLES
 
 ## Index Management
 
-> Note: The commands under `aio app db index <command>` are also available as `aio app db ind <command>` shorthand aliases.
+> Note: The commands under `aio app db index <command>` are also available as `aio app db idx <command>` shorthand aliases.
 
 ### `aio app db index create COLLECTION`
 
@@ -644,7 +644,7 @@ DESCRIPTION
   Create a new index on a collection in the database
 
 ALIASES
-  $ aio app db ind create
+  $ aio app db idx create
 
 EXAMPLES
   $ aio app db index create users --spec '{"name":1, "age":-1}'
@@ -659,7 +659,7 @@ EXAMPLES
 
   $ aio app db index create books -s '{"author":1}' -k year
 
-  $ aio app db ind create orders --spec '{"customerId":1}' --spec '{"orderDate":-1}' --name "customer_order_index" --unique
+  $ aio app db idx create orders --spec '{"customerId":1}' --spec '{"orderDate":-1}' --name "customer_order_index" --unique
 ```
 
 ### `aio app db index drop COLLECTION INDEXNAME`
@@ -683,14 +683,14 @@ DESCRIPTION
   Drop an index from a collection in the database
 
 ALIASES
-  $ aio app db ind drop
+  $ aio app db idx drop
 
 EXAMPLES
   $ aio app db index drop users name_age_index
 
   $ aio app db index drop products category_1 --json
 
-  $ aio app db ind drop orders orderDate_index
+  $ aio app db idx drop orders orderDate_index
 ```
 
 ### `aio app db index list COLLECTION`
@@ -713,14 +713,14 @@ DESCRIPTION
   Get the list of indexes from a collection in the database
 
 ALIASES
-  $ aio app db ind list
+  $ aio app db idx list
 
 EXAMPLES
   $ aio app db index list users
 
   $ aio app db index list products --json
 
-  $ aio app db ind list orders
+  $ aio app db idx list orders
 ```
 
 ## Database Management

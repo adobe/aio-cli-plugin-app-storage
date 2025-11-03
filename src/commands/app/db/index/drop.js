@@ -64,7 +64,7 @@ Drop.description = 'Drop an index from a collection in the database'
 Drop.examples = [
   '$ aio app db index drop users name_age_index',
   '$ aio app db index drop products category_1 --json',
-  '$ aio app db ind drop orders orderDate_index'
+  '$ aio app db idx drop orders orderDate_index'
 ]
 
 Drop.args = {
@@ -84,4 +84,4 @@ Drop.args = {
 
 Drop.flags = DBBaseCommand.flags
 
-Drop.aliases = ['app:db:ind:drop']
+Drop.aliases = ['app:db:idx:drop']

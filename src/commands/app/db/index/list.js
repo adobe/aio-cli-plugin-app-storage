@@ -65,7 +65,7 @@ List.description = 'Get the list of indexes from a collection in the database'
 List.examples = [
   '$ aio app db index list users',
   '$ aio app db index list products --json',
-  '$ aio app db ind list orders'
+  '$ aio app db idx list orders'
 ]
 
 List.args = {
@@ -79,4 +79,4 @@ List.args = {
 
 List.flags = DBBaseCommand.flags
 
-List.aliases = ['app:db:ind:list']
+List.aliases = ['app:db:idx:list']

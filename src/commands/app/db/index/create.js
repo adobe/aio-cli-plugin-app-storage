@@ -123,7 +123,7 @@ Create.examples = [
   '$ aio app db index create reviews -k sku -k rating',
   '$ aio app db index create products -s \'{"name":"text", "category":"text"}\' --json',
   '$ aio app db index create books -s \'{"author":1}\' -k year',
-  '$ aio app db ind create orders --spec \'{"customerId":1}\' --spec \'{"orderDate":-1}\' --name "customer_order_index" --unique'
+  '$ aio app db idx create orders --spec \'{"customerId":1}\' --spec \'{"orderDate":-1}\' --name "customer_order_index" --unique'
 ]
 
 Create.args = {
@@ -167,4 +167,4 @@ Create.flags = {
   })
 }
 
-Create.aliases = ['app:db:ind:create']
+Create.aliases = ['app:db:idx:create']
