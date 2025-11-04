@@ -95,8 +95,8 @@ export class Provision extends DBBaseCommand {
       // Create a new database if not yet provisioned
       this.warn('Database provisioning will create new database resources')
 
-      // Skip confirmation prompt if --force flag is used
-      if (!this.flags.force) {
+      // Skip confirmation prompt if --yes flag is used
+      if (!this.flags.yes) {
         // eslint-disable-next-line node/no-unsupported-features/es-syntax
         const { confirm } = await import('@inquirer/prompts')
 
@@ -175,13 +175,13 @@ Provision.examples = [
   '$ aio app db provision',
   '$ aio app db provision --region amer',
   '$ aio app db provision --json',
-  '$ aio app db provision --force'
+  '$ aio app db provision --yes'
 ]
 
 Provision.flags = {
   ...DBBaseCommand.flags,
-  force: Flags.boolean({
-    char: 'f',
+  yes: Flags.boolean({
+    char: 'y',
     description: 'Skip confirmation prompt and provision automatically',
     default: false
   })

@@ -33,10 +33,10 @@ describe('prototype', () => {
     expect(Object.keys(Provision.args)).toEqual([])
   })
   test('flags', () => {
-    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['force']).sort()
+    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['yes']).sort()
     expect(Object.keys(Provision.flags).sort()).toEqual(expectedFlags)
-    expect(Provision.flags.force.type).toBe('boolean')
-    expect(Provision.flags.force.default).toBe(false)
+    expect(Provision.flags.yes.type).toBe('boolean')
+    expect(Provision.flags.yes.default).toBe(false)
     expect(Provision.enableJsonFlag).toEqual(true)
   })
 })
@@ -249,8 +249,8 @@ describe('run', () => {
       expect(mockProvisionRequest).not.toHaveBeenCalled()
     })
 
-    test('provision with --force flag skips confirmation', async () => {
-      command.argv = ['--force']
+    test('provision with --yes flag skips confirmation', async () => {
+      command.argv = ['--yes']
       await command.init()
 
       mockProvisionStatus.mockRejectedValue(new Error('not found'))

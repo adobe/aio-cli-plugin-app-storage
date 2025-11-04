@@ -773,7 +773,7 @@ EXAMPLES
 
   $ aio app db provision --json
 
-  $ aio app db provision --force
+  $ aio app db provision --yes
 ```
 
 ### `aio app db delete`
