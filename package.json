@@ -61,7 +61,7 @@
         "description": "Manage documents in a collection, also available under 'aio app db doc <command>'"
       },
       "app:db:index": {
-        "description": "Manage indexes on a collection, also available under 'aio app db ind <command>'"
+        "description": "Manage indexes on a collection, also available under 'aio app db idx <command>'"
       }
     },
     "bin": "aio",
