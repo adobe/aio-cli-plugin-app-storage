@@ -756,7 +756,7 @@ USAGE
   $ aio app db provision [--json] [--region <value>] [-f]
 
 FLAGS
-  -f, --force  Skip confirmation prompt and provision automatically
+  -y, --yes  Skip confirmation prompt and provision automatically
 
 GLOBAL FLAGS
   --json            Format output as json.
