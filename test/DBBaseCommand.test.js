@@ -89,11 +89,11 @@ describe('init', () => {
   test('initialization with environment-specific region fails in other environment', async () => {
     global.getCliEnvMock().mockReturnValue('stage')
     command.argv = ['--region', 'emea']
-    await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.stage.join(', ')}`)
+    await expect(command.init()).rejects.toThrow(`Invalid region 'emea' for the stage environment, must be one of: ${AVAILABLE_REGIONS.stage.join(', ')}`)
 
     global.getCliEnvMock().mockReturnValue('prod')
     command.argv = ['--region', 'amer2']
-    await expect(command.init()).rejects.toThrow(`Valid options: ${AVAILABLE_REGIONS.prod.join(', ')}`)
+    await expect(command.init()).rejects.toThrow(`Invalid region 'amer2' for the prod environment, must be one of: ${AVAILABLE_REGIONS.prod.join(', ')}`)
   })
 
   test('initialization with custom endpoint', async () => {

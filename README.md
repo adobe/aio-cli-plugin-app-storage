@@ -753,7 +753,10 @@ Provision a new database for your App Builder application
 
 ```
 USAGE
-  $ aio app db provision [--json] [--region <value>]
+  $ aio app db provision [--json] [--region <value>] [-f]
+
+FLAGS
+  -y, --yes  Skip confirmation prompt and provision automatically
 
 GLOBAL FLAGS
   --json            Format output as json.
@@ -769,6 +772,8 @@ EXAMPLES
   $ aio app db provision --region amer
 
   $ aio app db provision --json
+
+  $ aio app db provision --yes
 ```
 
 ### `aio app db delete`

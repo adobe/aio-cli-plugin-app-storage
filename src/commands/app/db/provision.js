@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 import { DBBaseCommand } from '../../../DBBaseCommand.js'
 import chalk from 'chalk'
 import { DB_STATUS } from '../../../constants/db.js'
+import { Flags } from '@oclif/core'
 
 export class Provision extends DBBaseCommand {
   async run () {
@@ -94,17 +95,20 @@ export class Provision extends DBBaseCommand {
       // Create a new database if not yet provisioned
       this.warn('Database provisioning will create new database resources')
 
-      // eslint-disable-next-line node/no-unsupported-features/es-syntax
-      const { confirm } = await import('@inquirer/prompts')
+      // Skip confirmation prompt if --yes flag is used
+      if (!this.flags.yes) {
+        // eslint-disable-next-line node/no-unsupported-features/es-syntax
+        const { confirm } = await import('@inquirer/prompts')
 
-      const confirmed = await confirm({
-        message: `Provision database for namespace '${this.rtNamespace}'?`,
-        default: false
-      })
+        const confirmed = await confirm({
+          message: `Provision database for namespace '${this.rtNamespace}'?`,
+          default: false
+        })
 
-      if (!confirmed) {
-        this.log('Database provisioning cancelled')
-        return { status: 'cancelled' }
+        if (!confirmed) {
+          this.log('Database provisioning cancelled')
+          return { status: 'cancelled' }
+        }
       }
 
       // Start provisioning
@@ -170,11 +174,17 @@ Provision.description = 'Provision a new database for your App Builder applicati
 Provision.examples = [
   '$ aio app db provision',
   '$ aio app db provision --region amer',
-  '$ aio app db provision --json'
+  '$ aio app db provision --json',
+  '$ aio app db provision --yes'
 ]
 
 Provision.flags = {
-  ...DBBaseCommand.flags
+  ...DBBaseCommand.flags,
+  yes: Flags.boolean({
+    char: 'y',
+    description: 'Skip confirmation prompt and provision automatically',
+    default: false
+  })
 }
 
 Provision.args = {}

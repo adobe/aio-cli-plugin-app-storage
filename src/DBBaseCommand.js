@@ -45,7 +45,7 @@ export class DBBaseCommand extends BaseCommand {
       // Validate region based on environment
       const allowedRegions = AVAILABLE_REGIONS[getCliEnv()]
       if (!allowedRegions.includes(region)) {
-        this.error(`Invalid region '${region}'. Valid options: ${allowedRegions.join(', ')}`)
+        this.error(`Invalid region '${region}' for the ${getCliEnv()} environment, must be one of: ${allowedRegions.join(', ')}`)
       }
 
       // Validate required configuration

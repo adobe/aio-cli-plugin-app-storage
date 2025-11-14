@@ -33,8 +33,10 @@ describe('prototype', () => {
     expect(Object.keys(Provision.args)).toEqual([])
   })
   test('flags', () => {
-    const expectedFlags = Object.keys(DBBaseCommand.flags).sort()
+    const expectedFlags = Object.keys(DBBaseCommand.flags).concat(['yes']).sort()
     expect(Object.keys(Provision.flags).sort()).toEqual(expectedFlags)
+    expect(Provision.flags.yes.type).toBe('boolean')
+    expect(Provision.flags.yes.default).toBe(false)
     expect(Provision.enableJsonFlag).toEqual(true)
   })
 })
@@ -245,6 +247,31 @@ describe('run', () => {
 
       expect(result).toEqual({ status: 'cancelled' })
       expect(mockProvisionRequest).not.toHaveBeenCalled()
+    })
+
+    test('provision with --yes flag skips confirmation', async () => {
+      command.argv = ['--yes']
+      await command.init()
+
+      mockProvisionStatus.mockRejectedValue(new Error('not found'))
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.REQUESTED,
+        region: 'amer'
+      })
+
+      const result = await command.run()
+
+      expect(mockConfirm).not.toHaveBeenCalled()
+      expect(mockProvisionRequest).toHaveBeenCalled()
+      expect(result).toEqual({
+        status: 'requested',
+        namespace: 'test-namespace',
+        timestamp: expect.any(String),
+        details: {
+          status: DB_STATUS.REQUESTED,
+          region: 'amer'
+        }
+      })
     })
 
     test('provision with custom region', async () => {
