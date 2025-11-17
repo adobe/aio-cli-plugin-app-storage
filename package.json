@@ -4,7 +4,7 @@
   "dependencies": {
     "@adobe/aio-lib-core-config": "^5",
     "@adobe/aio-lib-core-logging": "^3",
-    "@adobe/aio-lib-db": "^0.1.0-beta.1",
+    "@adobe/aio-lib-db": "git+https://github.com/adobe/aio-lib-db.git#support-node-18",
     "@adobe/aio-lib-env": "^3.0.1",
     "@adobe/aio-lib-state": "^5",
     "@inquirer/prompts": "^5",
