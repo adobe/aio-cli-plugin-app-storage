@@ -19,5 +19,5 @@ on:
 jobs:
   checkout:
     uses: adobe/aio-reusable-workflows/.github/workflows/prerelease.yml@main
-    secrets:
+    with:
       token: ${{ secrets.ADOBE_BOT_NPM_TOKEN }}
