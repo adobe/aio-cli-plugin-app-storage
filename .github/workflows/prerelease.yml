@@ -14,11 +14,13 @@ on:
       dependencies-to-update:
         description: "csv of dependencies to update with the dist-tag"
         required: false
-        default: "@adobe/aio-lib-core-config,@adobe/aio-lib-core-logging,@adobe/aio-lib-core-networking,@adobe/aio-lib-env,@adobe/aio-lib-state"
+        default: "@adobe/aio-lib-core-config,@adobe/aio-lib-core-logging,@adobe/aio-lib-core-networking,@adobe/aio-lib-env,@adobe/aio-lib-state,@adobe/aio-lib-db"
 
 jobs:
   checkout:
     name: checkout
+    # Temporary port of the reusable workflow until secret imports are worked outputs:
+    # uses: adobe/aio-reusable-workflows/.github/workflows/prerelease.yml@main
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
