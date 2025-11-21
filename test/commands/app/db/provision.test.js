@@ -25,6 +25,13 @@ jest.unstable_mockModule('@inquirer/prompts', () => ({
   confirm: mockConfirm
 }))
 
+// Mock writeRegionToAppConfig function
+const mockWriteRegionToAppConfig = jest.fn()
+jest.unstable_mockModule('@adobe/aio-lib-db', () => ({
+  init: global.mockDBInit,
+  writeRegionToAppConfig: mockWriteRegionToAppConfig
+}))
+
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
     expect(Provision.prototype instanceof DBBaseCommand).toBe(true)
@@ -53,6 +60,7 @@ describe('run', () => {
     mockProvisionStatus.mockReset()
     mockProvisionRequest.mockReset()
     mockConfirm.mockReset()
+    mockWriteRegionToAppConfig.mockClear()
   })
 
   describe('existing database status', () => {
@@ -436,6 +444,189 @@ describe('run', () => {
       expect(result.status).toBe('provisioned')
       // Next steps should not be shown with --json
       expect(stdout.output).not.toContain('Next steps:')
+    })
+  })
+
+  describe('update app.config.yaml', () => {
+    // mock updateAppConfig
+    let mockUpdateAppConfig
+
+    beforeEach(() => {
+      mockUpdateAppConfig = jest.fn()
+    })
+
+    test('updates app.config.yaml when region available and status is REQUESTED', async () => {
+      command.argv = ['--region', 'emea']
+      await command.init()
+
+      mockProvisionStatus.mockRejectedValue(new Error('not found'))
+      mockConfirm.mockResolvedValue(true)
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.REQUESTED,
+        region: 'emea'
+      })
+      mockWriteRegionToAppConfig.mockReturnValue(true)
+
+      command.updateAppConfig = mockUpdateAppConfig
+      await command.run()
+
+      expect(mockUpdateAppConfig).toHaveBeenCalledWith('emea')
+    })
+
+    test('does not update app.config.yaml when no region flag provided and status is PROCESSING', async () => {
+      command.argv = []
+      await command.init()
+
+      mockProvisionStatus.mockRejectedValue(new Error('not found'))
+      mockConfirm.mockResolvedValue(true)
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.PROCESSING,
+        region: 'amer'
+      })
+      mockWriteRegionToAppConfig.mockClear()
+      mockWriteRegionToAppConfig.mockReturnValue(true)
+
+      command.updateAppConfig = mockUpdateAppConfig
+      await command.run()
+
+      expect(mockUpdateAppConfig).toHaveBeenCalledWith(undefined)
+      expect(mockWriteRegionToAppConfig).not.toHaveBeenCalled()
+      expect(stdout.output).not.toContain('Updated app.config.yaml')
+    })
+
+    test('does not update app.config.yaml when no region flag provided and status is REQUESTED', async () => {
+      command.argv = []
+      await command.init()
+
+      mockProvisionStatus.mockRejectedValue(new Error('not found'))
+      mockConfirm.mockResolvedValue(true)
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.REQUESTED,
+        region: 'amer'
+      })
+      mockWriteRegionToAppConfig.mockClear()
+      mockWriteRegionToAppConfig.mockReturnValue(true)
+
+      command.updateAppConfig = mockUpdateAppConfig
+      await command.run()
+
+      expect(mockUpdateAppConfig).toHaveBeenCalledWith(undefined)
+      expect(mockWriteRegionToAppConfig).not.toHaveBeenCalled()
+      expect(stdout.output).not.toContain('Updated app.config.yaml')
+    })
+
+    test('skips app.config.yaml update when status is PROVISIONED', async () => {
+      command.argv = ['--region', 'emea']
+      await command.init()
+
+      mockProvisionStatus.mockRejectedValue(new Error('not found'))
+      mockConfirm.mockResolvedValue(true)
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.PROVISIONED,
+        region: 'emea'
+      })
+
+      command.updateAppConfig = mockUpdateAppConfig
+      await command.run()
+
+      // Should NOT call writeRegionToAppConfig for PROVISIONED status
+      expect(mockWriteRegionToAppConfig).not.toHaveBeenCalled()
+      expect(stdout.output).not.toContain('Updated app.config.yaml')
+    })
+
+    test('skips app.config.yaml update when status is FAILED', async () => {
+      command.argv = ['--region', 'emea']
+      await command.init()
+
+      mockProvisionStatus.mockRejectedValue(new Error('not found'))
+      mockConfirm.mockResolvedValue(true)
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.FAILED,
+        message: 'Test failure'
+      })
+
+      await expect(command.run()).rejects.toThrow('Database provisioning failed: Test failure')
+
+      // Should NOT call writeRegionToAppConfig for FAILED status
+      expect(mockWriteRegionToAppConfig).not.toHaveBeenCalled()
+    })
+
+    test('silently handles when app.config.yaml not found', async () => {
+      command.argv = ['--region', 'emea']
+      await command.init()
+
+      mockProvisionStatus.mockRejectedValue(new Error('not found'))
+      mockConfirm.mockResolvedValue(true)
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.REQUESTED,
+        region: 'emea'
+      })
+      mockWriteRegionToAppConfig.mockReturnValue(false)
+
+      command.updateAppConfig = mockUpdateAppConfig
+      await command.run()
+
+      expect(mockUpdateAppConfig).toHaveBeenCalledWith('emea')
+      expect(stdout.output).not.toContain('Updated app.config.yaml')
+    })
+
+    test('includes region in next steps when region is available', async () => {
+      command.argv = ['--region', 'emea']
+      await command.init()
+
+      mockProvisionStatus.mockRejectedValue(new Error('not found'))
+      mockConfirm.mockResolvedValue(true)
+      mockProvisionRequest.mockResolvedValue({
+        status: DB_STATUS.REQUESTED,
+        region: 'emea'
+      })
+      mockWriteRegionToAppConfig.mockReturnValue(true)
+
+      await command.run()
+
+      expect(stdout.output).toContain('aio app db status --region emea --watch')
+      expect(stdout.output).toContain('aio app db status --region emea')
+    })
+  })
+
+  describe('updateAppConfig method', () => {
+    test('handles writeRegionToAppConfig errors', async () => {
+      command.argv = []
+      await command.init()
+
+      mockWriteRegionToAppConfig.mockImplementation(() => { throw new Error('Permission denied') })
+
+      // Call the real updateAppConfig method directly to test error handling
+      await command.updateAppConfig('test-region')
+
+      expect(mockWriteRegionToAppConfig).toHaveBeenCalledWith(process.cwd(), 'test-region')
+      expect(stdout.output).toContain('Warning: Failed to update app.config.yaml: Permission denied')
+    })
+
+    test('should not log any output or warnings if writeRegionToAppConfig returns false', async () => {
+      command.argv = []
+      await command.init()
+
+      mockWriteRegionToAppConfig.mockReturnValue(false)
+
+      await command.updateAppConfig('test-region')
+
+      expect(mockWriteRegionToAppConfig).toHaveBeenCalledWith(process.cwd(), 'test-region')
+      expect(stdout.output).not.toContain('Updated app.config.yaml')
+      expect(stdout.output).not.toContain('Warning')
+    })
+
+    test('logs success message when writeRegionToAppConfig returns true', async () => {
+      command.argv = []
+      await command.init()
+
+      mockWriteRegionToAppConfig.mockReturnValue(true)
+
+      // Call the real updateAppConfig method to test the success path
+      await command.updateAppConfig('test-region')
+
+      expect(mockWriteRegionToAppConfig).toHaveBeenCalledWith(process.cwd(), 'test-region')
+      expect(stdout.output).toContain('Updated app.config.yaml with database region: test-region')
     })
   })
 })

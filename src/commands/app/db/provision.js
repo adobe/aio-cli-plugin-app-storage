@@ -122,13 +122,19 @@ export class Provision extends DBBaseCommand {
       // Handle different provision result statuses
       const resultStatus = provisionResult?.status?.toUpperCase() || DB_STATUS.UNKNOWN
 
+      // If region was specified as a CLI flag, include it in the output for next steps
+      const { region: regionFlag } = this.flags
+
+      // Handle different provision result statuses and update manifest when appropriate
       if (resultStatus === DB_STATUS.PROVISIONED) {
         this.log(chalk.green('Database provisioned successfully and ready for use!'))
       } else if (resultStatus === DB_STATUS.REQUESTED) {
         this.log(chalk.blue('Database provisioning request submitted successfully'))
         this.log(chalk.dim('Provisioning is now pending...'))
+        this.updateAppConfig(regionFlag)
       } else if (resultStatus === DB_STATUS.PROCESSING) {
         this.log(chalk.yellow('Database is being provisioned...'))
+        this.updateAppConfig(regionFlag)
       } else if (resultStatus === DB_STATUS.FAILED) {
         this.error(`Database provisioning failed: ${provisionResult.message || 'Unknown error'}`)
       } else if (resultStatus === DB_STATUS.REJECTED) {
@@ -148,8 +154,6 @@ export class Provision extends DBBaseCommand {
         details: provisionResult
       }
 
-      // If region was specified as a CLI flag, include it in the output for next steps
-      const { region: regionFlag } = this.flags
       const regionFlagString = regionFlag ? ` --region ${regionFlag}` : ''
 
       if (resultStatus !== DB_STATUS.PROVISIONED) {
@@ -165,6 +169,23 @@ export class Provision extends DBBaseCommand {
     } catch (error) {
       this.debugLogger?.error?.('Provision command error:', error)
       this.error(`Database provisioning failed: ${error.message}`)
+    }
+  }
+
+  async updateAppConfig (region) {
+    if (!region) return
+
+    try {
+      // eslint-disable-next-line node/no-unsupported-features/es-syntax
+      const aioLibDb = await import('@adobe/aio-lib-db')
+      const { writeRegionToAppConfig } = aioLibDb.default || aioLibDb
+      const manifestUpdated = writeRegionToAppConfig(process.cwd(), region)
+      if (manifestUpdated) {
+        this.log(chalk.dim(`Updated app.config.yaml with database region: ${region}`))
+      }
+    } catch (error) {
+      // Don't fail the command if app config update fails
+      this.log(chalk.yellow(`Warning: Failed to update app.config.yaml: ${error.message}`))
     }
   }
 }
