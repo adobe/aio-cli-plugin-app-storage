@@ -14,8 +14,41 @@ on:
       dependencies-to-update:
         description: "csv of dependencies to update with the dist-tag"
         required: false
-        default: "@adobe/aio-lib-core-config,@adobe/aio-lib-core-logging,@adobe/aio-lib-core-networking,@adobe/aio-lib-env,@adobe/aio-lib-state"
+        default: "@adobe/aio-lib-core-config,@adobe/aio-lib-core-logging,@adobe/aio-lib-core-networking,@adobe/aio-lib-env,@adobe/aio-lib-state,@adobe/aio-lib-db"
+      skip-dependencies-to-update:
+        description: "Skip update of dependency version tags"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   checkout:
-    uses: adobe/aio-reusable-workflows/.github/workflows/prerelease.yml@main
+    name: checkout
+    # Temporary port of the reusable workflow until secret imports are worked outputs:
+    # uses: adobe/aio-reusable-workflows/.github/workflows/prerelease.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          npm install
+          npm test
+      - name: Update your package.json with an npm pre-release version
+        id: pre-release-version
+        uses: adobe/update-prerelease-npm-version@v1.2.0
+        with:
+          pre-release-tag: ${{ github.event.inputs.pre-release-tag }}
+          dependencies-to-update: ${{ github.event.inputs.dependencies-to-update }}
+          skip-dependencies-to-update: ${{ github.event.inputs.skip-dependencies-to-update }}
+          dependencies-to-update-version-tag: ${{ github.event.inputs.dist-tag }}
+      - run: echo pre-release-version - ${{ steps.pre-release-version.outputs.pre-release-version }}
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.ADOBE_BOT_NPM_TOKEN }}
+          tag: ${{ github.event.inputs.dist-tag }}
+          access: 'public'
