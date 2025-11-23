@@ -27,7 +27,7 @@ describe('prototype', () => {
   })
   test('flags', () => {
     expect(Object.keys(Get.flags).sort()).toEqual(['region'])
-    expect(Get.flags.region.options).toEqual(['amer', 'emea', 'apac'])
+    expect(Get.flags.region.options).toEqual(['amer', 'emea', 'apac', 'aus'])
     expect(Get.enableJsonFlag).toEqual(true)
   })
 })
