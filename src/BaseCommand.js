@@ -109,7 +109,7 @@ BaseCommand.flags = {
   region: Flags.string({
     description: 'State region. Defaults to \'AIO_STATE_REGION\' env or \'amer\' if neither is set.',
     required: false,
-    options: ['amer', 'emea', 'apac']
+    options: ['amer', 'emea', 'apac', 'aus']
   })
 }
 
