@@ -4,7 +4,7 @@
   "dependencies": {
     "@adobe/aio-lib-core-config": "^5",
     "@adobe/aio-lib-core-logging": "^3",
-    "@adobe/aio-lib-state": "^5",
+    "@adobe/aio-lib-state": "^5.3.0",
     "@inquirer/prompts": "^5",
     "@oclif/core": "^4",
     "@oclif/plugin-help": "^6",
