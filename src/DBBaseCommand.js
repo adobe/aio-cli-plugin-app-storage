@@ -104,7 +104,7 @@ DBBaseCommand.flags = {
     helpGroup: 'GLOBAL'
   },
   region: Flags.string({
-    description: `Database region. Defaults to 'AIO_DB_REGION' environment variable or '${DEFAULT_REGION}' if neither is set.\n<options: ${AVAILABLE_REGIONS.prod.join('|')}>`,
+    description: `Database region. Defaults to 'AIO_DB_REGION' environment variable or '${DEFAULT_REGION}' if neither is set. Any database region set in 'app.config.yaml' takes precedence over all of these.\n<options: ${AVAILABLE_REGIONS.prod.join('|')}>`,
     required: false,
     helpGroup: 'GLOBAL'
     // Don't set default here to let it load from the environment var if not passed as a flag
