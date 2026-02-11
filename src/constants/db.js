@@ -25,7 +25,7 @@ export const DB_STATUS = {
 export const CONFIG_DB_REGION = 'db.region'
 export const DEFAULT_REGION = 'amer'
 export const AVAILABLE_REGIONS = {
-  prod: ['amer', 'emea', 'apac'],
+  prod: ['amer', 'emea', 'apac', 'aus'],
   stage: ['amer', 'amer2']
 }
 
