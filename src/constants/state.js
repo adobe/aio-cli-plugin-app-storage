@@ -14,6 +14,6 @@ governing permissions and limitations under the License.
 // Region constants for state are separate from db in case they diverge in the future
 export const CONFIG_STATE_REGION = 'state.region'
 export const DEFAULT_REGION = 'amer'
-export const AVAILABLE_REGIONS = ['amer', 'emea', 'apac']
+export const AVAILABLE_REGIONS = ['amer', 'emea', 'apac', 'aus']
 
 export const DEFAULT_TTL_SECONDS = 60 * 60 * 24 // 24 hours
