@@ -253,7 +253,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
-
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Get the list of collections in your App Builder database
@@ -290,6 +290,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Create a new collection in the database
@@ -322,6 +323,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Drop a collection from the database
@@ -353,6 +355,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Rename a collection in the database
@@ -383,6 +386,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Get statistics for a collection in the database
@@ -421,6 +425,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Insert one or more documents into a collection
@@ -454,6 +459,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Delete a single document from a collection
@@ -491,6 +497,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Find documents in a collection based on filter criteria.
@@ -529,6 +536,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Update document(s) in a collection
@@ -566,6 +574,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Replace a single document in a collection
@@ -599,6 +608,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Count documents in a collection
@@ -644,6 +654,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Create a new index on a collection in the database
@@ -683,6 +694,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Drop an index from a collection in the database
@@ -713,6 +725,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Get the list of indexes from a collection in the database
@@ -742,6 +755,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Test connectivity to your App Builder database
@@ -767,6 +781,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Provision a new database for your App Builder application
@@ -796,6 +811,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Delete the database for your App Builder application (non-production only)
@@ -823,6 +839,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Check the provisioning status of your App Builder database
@@ -847,6 +864,7 @@ GLOBAL FLAGS
   --json            Format output as json.
   --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or `amer` if neither is set.
                     Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
 
 DESCRIPTION
   Get statistics about your App Builder database
