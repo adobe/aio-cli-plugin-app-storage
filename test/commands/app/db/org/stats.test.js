@@ -10,168 +10,159 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { Stats } from '../../../../src/commands/app/db/stats.js'
+import { OrgStats } from '../../../../../src/commands/app/db/org/stats.js'
 import { expect, jest } from '@jest/globals'
 import { stdout } from 'stdout-stderr'
-import { DBBaseCommand } from '../../../../src/DBBaseCommand.js'
+import { DBBaseCommand } from '../../../../../src/DBBaseCommand.js'
 
-// Use the global DB mock
-const mockDbStats = jest.fn()
+const statsData = {
+  databases: 2,
+  storageSize: 1469,
+  indexSize: 2304,
+  dataSize: 1146,
+  collections: 5,
+  ok: 1,
+  scaleFactor: 1024,
+  databaseStats: [
+    {
+      namespace: '123456-3978goldengoose',
+      storageSize: 234,
+      indexSize: 256,
+      dataSize: 112,
+      collections: 1,
+      scaleFactor: 1024,
+      lastUpdated: new Date('2026-01-29T15:31:57Z')
+    },
+    {
+      namespace: '123456-1138whitewampa',
+      storageSize: 1235,
+      indexSize: 2048,
+      dataSize: 1034,
+      collections: 4,
+      scaleFactor: 1024,
+      lastUpdated: new Date('2026-01-29T15:35:12Z')
+    }
+  ]
+}
+
+const mockOrgStats = jest.fn()
 
 describe('prototype', () => {
   test('extends DBBaseCommand', () => {
-    expect(Stats.prototype instanceof DBBaseCommand).toBe(true)
+    expect(OrgStats.prototype instanceof DBBaseCommand).toBe(true)
   })
   test('args', () => {
-    expect(Object.keys(Stats.args)).toEqual([])
+    expect(Object.keys(OrgStats.args)).toEqual([])
   })
   test('flags', () => {
     const expectedFlags = ['scale', ...Object.keys(DBBaseCommand.flags)].sort()
-    expect(Object.keys(Stats.flags).sort()).toEqual(expectedFlags)
-    expect(Stats.enableJsonFlag).toEqual(true)
+    expect(Object.keys(OrgStats.flags).sort()).toEqual(expectedFlags)
+    expect(OrgStats.enableJsonFlag).toEqual(true)
   })
 })
 
 describe('run', () => {
   let command
   beforeEach(async () => {
-    command = new Stats([])
+    command = new OrgStats([])
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
 
     // Reset mocks
-    mockDbStats.mockReset()
+    mockOrgStats.mockReset()
 
     // Mock the db client connection
     global.mockDBInstance.connect = jest.fn().mockResolvedValue({
-      dbStats: mockDbStats
+      orgStats: mockOrgStats
     })
   })
 
   describe('successful stats retrieval', () => {
-    test('returns and displays database statistics without --json flag', async () => {
+    test('returns and displays organization database statistics without --json flag', async () => {
       command.argv = []
       await command.init()
 
-      const statsData = {
-        totalCollections: 5,
-        totalDocuments: 1000,
-        totalSize: 2048,
-        avgDocumentSize: 2.048,
-        lastUpdated: new Date('2025-01-01T00:00:00Z')
-      }
-      mockDbStats.mockResolvedValue(statsData)
+      mockOrgStats.mockResolvedValue(statsData)
 
       const result = await command.run()
 
-      expect(global.mockDBInstance.connect).toHaveBeenCalled()
-      expect(mockDbStats).toHaveBeenCalled()
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         ...statsData,
-        namespace: 'test-namespace',
         timestamp: expect.any(String)
       })
 
-      expect(stdout.output).toContain('Fetching database statistics...')
-      expect(stdout.output).toContain('Database Statistics:')
-      expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('totalCollections: 5')
-      expect(stdout.output).toContain('totalDocuments: 1,000')
-      expect(stdout.output).toContain('totalSize: 2,048')
-      expect(stdout.output).toContain('avgDocumentSize: 2.048')
-      expect(stdout.output).toContain('lastUpdated: 2025-01-01T00:00:00.000Z')
-      expect(stdout.output).toContain('Retrieved:')
+      expect(stdout.output).toContain('Organization Totals:')
+      expect(stdout.output).toContain(`databases: ${statsData.databases}`)
+      expect(stdout.output).toContain(`storageSize: ${statsData.storageSize.toLocaleString()}`)
+      expect(stdout.output).toContain(`indexSize: ${statsData.indexSize.toLocaleString()}`)
+      expect(stdout.output).toContain(`dataSize: ${statsData.dataSize.toLocaleString()}`)
+      expect(stdout.output).toContain(`collections: ${statsData.collections}`)
+      expect(stdout.output).toContain(`scaleFactor: ${statsData.scaleFactor.toLocaleString()}`)
+
+      statsData.databaseStats.forEach((dbStats) => {
+        expect(stdout.output).toContain(`Namespace '${dbStats.namespace}':`)
+        expect(stdout.output).toContain(`storageSize: ${dbStats.storageSize.toLocaleString()}`)
+        expect(stdout.output).toContain(`indexSize: ${dbStats.indexSize.toLocaleString()}`)
+        expect(stdout.output).toContain(`dataSize: ${dbStats.dataSize.toLocaleString()}`)
+        expect(stdout.output).toContain(`collections: ${dbStats.collections}`)
+        expect(stdout.output).toContain(`lastUpdated: ${dbStats.lastUpdated.toISOString()}`)
+      })
     })
 
     test('returns database statistics with --json flag', async () => {
       command.argv = ['--json']
       await command.init()
-
-      const statsData = {
-        totalCollections: 3,
-        totalDocuments: 300,
-        totalSize: 1024
-      }
-      mockDbStats.mockResolvedValue(statsData)
+      mockOrgStats.mockResolvedValue(statsData)
 
       const result = await command.run()
 
       expect(result).toEqual({
         ...statsData,
-        namespace: 'test-namespace',
         timestamp: expect.any(String)
       })
 
       // Should not show console messages with --json
-      expect(stdout.output).not.toContain('Fetching database statistics...')
+      expect(stdout.output).not.toContain('Fetching organization\'s database statistics...')
       expect(stdout.output).not.toContain('Database Statistics:')
-      expect(stdout.output).not.toContain('Namespace:')
+      expect(stdout.output).not.toContain(`Namespace '${statsData.databaseStats[0].namespace}':`)
     })
 
     test('handles empty/null stats', async () => {
       command.argv = []
       await command.init()
 
-      mockDbStats.mockResolvedValue(null)
+      mockOrgStats.mockResolvedValue(null)
 
       const result = await command.run()
 
-      expect(result).toEqual({
-        namespace: 'test-namespace',
-        timestamp: expect.any(String)
-      })
+      expect(result).toEqual({ timestamp: expect.any(String) })
 
-      expect(stdout.output).toContain('Raw Stats: null')
+      expect(stdout.output).toContain('Raw Stats: \n     {}')
     })
 
     test('handles empty/null stats with --json flag', async () => {
       command.argv = ['--json']
       await command.init()
 
-      mockDbStats.mockResolvedValue(null)
+      mockOrgStats.mockResolvedValue(null)
 
       const result = await command.run()
 
-      expect(result).toEqual({
-        namespace: 'test-namespace',
-        timestamp: expect.any(String)
-      })
+      expect(result).toEqual({ timestamp: expect.any(String) })
 
-      expect(stdout.output).not.toContain('Raw Stats: null')
+      expect(stdout.output).not.toContain('Raw Stats: \n     {}')
     })
 
-    test('handles object stats', async () => {
-      command.argv = []
-      await command.init()
-
-      const complexStats = {
-        collections: {
-          users: { count: 100 },
-          products: { count: 50 }
-        },
-        metadata: {
-          version: '1.0.0'
-        }
-      }
-      mockDbStats.mockResolvedValue(complexStats)
-
-      const result = await command.run()
-
-      expect(result.collections).toEqual(complexStats.collections)
-      expect(stdout.output).toContain('collections:')
-      expect(stdout.output).toContain('metadata:')
-    })
-
-    test('passes scale factor to dbStats method', async () => {
+    test('passes scale factor to orgStats method', async () => {
       command.argv = ['--scale', '1024']
       await command.init()
 
-      mockDbStats.mockResolvedValue({})
+      mockOrgStats.mockResolvedValue(statsData)
 
       await command.run()
 
-      expect(mockDbStats).toHaveBeenCalledWith({ scale: 1024 })
+      expect(mockOrgStats).toHaveBeenCalledWith({ scale: 1024 })
     })
   })
 
@@ -218,9 +209,9 @@ describe('run', () => {
 
       global.mockDBInstance.connect.mockRejectedValue(new Error('Connection failed'))
 
-      await expect(command.run()).rejects.toThrow('Failed to fetch database statistics: Connection failed')
+      await expect(command.run()).rejects.toThrow('Failed to fetch organization database statistics: Connection failed')
 
-      expect(stdout.output).toContain('Failed to retrieve database statistics')
+      expect(stdout.output).toContain('Failed to retrieve organization database statistics')
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Error: Connection failed')
     })
@@ -231,25 +222,22 @@ describe('run', () => {
 
       global.mockDBInstance.connect.mockRejectedValue(new Error('Connection failed'))
 
-      await expect(command.run()).rejects.toThrow('Failed to fetch database statistics: Connection failed')
+      await expect(command.run()).rejects.toThrow('Failed to fetch organization database statistics: Connection failed')
 
       // Should not show console messages with --json
-      expect(stdout.output).not.toContain('Failed to retrieve database statistics')
+      expect(stdout.output).not.toContain('Failed to retrieve organization database statistics')
       expect(stdout.output).not.toContain('Namespace:')
     })
 
-    test('dbStats error', async () => {
+    test('orgStats error', async () => {
       command.argv = []
       await command.init()
 
-      global.mockDBInstance.connect.mockResolvedValue({
-        dbStats: mockDbStats
-      })
-      mockDbStats.mockRejectedValue(new Error('Query failed'))
+      mockOrgStats.mockRejectedValue(new Error('Query failed'))
 
-      await expect(command.run()).rejects.toThrow('Failed to fetch database statistics: Query failed')
+      await expect(command.run()).rejects.toThrow('Failed to fetch organization database statistics: Query failed')
 
-      expect(stdout.output).toContain('Failed to retrieve database statistics')
+      expect(stdout.output).toContain('Failed to retrieve organization database statistics')
       expect(stdout.output).toContain('Error: Query failed')
     })
 
@@ -259,9 +247,9 @@ describe('run', () => {
 
       global.mockDBInstance.connect.mockRejectedValue(new Error('401 Unauthorized'))
 
-      await expect(command.run()).rejects.toThrow('Failed to fetch database statistics: 401 Unauthorized')
+      await expect(command.run()).rejects.toThrow('Failed to fetch organization database statistics: 401 Unauthorized')
 
-      expect(stdout.output).toContain('Failed to retrieve database statistics')
+      expect(stdout.output).toContain('Failed to retrieve organization database statistics')
       expect(stdout.output).toContain('401 Unauthorized')
     })
   })

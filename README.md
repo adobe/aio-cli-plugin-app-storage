@@ -61,6 +61,7 @@ $ aio app db --help
 * [`aio app db delete`](#aio-app-db-delete)
 * [`aio app db status`](#aio-app-db-status)
 * [`aio app db stats`](#aio-app-db-stats)
+* [`aio app db org stats`](#aio-app-db-org-stats)
 * `aio app db show collections` - Alias for [`aio app db collection list`](#aio-app-db-collection-list)
 
 ## Other Commands
@@ -858,7 +859,10 @@ Get statistics about your App Builder database
 
 ```
 USAGE
-  $ aio app db stats [--json] [--region <value>]
+  $ aio app db stats [--json] [--region <value>] [-s <value>]
+
+FLAGS
+  -s, --scale=<value>  [default: 1] Scale factor for size-related statistics (e.g. 1024 for KB, 1048576 for MB).
 
 GLOBAL FLAGS
   --json            Format output as json.
@@ -872,7 +876,37 @@ DESCRIPTION
 EXAMPLES
   $ aio app db stats
 
+  $ aio app db stats --scale 1024
+
   $ aio app db stats --json
+```
+
+### `aio app db org stats`
+
+Get combined statistics about the App Builder databases in your organization
+
+```
+USAGE
+  $ aio app db org stats [--json] [--region <value>] [-s <value>]
+
+FLAGS
+  -s, --scale=<value>  [default: 1] Scale factor for size-related statistics (e.g. 1024 for KB, 1048576 for MB).
+
+GLOBAL FLAGS
+  --json            Format output as json.
+  --region=<value>  Database region. Defaults to 'AIO_DB_REGION' environment variable or 'amer' if neither is set.
+                    Any database region set in 'app.config.yaml' takes precedence over all of these.
+                    <options: amer|emea|apac|aus>
+
+DESCRIPTION
+  Get combined statistics about the App Builder databases in your organization
+
+EXAMPLES
+  $ aio app db org stats
+
+  $ aio app db org stats --scale 1024
+
+  $ aio app db org stats --json
 ```
 
 # Other Commands
