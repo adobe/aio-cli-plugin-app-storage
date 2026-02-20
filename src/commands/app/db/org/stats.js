@@ -10,25 +10,24 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DBBaseCommand } from '../../../DBBaseCommand.js'
+import { DBBaseCommand } from '../../../../DBBaseCommand.js'
 import chalk from 'chalk'
-import { prettyJson } from '../../../utils/output.js'
+import { prettyJson } from '../../../../utils/output.js'
 import { Flags } from '@oclif/core'
 
-export class Stats extends DBBaseCommand {
+export class OrgStats extends DBBaseCommand {
   async run () {
     const { scale } = this.flags
     try {
-      this.log(chalk.blue('Fetching database statistics...'))
+      this.log(chalk.blue('Fetching organization\'s database statistics...'))
 
       const client = await this.db.connect()
-      const stats = await client.dbStats({ scale })
+      const stats = await client.orgStats({ scale })
 
-      this.debugLogger?.info?.('Database statistics retrieved:', stats)
+      this.debugLogger?.info?.('Organization database statistics retrieved:', stats)
 
       const result = {
         ...stats,
-        namespace: this.rtNamespace,
         timestamp: new Date().toISOString()
       }
 
@@ -36,31 +35,42 @@ export class Stats extends DBBaseCommand {
 
       return result
     } catch (error) {
-      this.debugLogger?.error?.('Stats command error:', error)
+      this.debugLogger?.error?.('OrgStats command error:', error)
 
-      this.log(chalk.red('Failed to retrieve database statistics'))
+      this.log(chalk.red('Failed to retrieve organization database statistics'))
       this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
       this.log(chalk.dim(`   Error: ${error.message}`))
 
-      this.error(`Failed to fetch database statistics: ${error.message}`)
+      this.error(`Failed to fetch organization database statistics: ${error.message}`)
     }
   }
 
   displayStats (stats) {
-    this.log(chalk.green('Database Statistics:'))
-    this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+    const { ok, databaseStats, ...orgStats } = stats || {}
 
-    if (stats && typeof stats === 'object') {
-      const { ok, ...statsWithoutOk } = stats
-      // Format and display stats in a readable way
-      Object.entries(statsWithoutOk).forEach(([key, value]) => {
+    // Display combined stats first
+    this.log(chalk.green('Organization Totals:'))
+    if (orgStats && typeof orgStats === 'object' && Object.keys(orgStats).length > 0) {
+      Object.entries(orgStats).forEach(([key, value]) => {
         this.log(chalk.dim(`   ${key}: ${this.formatValue(value)}`))
       })
     } else {
-      this.log(chalk.dim(`   Raw Stats: ${this.formatValue(stats)}`))
+      this.log(chalk.dim(`   Raw Stats: ${this.formatValue(orgStats)}`))
     }
 
     this.log('')
+    if (databaseStats && Array.isArray(databaseStats) && databaseStats.length > 0) {
+      this.log(chalk.green('Database Statistics:'))
+      databaseStats.forEach((dbStats) => {
+        const { namespace, ...otherStats } = dbStats
+        this.log(chalk.dim(`   Namespace '${namespace}':`))
+        Object.entries(otherStats).forEach(([key, value]) => {
+          this.log(chalk.dim(`      ${key}: ${this.formatValue(value, 3)}`))
+        })
+        this.log('')
+      })
+    }
+
     this.log(chalk.dim(`   Retrieved: ${new Date().toISOString()}`))
   }
 
@@ -79,15 +89,15 @@ export class Stats extends DBBaseCommand {
   }
 }
 
-Stats.description = 'Get statistics about your App Builder database'
+OrgStats.description = 'Get combined statistics about the App Builder databases in your organization'
 
-Stats.examples = [
-  '$ aio app db stats',
-  '$ aio app db stats --scale 1024',
-  '$ aio app db stats --json'
+OrgStats.examples = [
+  '$ aio app db org stats',
+  '$ aio app db org stats --scale 1024',
+  '$ aio app db org stats --json'
 ]
 
-Stats.flags = {
+OrgStats.flags = {
   ...DBBaseCommand.flags,
   scale: Flags.integer({
     char: 's',
@@ -98,4 +108,4 @@ Stats.flags = {
   })
 }
 
-Stats.args = {}
+OrgStats.args = {}
