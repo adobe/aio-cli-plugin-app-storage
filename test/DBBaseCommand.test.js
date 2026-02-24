@@ -10,12 +10,28 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { expect, jest } from '@jest/globals'
-import { DBBaseCommand } from '../src/DBBaseCommand.js'
-import { BaseCommand } from '../src/BaseCommand.js'
 import { AVAILABLE_REGIONS, DEFAULT_REGION } from '../src/constants/db.js'
 
 const mockInit = global.mockDBInit
 const mockDbInstance = global.mockDBInstance
+
+// Mock getAccessToken for DBBaseCommand tests
+const mockGetAccessToken = jest.fn()
+jest.unstable_mockModule('../src/utils/authHelper.js', () => ({
+  getAccessToken: mockGetAccessToken
+}))
+
+let DBBaseCommand
+let BaseCommand
+
+beforeAll(async () => {
+  // eslint-disable-next-line node/no-unsupported-features/es-syntax
+  const dbModule = await import('../src/DBBaseCommand.js')
+  // eslint-disable-next-line node/no-unsupported-features/es-syntax
+  const baseModule = await import('../src/BaseCommand.js')
+  DBBaseCommand = dbModule.DBBaseCommand
+  BaseCommand = baseModule.BaseCommand
+})
 
 describe('prototype', () => {
   test('extends BaseCommand', () => {
@@ -41,17 +57,22 @@ describe('init', () => {
     command.config = {
       runHook: jest.fn().mockResolvedValue({})
     }
+
+    // Reset and configure getAccessToken mock
+    mockGetAccessToken.mockReset()
+    mockGetAccessToken.mockResolvedValue('test-token')
   })
 
   test('successful initialization', async () => {
     command.argv = []
     await command.init()
 
+    expect(mockGetAccessToken).toHaveBeenCalled()
     expect(mockInit).toHaveBeenCalledWith({
       ow: {
-        namespace: global.fakeConfig['runtime.namespace'],
-        auth: global.fakeConfig['runtime.auth']
+        namespace: global.fakeConfig['runtime.namespace']
       },
+      token: 'test-token',
       region: DEFAULT_REGION
     })
     expect(command.db).toBe(mockDbInstance)
@@ -109,16 +130,16 @@ describe('init', () => {
     global.fakeConfig['runtime.namespace'] = null
 
     await expect(command.init()).rejects.toThrow(
-      'Database commands require App Builder project configuration.\nPlease make sure the \'AIO_RUNTIME_NAMESPACE\' and \'AIO_RUNTIME_AUTH\' environment variables are configured.'
+      'Database commands require App Builder project configuration.\nPlease make sure the \'AIO_RUNTIME_NAMESPACE\' environment variable is configured'
     )
   })
 
-  test('missing auth', async () => {
+  test('missing token', async () => {
     command.argv = []
-    global.fakeConfig['runtime.auth'] = null
+    mockGetAccessToken.mockResolvedValue(null)
 
     await expect(command.init()).rejects.toThrow(
-      'Database commands require App Builder project configuration.\nPlease make sure the \'AIO_RUNTIME_NAMESPACE\' and \'AIO_RUNTIME_AUTH\' environment variables are configured.'
+      'Database commands require IMS token for authentication'
     )
   })
 
@@ -166,7 +187,7 @@ describe('initializeDBClient', () => {
       expect.objectContaining({
         namespace: global.fakeConfig['runtime.namespace'],
         region: 'amer',
-        hasAuth: true
+        hasToken: true
       })
     )
   })
@@ -193,9 +214,9 @@ describe('configuration', () => {
   test('dbConfig contains expected properties', async () => {
     const expectedConfig = {
       ow: {
-        namespace: global.fakeConfig['runtime.namespace'],
-        auth: global.fakeConfig['runtime.auth']
+        namespace: global.fakeConfig['runtime.namespace']
       },
+      token: 'test-token',
       region: 'amer'
     }
 
@@ -212,9 +233,9 @@ describe('configuration', () => {
     global.fakeConfig['db.endpoint'] = 'https://custom.db.com'
     const expectedConfig = {
       ow: {
-        namespace: global.fakeConfig['runtime.namespace'],
-        auth: global.fakeConfig['runtime.auth']
+        namespace: global.fakeConfig['runtime.namespace']
       },
+      token: 'test-token',
       region: global.fakeConfig['db.region']
     }
 
@@ -229,9 +250,9 @@ describe('configuration', () => {
   test('dbConfig uses region flag', async () => {
     const expectedConfig = {
       ow: {
-        namespace: global.fakeConfig['runtime.namespace'],
-        auth: global.fakeConfig['runtime.auth']
+        namespace: global.fakeConfig['runtime.namespace']
       },
+      token: 'test-token',
       region: 'emea'
     }
 

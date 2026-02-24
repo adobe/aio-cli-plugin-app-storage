@@ -12,3 +12,4 @@ governing permissions and limitations under the License.
 
 export const CONFIG_RUNTIME_NAMESPACE = 'runtime.namespace'
 export const CONFIG_RUNTIME_AUTH = 'runtime.auth'
+export const CONFIG_IMS_CONTEXTS_PREFIX = 'ims.contexts'

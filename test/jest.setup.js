@@ -79,6 +79,22 @@ jest.unstable_mockModule('@adobe/aio-lib-env', () => ({
 }))
 global.getCliEnvMock = () => mockEnv
 
+// mock ims
+const validateTokenMock = jest.fn()
+const getAccessTokenByClientCredentialsMock = jest.fn()
+const ImsMock = jest.fn().mockImplementation(() => ({
+  validateToken: validateTokenMock,
+  getAccessTokenByClientCredentials: getAccessTokenByClientCredentialsMock
+}))
+jest.unstable_mockModule('@adobe/aio-lib-ims', () => ({
+  Ims: ImsMock
+}))
+global.getImsMock = () => ({
+  ImsMock,
+  validateTokenMock,
+  getAccessTokenByClientCredentialsMock
+})
+
 beforeEach(() => {
   // trap console log
   stdout.start()
@@ -91,10 +107,21 @@ beforeEach(() => {
     'runtime.auth': 'auth',
     'state.endpoint': null,
     'db.endpoint': null,
-    'db.region': null
+    'db.region': null,
+    'ims.contexts.test-namespace': {
+      client_id: 'test-client-id',
+      client_secret: 'test-client-secret',
+      org_id: 'test-org-id',
+      scopes: ['test-scope']
+    },
+    'ims.contexts.test-namespace.token': 'test-access-token'
   }
   delete process.env.AIO_STATE_ENDPOINT
   delete process.env.AIO_DB_ENDPOINT
+  process.env.IMS_OAUTH_S2S_CLIENT_ID = 'test-client-id'
+  process.env.IMS_OAUTH_S2S_CLIENT_SECRET = 'test-client-secret'
+  process.env.IMS_OAUTH_S2S_ORG_ID = 'test-org-id'
+  process.env.IMS_OAUTH_S2S_SCOPES = '["test-scope"]'
 
   mockInit.mockReset()
   mockInit.mockResolvedValue(mockInstance)
@@ -108,5 +135,16 @@ beforeEach(() => {
 
   mockEnv.mockReset()
   mockEnv.mockReturnValue('prod')
+
+  config.set = (key, value) => {
+    global.fakeConfig[key] = value
+  }
+
+  const imsMocks = global.getImsMock()
+  imsMocks.ImsMock.mockClear()
+  imsMocks.validateTokenMock.mockReset()
+  imsMocks.getAccessTokenByClientCredentialsMock.mockReset()
+  imsMocks.validateTokenMock.mockResolvedValue({ valid: true })
+  imsMocks.getAccessTokenByClientCredentialsMock.mockResolvedValue({ payload: { access_token: 'test-access-token' } })
 })
 afterEach(() => { stdout.stop(); stderr.stop() })

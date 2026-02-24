@@ -277,7 +277,11 @@ describe('run', () => {
     test('provision with custom region', async () => {
       command.argv = ['--region', 'emea']
       await command.init()
-      expect(global.mockDBInit).toHaveBeenCalledWith({ ow: expect.any(Object), region: 'emea' })
+      expect(global.mockDBInit).toHaveBeenCalledWith({
+        ow: expect.any(Object),
+        token: expect.any(String),
+        region: 'emea'
+      })
 
       mockProvisionStatus.mockRejectedValue(new Error('not found'))
       mockConfirm.mockResolvedValue(true)
