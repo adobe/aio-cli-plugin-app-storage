@@ -58,16 +58,8 @@ const extractAccessToken = (tokenResponse) => {
     return null
   }
 
-  if (tokenResponse.payload?.access_token) {
+  if (tokenResponse?.payload?.access_token) {
     return tokenResponse.payload.access_token
-  }
-
-  if (tokenResponse.access_token) {
-    return tokenResponse.access_token
-  }
-
-  if (typeof tokenResponse === 'string') {
-    return tokenResponse
   }
 
   return null

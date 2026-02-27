@@ -100,7 +100,7 @@ describe('getAccessToken()', () => {
     process.env.IMS_OAUTH_S2S_SCOPES = '["scope-x","scope-y"]'
 
     const imsMocks = global.getImsMock()
-    imsMocks.getAccessTokenByClientCredentialsMock.mockResolvedValue('token-string')
+    imsMocks.getAccessTokenByClientCredentialsMock.mockResolvedValue({ payload: { access_token: 'token-string' } })
 
     await expect(getAccessToken()).resolves.toBe('token-string')
     expect(imsMocks.getAccessTokenByClientCredentialsMock).toHaveBeenCalledWith(
@@ -133,7 +133,7 @@ describe('getAccessToken()', () => {
 
     const imsMocks = global.getImsMock()
     imsMocks.validateTokenMock.mockResolvedValue({ valid: false })
-    imsMocks.getAccessTokenByClientCredentialsMock.mockResolvedValue({ access_token: 'array-scope-token' })
+    imsMocks.getAccessTokenByClientCredentialsMock.mockResolvedValue({ payload: { access_token: 'array-scope-token' } })
 
     await expect(getAccessToken()).resolves.toBe('array-scope-token')
     expect(imsMocks.getAccessTokenByClientCredentialsMock).toHaveBeenCalledWith(
@@ -156,7 +156,7 @@ describe('getAccessToken()', () => {
 
     const imsMocks = global.getImsMock()
     imsMocks.validateTokenMock.mockResolvedValue({ valid: false })
-    imsMocks.getAccessTokenByClientCredentialsMock.mockResolvedValue({ access_token: 'empty-scope-token' })
+    imsMocks.getAccessTokenByClientCredentialsMock.mockResolvedValue({ payload: { access_token: 'empty-scope-token' } })
 
     await expect(getAccessToken()).resolves.toBe('empty-scope-token')
     expect(imsMocks.getAccessTokenByClientCredentialsMock).toHaveBeenCalledWith(
@@ -211,6 +211,24 @@ describe('getAccessToken()', () => {
 
     const imsMocks = global.getImsMock()
     imsMocks.getAccessTokenByClientCredentialsMock.mockResolvedValue({})
+
+    await expect(getAccessToken()).rejects.toThrow(
+      'Failed to generate access token. Please verify your credentials.'
+    )
+  })
+
+  test('throws when token response is a raw string', async () => {
+    const imsContextKey = `${CONFIG_IMS_CONTEXTS_PREFIX}.test-namespace`
+    global.fakeConfig[imsContextKey] = {
+      client_id: 'client-id',
+      client_secret: 'client-secret',
+      org_id: 'org-id',
+      scopes: ['scope-a']
+    }
+    global.fakeConfig[`${imsContextKey}.token`] = null
+
+    const imsMocks = global.getImsMock()
+    imsMocks.getAccessTokenByClientCredentialsMock.mockResolvedValue('raw-token-string')
 
     await expect(getAccessToken()).rejects.toThrow(
       'Failed to generate access token. Please verify your credentials.'
