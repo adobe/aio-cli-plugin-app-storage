@@ -16,30 +16,26 @@ governing permissions and limitations under the License.
  */
 
 import config from '@adobe/aio-lib-core-config'
-import { CONFIG_IMS_CONTEXTS_PREFIX, CONFIG_RUNTIME_NAMESPACE } from '../constants/global.js'
-import { getCliEnv } from '@adobe/aio-lib-env'
-
-const parseScopes = (scopes) => {
-  if (Array.isArray(scopes)) {
-    return scopes
+import { CONFIG_RUNTIME_NAMESPACE, CONFIG_IMS_TECHNICAL_ACCOUNT_EMAIL_PLACEHOLDER, CONFIG_IMS_TECHNICAL_ACCOUNT_ID_PLACEHOLDER } from '../constants/global.js'
+const normalizeArrayString = (value) => {
+  try {
+    const parsed = JSON.parse(value)
+    console.log(parsed)
+    return Array.isArray(parsed) ? JSON.stringify(parsed) : '[]'
+  } catch {
+    const items = value.split(',').map((entry) => entry.trim()).filter(Boolean)
+    console.log(items)
+    return JSON.stringify(items)
   }
-
-  if (typeof scopes === 'string') {
-    try {
-      return JSON.parse(scopes)
-    } catch {
-      return scopes.split(',').map((scope) => scope.trim()).filter(Boolean)
-    }
-  }
-
-  return []
 }
 
-const buildAuthConfig = (existingContext) => {
-  const clientId = existingContext?.client_id || process.env.IMS_OAUTH_S2S_CLIENT_ID
-  const clientSecret = existingContext?.client_secret || process.env.IMS_OAUTH_S2S_CLIENT_SECRET
-  const orgId = existingContext?.org_id || process.env.IMS_OAUTH_S2S_ORG_ID
-  const scopes = existingContext?.scopes || process.env.IMS_OAUTH_S2S_SCOPES
+const buildAuthConfig = () => {
+  const clientId = process.env.IMS_OAUTH_S2S_CLIENT_ID
+  const clientSecret = process.env.IMS_OAUTH_S2S_CLIENT_SECRET
+  const orgId = process.env.IMS_OAUTH_S2S_ORG_ID
+  const scopes = process.env.IMS_OAUTH_S2S_SCOPES
+  const technicalAccountEmail = process.env.IMS_OAUTH_S2S_TECHNICAL_ACCOUNT_EMAIL || CONFIG_IMS_TECHNICAL_ACCOUNT_EMAIL_PLACEHOLDER
+  const technicalAccountId = process.env.IMS_OAUTH_S2S_TECHNICAL_ACCOUNT_ID || CONFIG_IMS_TECHNICAL_ACCOUNT_ID_PLACEHOLDER
 
   if (!clientId || !clientSecret || !orgId || !scopes) {
     throw new Error('Missing required credentials. Please set IMS_OAUTH_S2S_CLIENT_ID, IMS_OAUTH_S2S_CLIENT_SECRET, IMS_OAUTH_S2S_ORG_ID, and IMS_OAUTH_S2S_SCOPES environment variables.')
@@ -47,39 +43,12 @@ const buildAuthConfig = (existingContext) => {
 
   return {
     client_id: clientId,
-    client_secret: clientSecret,
-    org_id: orgId,
-    scopes: parseScopes(scopes)
+    client_secrets: normalizeArrayString(clientSecret),
+    ims_org_id: orgId,
+    scopes: normalizeArrayString(scopes),
+    technical_account_email: technicalAccountEmail,
+    technical_account_id: technicalAccountId
   }
-}
-
-const extractAccessToken = (tokenResponse) => {
-  if (!tokenResponse) {
-    return null
-  }
-
-  if (tokenResponse?.payload?.access_token) {
-    return tokenResponse.payload.access_token
-  }
-
-  return null
-}
-
-const getAccessTokenFromIms = async (ims, authConfig) => {
-  const tokenResponse = await ims.getAccessTokenByClientCredentials(
-    authConfig.client_id,
-    authConfig.client_secret,
-    authConfig.org_id,
-    authConfig.scopes
-  )
-
-  const accessToken = extractAccessToken(tokenResponse)
-
-  if (!accessToken) {
-    throw new Error('Failed to generate access token. Please verify your credentials.')
-  }
-
-  return accessToken
 }
 
 /**
@@ -93,44 +62,18 @@ export async function getAccessToken () {
     throw new Error('Runtime namespace is required. Please set CONFIG_RUNTIME_NAMESPACE.')
   }
 
-  const imsContextKey = `${CONFIG_IMS_CONTEXTS_PREFIX}.${runtimeNamespace}`
-
   try {
     // eslint-disable-next-line node/no-unsupported-features/es-syntax
-    const ImsModule = await import('@adobe/aio-lib-ims')
-    const { Ims } = ImsModule
-    const ims = new Ims(getCliEnv())
+    const imsLib = await import('@adobe/aio-lib-ims')
+    const { context, getToken } = imsLib.default || imsLib
+    const authConfig = buildAuthConfig()
 
-    // Check if context config already exists
-    const existingContext = config.get(imsContextKey)
+    await context.set(runtimeNamespace, authConfig, true)
+    const accessToken = await getToken(runtimeNamespace)
 
-    let authConfig = null
-
-    if (existingContext) {
-      const currentToken = config.get(`${imsContextKey}.token`)
-
-      // Check if token exists in selected context config and is valid
-      if (currentToken) {
-        const validToken = await ims.validateToken(currentToken)
-        if (validToken.valid) {
-          return currentToken
-        }
-      }
-
-      // Otherwise, create auth config using existing context
-      authConfig = buildAuthConfig(existingContext)
-    } else {
-      // If no existing context, create auth config using environment configuration
-      authConfig = buildAuthConfig()
+    if (!accessToken) {
+      throw new Error('Failed to generate access token. Please verify your credentials.')
     }
-
-    // set context config
-    config.set(imsContextKey, authConfig)
-
-    const accessToken = await getAccessTokenFromIms(ims, authConfig)
-
-    // set token in context config for further use
-    config.set(`${imsContextKey}.token`, accessToken)
 
     return accessToken
   } catch (error) {

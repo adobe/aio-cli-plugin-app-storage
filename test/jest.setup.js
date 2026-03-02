@@ -80,19 +80,18 @@ jest.unstable_mockModule('@adobe/aio-lib-env', () => ({
 global.getCliEnvMock = () => mockEnv
 
 // mock ims
-const validateTokenMock = jest.fn()
-const getAccessTokenByClientCredentialsMock = jest.fn()
-const ImsMock = jest.fn().mockImplementation(() => ({
-  validateToken: validateTokenMock,
-  getAccessTokenByClientCredentials: getAccessTokenByClientCredentialsMock
-}))
-jest.unstable_mockModule('@adobe/aio-lib-ims', () => ({
-  Ims: ImsMock
-}))
+const imsContextSetMock = jest.fn()
+const imsGetTokenMock = jest.fn()
+const imsModule = { context: { set: imsContextSetMock }, getToken: imsGetTokenMock }
+jest.unstable_mockModule('@adobe/aio-lib-ims', () => {
+  if (global.__ims_no_default) {
+    return imsModule
+  }
+  return { ...imsModule, default: imsModule }
+})
 global.getImsMock = () => ({
-  ImsMock,
-  validateTokenMock,
-  getAccessTokenByClientCredentialsMock
+  imsContextSetMock,
+  imsGetTokenMock
 })
 
 beforeEach(() => {
@@ -141,10 +140,9 @@ beforeEach(() => {
   }
 
   const imsMocks = global.getImsMock()
-  imsMocks.ImsMock.mockClear()
-  imsMocks.validateTokenMock.mockReset()
-  imsMocks.getAccessTokenByClientCredentialsMock.mockReset()
-  imsMocks.validateTokenMock.mockResolvedValue({ valid: true })
-  imsMocks.getAccessTokenByClientCredentialsMock.mockResolvedValue({ payload: { access_token: 'test-access-token' } })
+  imsMocks.imsContextSetMock.mockReset()
+  imsMocks.imsGetTokenMock.mockReset()
+  imsMocks.imsGetTokenMock.mockResolvedValue('test-access-token')
+  global.__ims_no_default = false
 })
 afterEach(() => { stdout.stop(); stderr.stop() })
