@@ -15,8 +15,7 @@ governing permissions and limitations under the License.
  * @returns {string} The IMS access token
  */
 
-import config from '@adobe/aio-lib-core-config'
-import { CONFIG_RUNTIME_NAMESPACE, CONFIG_IMS_TECHNICAL_ACCOUNT_EMAIL_PLACEHOLDER, CONFIG_IMS_TECHNICAL_ACCOUNT_ID_PLACEHOLDER } from '../constants/global.js'
+import { CONFIG_IMS_TECHNICAL_ACCOUNT_EMAIL_PLACEHOLDER, CONFIG_IMS_TECHNICAL_ACCOUNT_ID_PLACEHOLDER } from '../constants/global.js'
 const normalizeArrayString = (value) => {
   try {
     const parsed = JSON.parse(value)
@@ -56,10 +55,10 @@ const buildAuthConfig = () => {
  * @returns {Promise<string>} The access token
  */
 export async function getAccessToken () {
-  const runtimeNamespace = config.get(CONFIG_RUNTIME_NAMESPACE)
+  const runtimeNamespace = process.env.AIO_RUNTIME_NAMESPACE
 
   if (!runtimeNamespace) {
-    throw new Error('Runtime namespace is required. Please set CONFIG_RUNTIME_NAMESPACE.')
+    throw new Error('Runtime namespace is required. Please set AIO_RUNTIME_NAMESPACE environment variable.')
   }
 
   try {

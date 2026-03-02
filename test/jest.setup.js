@@ -117,6 +117,7 @@ beforeEach(() => {
   }
   delete process.env.AIO_STATE_ENDPOINT
   delete process.env.AIO_DB_ENDPOINT
+  process.env.AIO_RUNTIME_NAMESPACE = 'test-namespace'
   process.env.IMS_OAUTH_S2S_CLIENT_ID = 'test-client-id'
   process.env.IMS_OAUTH_S2S_CLIENT_SECRET = 'test-client-secret'
   process.env.IMS_OAUTH_S2S_ORG_ID = 'test-org-id'

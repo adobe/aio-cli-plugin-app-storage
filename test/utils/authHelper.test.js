@@ -27,6 +27,7 @@ describe('getAccessToken()', () => {
     const imsMocks = global.getImsMock()
     imsMocks.imsContextSetMock.mockReset()
     imsMocks.imsGetTokenMock.mockReset()
+    delete process.env.AIO_RUNTIME_NAMESPACE
     delete process.env.IMS_OAUTH_S2S_CLIENT_ID
     delete process.env.IMS_OAUTH_S2S_CLIENT_SECRET
     delete process.env.IMS_OAUTH_S2S_ORG_ID
@@ -36,11 +37,11 @@ describe('getAccessToken()', () => {
   })
 
   test('throws when runtime namespace is missing', async () => {
-    global.fakeConfig['runtime.namespace'] = null
-    await expect(getAccessToken()).rejects.toThrow('Runtime namespace is required. Please set CONFIG_RUNTIME_NAMESPACE.')
+    await expect(getAccessToken()).rejects.toThrow('Runtime namespace is required. Please set AIO_RUNTIME_NAMESPACE environment variable.')
   })
 
   test('builds auth config from environment and returns token (json scopes)', async () => {
+    process.env.AIO_RUNTIME_NAMESPACE = 'test-namespace'
     process.env.IMS_OAUTH_S2S_CLIENT_ID = 'env-client-id'
     process.env.IMS_OAUTH_S2S_CLIENT_SECRET = 'env-client-secret'
     process.env.IMS_OAUTH_S2S_ORG_ID = 'env-org-id'
@@ -65,15 +66,16 @@ describe('getAccessToken()', () => {
   })
 
   test('builds auth config from environment and returns token (csv scopes)', async () => {
+    process.env.AIO_RUNTIME_NAMESPACE = 'test-namespace'
     process.env.IMS_OAUTH_S2S_CLIENT_ID = 'env-client-id'
     process.env.IMS_OAUTH_S2S_CLIENT_SECRET = 'env-client-secret'
     process.env.IMS_OAUTH_S2S_ORG_ID = 'env-org-id'
     process.env.IMS_OAUTH_S2S_SCOPES = 'scope-a, scope-b'
 
     const imsMocks = global.getImsMock()
-    imsMocks.imsGetTokenMock.mockResolvedValue('csv-token')
+    imsMocks.imsGetTokenMock.mockResolvedValue('token')
 
-    await expect(getAccessToken()).resolves.toBe('csv-token')
+    await expect(getAccessToken()).resolves.toBe('token')
     expect(imsMocks.imsContextSetMock).toHaveBeenCalledWith(
       'test-namespace',
       expect.objectContaining({
@@ -84,6 +86,7 @@ describe('getAccessToken()', () => {
   })
 
   test('builds auth config with empty scopes array when scope list is null', async () => {
+    process.env.AIO_RUNTIME_NAMESPACE = 'test-namespace'
     process.env.IMS_OAUTH_S2S_CLIENT_ID = 'env-client-id'
     process.env.IMS_OAUTH_S2S_CLIENT_SECRET = 'env-client-secret'
     process.env.IMS_OAUTH_S2S_ORG_ID = 'env-org-id'
@@ -103,6 +106,7 @@ describe('getAccessToken()', () => {
   })
 
   test('throws when required credentials are missing', async () => {
+    process.env.AIO_RUNTIME_NAMESPACE = 'test-namespace'
     delete process.env.IMS_OAUTH_S2S_CLIENT_ID
     delete process.env.IMS_OAUTH_S2S_CLIENT_SECRET
     delete process.env.IMS_OAUTH_S2S_ORG_ID
@@ -114,6 +118,7 @@ describe('getAccessToken()', () => {
   })
 
   test('throws when token response is empty', async () => {
+    process.env.AIO_RUNTIME_NAMESPACE = 'test-namespace'
     process.env.IMS_OAUTH_S2S_CLIENT_ID = 'env-client-id'
     process.env.IMS_OAUTH_S2S_CLIENT_SECRET = 'env-client-secret'
     process.env.IMS_OAUTH_S2S_ORG_ID = 'env-org-id'
@@ -128,13 +133,14 @@ describe('getAccessToken()', () => {
   })
 
   test('throws unknown error when IMS client rejects with non-error', async () => {
+    process.env.AIO_RUNTIME_NAMESPACE = 'test-namespace'
     process.env.IMS_OAUTH_S2S_CLIENT_ID = 'env-client-id'
     process.env.IMS_OAUTH_S2S_CLIENT_SECRET = 'env-client-secret'
     process.env.IMS_OAUTH_S2S_ORG_ID = 'env-org-id'
     process.env.IMS_OAUTH_S2S_SCOPES = 'scope-a'
 
     const imsMocks = global.getImsMock()
-    imsMocks.imsGetTokenMock.mockRejectedValue('boom')
+    imsMocks.imsGetTokenMock.mockRejectedValue('failed to get token')
 
     await expect(getAccessToken()).rejects.toThrow(
       'Failed to retrieve access token: Unknown error'
@@ -146,6 +152,7 @@ describe('getAccessToken()', () => {
     jest.resetModules()
     getAccessToken = await loadGetAccessToken()
 
+    process.env.AIO_RUNTIME_NAMESPACE = 'test-namespace'
     process.env.IMS_OAUTH_S2S_CLIENT_ID = 'env-client-id'
     process.env.IMS_OAUTH_S2S_CLIENT_SECRET = 'env-client-secret'
     process.env.IMS_OAUTH_S2S_ORG_ID = 'env-org-id'
