@@ -19,11 +19,9 @@ import { CONFIG_IMS_TECHNICAL_ACCOUNT_EMAIL_PLACEHOLDER, CONFIG_IMS_TECHNICAL_AC
 const normalizeArrayString = (value) => {
   try {
     const parsed = JSON.parse(value)
-    console.log(parsed)
     return Array.isArray(parsed) ? JSON.stringify(parsed) : '[]'
   } catch {
     const items = value.split(',').map((entry) => entry.trim()).filter(Boolean)
-    console.log(items)
     return JSON.stringify(items)
   }
 }
