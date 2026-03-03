@@ -9,7 +9,6 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { jest } from '@jest/globals'
 const loadGetAccessToken = async () => {
   // eslint-disable-next-line node/no-unsupported-features/es-syntax
   const authModule = await import('../../src/utils/authHelper.js')
@@ -52,7 +51,7 @@ describe('getAccessToken()', () => {
 
     await expect(getAccessToken()).resolves.toBe('token-string')
     expect(imsMocks.imsContextSetMock).toHaveBeenCalledWith(
-      'test-namespace',
+      'oauth_s2s_test-namespace',
       expect.objectContaining({
         client_id: 'env-client-id',
         client_secrets: '["env-client-secret"]',
@@ -77,7 +76,7 @@ describe('getAccessToken()', () => {
 
     await expect(getAccessToken()).resolves.toBe('token')
     expect(imsMocks.imsContextSetMock).toHaveBeenCalledWith(
-      'test-namespace',
+      'oauth_s2s_test-namespace',
       expect.objectContaining({
         scopes: '["scope-a","scope-b"]'
       }),
@@ -97,7 +96,7 @@ describe('getAccessToken()', () => {
 
     await expect(getAccessToken()).resolves.toBe('empty-scope-token')
     expect(imsMocks.imsContextSetMock).toHaveBeenCalledWith(
-      'test-namespace',
+      'oauth_s2s_test-namespace',
       expect.objectContaining({
         scopes: '[]'
       }),
@@ -145,22 +144,5 @@ describe('getAccessToken()', () => {
     await expect(getAccessToken()).rejects.toThrow(
       'Failed to retrieve access token: Unknown error'
     )
-  })
-
-  test('works when ims lib does not provide a default export', async () => {
-    global.__ims_no_default = true
-    jest.resetModules()
-    getAccessToken = await loadGetAccessToken()
-
-    process.env.AIO_RUNTIME_NAMESPACE = 'test-namespace'
-    process.env.IMS_OAUTH_S2S_CLIENT_ID = 'env-client-id'
-    process.env.IMS_OAUTH_S2S_CLIENT_SECRET = 'env-client-secret'
-    process.env.IMS_OAUTH_S2S_ORG_ID = 'env-org-id'
-    process.env.IMS_OAUTH_S2S_SCOPES = '["scope-a"]'
-
-    const imsMocks = global.getImsMock()
-    imsMocks.imsGetTokenMock.mockResolvedValue('token-string')
-
-    await expect(getAccessToken()).resolves.toBe('token-string')
   })
 })

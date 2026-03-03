@@ -14,7 +14,7 @@ governing permissions and limitations under the License.
  * Helper to get the IMS access token using Adobe I/O SDK
  * @returns {string} The IMS access token
  */
-
+import aioLibIms from '@adobe/aio-lib-ims'
 import { CONFIG_IMS_TECHNICAL_ACCOUNT_EMAIL_PLACEHOLDER, CONFIG_IMS_TECHNICAL_ACCOUNT_ID_PLACEHOLDER } from '../constants/global.js'
 const normalizeArrayString = (value) => {
   try {
@@ -60,13 +60,12 @@ export async function getAccessToken () {
   }
 
   try {
-    // eslint-disable-next-line node/no-unsupported-features/es-syntax
-    const imsLib = await import('@adobe/aio-lib-ims')
-    const { context, getToken } = imsLib.default || imsLib
     const authConfig = buildAuthConfig()
+    const imsContextName = `oauth_s2s_${runtimeNamespace}`
 
-    await context.set(runtimeNamespace, authConfig, true)
-    const accessToken = await getToken(runtimeNamespace)
+    const { context, getToken } = aioLibIms
+    await context.set(imsContextName, authConfig, true)
+    const accessToken = await getToken(imsContextName)
 
     if (!accessToken) {
       throw new Error('Failed to generate access token. Please verify your credentials.')
