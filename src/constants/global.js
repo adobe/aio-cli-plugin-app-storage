@@ -12,3 +12,5 @@ governing permissions and limitations under the License.
 
 export const CONFIG_RUNTIME_NAMESPACE = 'runtime.namespace'
 export const CONFIG_RUNTIME_AUTH = 'runtime.auth'
+export const CONFIG_IMS_TECHNICAL_ACCOUNT_EMAIL_PLACEHOLDER = 'dummy@techacct.adobe.com'
+export const CONFIG_IMS_TECHNICAL_ACCOUNT_ID_PLACEHOLDER = 'dummy@techacct.adobe.com'

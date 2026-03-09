@@ -12,10 +12,11 @@ governing permissions and limitations under the License.
 
 import { BaseCommand } from './BaseCommand.js'
 import config from '@adobe/aio-lib-core-config'
-import { CONFIG_RUNTIME_AUTH, CONFIG_RUNTIME_NAMESPACE } from './constants/global.js'
+import { CONFIG_RUNTIME_NAMESPACE } from './constants/global.js'
 import { AVAILABLE_REGIONS, CONFIG_DB_ENDPOINT, CONFIG_DB_REGION, DEFAULT_REGION } from './constants/db.js'
 import { Flags } from '@oclif/core'
 import { getCliEnv } from '@adobe/aio-lib-env'
+import { getAccessToken } from './utils/authHelper.js'
 
 export class DBBaseCommand extends BaseCommand {
   async init () {
@@ -33,12 +34,27 @@ export class DBBaseCommand extends BaseCommand {
   async initializeDBClient () {
     try {
       const region = this.flags?.region || config.get(CONFIG_DB_REGION) || DEFAULT_REGION
+      const runtimeNamespace = config.get(CONFIG_RUNTIME_NAMESPACE)
+      if (!runtimeNamespace) {
+        this.error(
+          `Database commands require App Builder project configuration.
+Please make sure the 'AIO_RUNTIME_NAMESPACE' environment variable is configured`
+        )
+      }
+
+      const authToken = await getAccessToken()
+      if (!authToken) {
+        this.error(
+          'Database commands require IMS token for authentication. Please make sure you have the required Ims credentials configured in environment variables.'
+        )
+      }
+
       // Get database configuration
       const dbConfig = {
         ow: {
-          namespace: config.get(CONFIG_RUNTIME_NAMESPACE),
-          auth: config.get(CONFIG_RUNTIME_AUTH)
+          namespace: runtimeNamespace
         },
+        token: authToken,
         region
       }
 
@@ -46,14 +62,6 @@ export class DBBaseCommand extends BaseCommand {
       const allowedRegions = AVAILABLE_REGIONS[getCliEnv()]
       if (!allowedRegions.includes(region)) {
         this.error(`Invalid region '${region}' for the ${getCliEnv()} environment, must be one of: ${allowedRegions.join(', ')}`)
-      }
-
-      // Validate required configuration
-      if (!(dbConfig.ow.namespace && dbConfig.ow.auth)) {
-        this.error(
-          `Database commands require App Builder project configuration.
-Please make sure the 'AIO_RUNTIME_NAMESPACE' and 'AIO_RUNTIME_AUTH' environment variables are configured.`
-        )
       }
 
       const endpointOverride = config.get(CONFIG_DB_ENDPOINT)
@@ -70,7 +78,7 @@ Please make sure the 'AIO_RUNTIME_NAMESPACE' and 'AIO_RUNTIME_AUTH' environment 
       this.debugLogger?.info?.('Initializing DB client with config:', {
         namespace: dbConfig.ow.namespace,
         region: dbConfig.region,
-        hasAuth: !!dbConfig.ow.auth
+        hasToken: !!dbConfig.token
       })
 
       // Initialize the database client
