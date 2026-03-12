@@ -105,12 +105,12 @@ Please make sure the 'AIO_RUNTIME_NAMESPACE' environment variable is configured`
 // Add json and region flags to GLOBAL FLAGS section in --help output
 DBBaseCommand.flags = {
   ...BaseCommand.flags,
-  json: {
+  json: Flags.boolean({
     description: 'Format output as json.',
     default: false,
     required: false,
     helpGroup: 'GLOBAL'
-  },
+  }),
   region: Flags.string({
     description: `Database region. Defaults to 'AIO_DB_REGION' environment variable or '${DEFAULT_REGION}' if neither is set. Any database region set in 'app.config.yaml' takes precedence over all of these.\n<options: ${AVAILABLE_REGIONS.prod.join('|')}>`,
     required: false,
