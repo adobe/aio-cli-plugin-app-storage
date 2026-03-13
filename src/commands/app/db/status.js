@@ -111,6 +111,10 @@ export class Status extends DBBaseCommand {
       this.log(chalk.dim(`   Message: ${provisionStatusResponse.message}`))
     }
 
+    if (provisionStatusResponse.region) {
+      this.log(chalk.dim(`   Region: ${provisionStatusResponse.region}`))
+    }
+
     if (provisionStatusResponse.submitted) {
       this.log(chalk.dim(`   Submitted: ${new Date(provisionStatusResponse.submitted).toLocaleString()}`))
     }

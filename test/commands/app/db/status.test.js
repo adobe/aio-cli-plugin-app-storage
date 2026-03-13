@@ -330,6 +330,7 @@ describe('run', () => {
       const statusResponse = {
         status: DB_STATUS.PROVISIONED,
         message: 'Database ready',
+        region: 'amer',
         submitted: '2024-01-01T00:00:00Z',
         updated: '2024-01-02T00:00:00Z'
       }
@@ -340,6 +341,7 @@ describe('run', () => {
       expect(stdout.output).toContain('Database Status: PROVISIONED')
       expect(stdout.output).toContain('Namespace: test-namespace')
       expect(stdout.output).toContain('Message: Database ready')
+      expect(stdout.output).toContain('Region: amer')
       expect(stdout.output).toContain('Submitted:')
       expect(stdout.output).toContain('Checked:')
     })
