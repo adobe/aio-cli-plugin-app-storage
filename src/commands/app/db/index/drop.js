@@ -1,0 +1,87 @@
+/*
+Copyright 2025 Adobe. All rights reserved.
+This file is licensed to you under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+OF ANY KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
+*/
+
+import { DBBaseCommand } from '../../../../DBBaseCommand.js'
+import { Args } from '@oclif/core'
+import chalk from 'chalk'
+import { isNonEmptyString } from '../../../../utils/inputValidation.js'
+import { prettyJson } from '../../../../utils/output.js'
+
+export class Drop extends DBBaseCommand {
+  async run () {
+    const { collection, indexName } = this.args
+
+    try {
+      this.log(chalk.blue(`Dropping index '${indexName}' from collection '${collection}'...`))
+
+      const client = await this.db.connect()
+      const coll = await client.collection(collection)
+
+      const result = await coll.dropIndex(indexName)
+
+      this.debugLogger?.info?.('Index dropped successfully:', result)
+
+      const response = {
+        collection,
+        indexName,
+        status: 'dropped',
+        namespace: this.rtNamespace,
+        timestamp: new Date().toISOString(),
+        result
+      }
+
+      this.log(chalk.green(`Index '${indexName}' dropped successfully`))
+      this.log(chalk.dim(`   Details:\n${prettyJson(result)}`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.dim(`   Dropped: ${new Date().toLocaleString()}`))
+
+      return response
+    } catch (error) {
+      this.debugLogger?.error?.('Error dropping index:', error)
+
+      this.log(chalk.red('Failed to drop index'))
+      this.log(chalk.dim(`   Collection: ${collection}`))
+      this.log(chalk.dim(`   Index: ${indexName}`))
+      this.log(chalk.dim(`   Namespace: ${this.rtNamespace}`))
+      this.log(chalk.dim(`   Error: ${error.message}`))
+
+      this.error(`Failed to drop index '${indexName}' from collection '${collection}': ${error.message}`)
+    }
+  }
+}
+
+Drop.description = 'Drop an index from a collection in the database'
+
+Drop.examples = [
+  '$ aio app db index drop users name_age_index',
+  '$ aio app db index drop products category_1 --json',
+  '$ aio app db idx drop orders orderDate_index'
+]
+
+Drop.args = {
+  collection: Args.string({
+    name: 'collection',
+    description: 'The name of the collection to drop the index from',
+    required: true,
+    parse: input => isNonEmptyString(input, 'Collection name')
+  }),
+  indexName: Args.string({
+    name: 'indexName',
+    description: 'The name of the index to drop',
+    required: true,
+    parse: input => isNonEmptyString(input, 'Index name')
+  })
+}
+
+Drop.flags = DBBaseCommand.flags
+
+Drop.aliases = ['app:db:idx:drop']

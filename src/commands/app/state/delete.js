@@ -10,12 +10,12 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import chalk from 'chalk'
-import { BaseCommand } from '../../../BaseCommand.js'
+import { StateBaseCommand } from '../../../StateBaseCommand.js'
 import { Args, Flags } from '@oclif/core'
 
 const MAX_ARGV_NO_CONFIRM = 5
 
-export class Delete extends BaseCommand {
+export class Delete extends StateBaseCommand {
   async run () {
     const { match, force } = this.flags
     const { argv: keysToDelete } = await this.parse(Delete)
@@ -100,7 +100,7 @@ Delete.args = {
 }
 
 Delete.flags = {
-  ...BaseCommand.flags,
+  ...StateBaseCommand.flags,
   match: Flags.string({
     description: '[use with caution!] deletes ALL key-values matching the provided glob-like pattern',
     required: false

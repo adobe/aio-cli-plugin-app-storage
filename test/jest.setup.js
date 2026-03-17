@@ -49,6 +49,21 @@ jest.unstable_mockModule('@adobe/aio-lib-state', () => ({
 }))
 global.getStateInstanceMock = () => mockInstance
 
+// mock db
+const mockDBInit = jest.fn()
+const mockDBInstance = {
+  ping: jest.fn(),
+  provisionStatus: jest.fn(),
+  provisionRequest: jest.fn(),
+  deleteDatabase: jest.fn(),
+  connect: jest.fn()
+}
+jest.unstable_mockModule('@adobe/aio-lib-db', () => ({
+  init: mockDBInit
+}))
+global.mockDBInit = mockDBInit
+global.mockDBInstance = mockDBInstance
+
 // mock prompt
 const mockPrompt = {
   input: jest.fn()
@@ -58,6 +73,27 @@ jest.unstable_mockModule('@inquirer/prompts', () => ({
 }))
 global.getPromptInstanceMock = () => mockPrompt
 
+const mockEnv = jest.fn()
+jest.unstable_mockModule('@adobe/aio-lib-env', () => ({
+  getCliEnv: mockEnv
+}))
+global.getCliEnvMock = () => mockEnv
+
+// mock ims
+const imsContextSetMock = jest.fn()
+const imsGetTokenMock = jest.fn()
+const imsModule = { context: { set: imsContextSetMock }, getToken: imsGetTokenMock }
+jest.unstable_mockModule('@adobe/aio-lib-ims', () => {
+  if (global.__ims_no_default) {
+    return imsModule
+  }
+  return { ...imsModule, default: imsModule }
+})
+global.getImsMock = () => ({
+  imsContextSetMock,
+  imsGetTokenMock
+})
+
 beforeEach(() => {
   // trap console log
   stdout.start()
@@ -66,16 +102,48 @@ beforeEach(() => {
   // config fakes
   global.fakeConfig = {
     'state.region': null,
-    'runtime.namespace': '11111-ns',
+    'runtime.namespace': 'test-namespace',
     'runtime.auth': 'auth',
-    'state.endpoint': null
+    'state.endpoint': null,
+    'db.endpoint': null,
+    'db.region': null,
+    'ims.contexts.test-namespace': {
+      client_id: 'test-client-id',
+      client_secret: 'test-client-secret',
+      org_id: 'test-org-id',
+      scopes: ['test-scope']
+    },
+    'ims.contexts.test-namespace.token': 'test-access-token'
   }
   delete process.env.AIO_STATE_ENDPOINT
+  delete process.env.AIO_DB_ENDPOINT
+  process.env.AIO_RUNTIME_NAMESPACE = 'test-namespace'
+  process.env.IMS_OAUTH_S2S_CLIENT_ID = 'test-client-id'
+  process.env.IMS_OAUTH_S2S_CLIENT_SECRET = 'test-client-secret'
+  process.env.IMS_OAUTH_S2S_ORG_ID = 'test-org-id'
+  process.env.IMS_OAUTH_S2S_SCOPES = '["test-scope"]'
 
   mockInit.mockReset()
   mockInit.mockResolvedValue(mockInstance)
   Object.values(mockInstance).forEach(mock => mock.mockReset())
 
+  mockDBInit.mockReset()
+  mockDBInit.mockResolvedValue(mockDBInstance)
+  Object.values(mockDBInstance).forEach(mock => mock.mockReset())
+
   Object.values(mockPrompt).forEach(mock => mock.mockReset())
+
+  mockEnv.mockReset()
+  mockEnv.mockReturnValue('prod')
+
+  config.set = (key, value) => {
+    global.fakeConfig[key] = value
+  }
+
+  const imsMocks = global.getImsMock()
+  imsMocks.imsContextSetMock.mockReset()
+  imsMocks.imsGetTokenMock.mockReset()
+  imsMocks.imsGetTokenMock.mockResolvedValue('test-access-token')
+  global.__ims_no_default = false
 })
 afterEach(() => { stdout.stop(); stderr.stop() })

@@ -9,9 +9,9 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { BaseCommand } from '../../../BaseCommand.js'
+import { StateBaseCommand } from '../../../StateBaseCommand.js'
 
-export class Stats extends BaseCommand {
+export class Stats extends StateBaseCommand {
   async run () {
     const ret = await this.state.stats()
     this.log(
