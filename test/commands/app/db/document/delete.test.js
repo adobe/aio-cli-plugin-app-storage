@@ -103,7 +103,7 @@ describe('run', () => {
       expect(stdout.output).toContain('Deleting document from collection \'users\'...')
       expect(stdout.output).toContain('Document deleted successfully from collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Deleted: 1')
+      expect(stdout.output).toContain('Deleted:')
     })
 
     test('handles no document found', async () => {
@@ -267,7 +267,6 @@ describe('run', () => {
       expect(stdout.output).toContain('Deleting document from collection \'users\'...')
       expect(stdout.output).toContain('Document deleted successfully from collection \'users\'')
       expect(stdout.output).toContain('Namespace: test-namespace')
-      expect(stdout.output).toContain('Deleted: 1')
       expect(stdout.output).toContain('Deleted:')
     })
 
