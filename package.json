@@ -1,6 +1,6 @@
 {
   "name": "@adobe/aio-cli-plugin-app-storage",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "dependencies": {
     "@adobe/aio-lib-core-config": "^5",
     "@adobe/aio-lib-core-logging": "^3",
