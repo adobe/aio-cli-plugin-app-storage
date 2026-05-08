@@ -346,6 +346,22 @@ describe('run', () => {
       expect(stdout.output).toContain('Checked:')
     })
 
+    test('shows status without optional region field', async () => {
+      command.argv = []
+      await command.init()
+
+      const statusResponse = {
+        status: DB_STATUS.PROCESSING
+      }
+      mockProvisionStatus.mockResolvedValue(statusResponse)
+
+      await command.run()
+
+      expect(stdout.output).toContain('Database Status: PROCESSING')
+      expect(stdout.output).toContain('Namespace: test-namespace')
+      expect(stdout.output).not.toContain('Region:')
+    })
+
     test('hides timestamp in watch mode', async () => {
       command.argv = []
       await command.init()
