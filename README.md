@@ -1,5 +1,10 @@
 # aio-cli-plugin-app-storage
 
+[![npm](https://img.shields.io/npm/v/@adobe/aio-cli-plugin-app-storage.svg)](https://npmjs.com/package/@adobe/aio-cli-plugin-app-storage)
+[![Build](https://github.com/adobe/aio-cli-plugin-app-storage/actions/workflows/node.js.yml/badge.svg)](https://github.com/adobe/aio-cli-plugin-app-storage/actions/workflows/node.js.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Coverage](https://codecov.io/gh/adobe/aio-cli-plugin-app-storage/branch/main/graph/badge.svg)](https://codecov.io/gh/adobe/aio-cli-plugin-app-storage)
+
 The CLI Plugin to manage your App Builder State storage and Database services.
 
 If you need to access State programmatically, check the
