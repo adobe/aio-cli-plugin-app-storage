@@ -8,7 +8,7 @@
     "@adobe/aio-lib-env": "^3.0.1",
     "@adobe/aio-lib-ims": "^8.0.0",
     "@adobe/aio-lib-state": "^5.3.0",
-    "@inquirer/prompts": "^5",
+    "@inquirer/prompts": "^8",
     "@oclif/core": "^4",
     "@oclif/plugin-help": "^6",
     "@oclif/table": "^0.5.0",
@@ -86,6 +86,9 @@
     "e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --collectCoverage=false --testRegex 'e2e/e2e.js'"
   },
   "jest": {
+    "moduleNameMapper": {
+      "^@oclif/table$": "<rootDir>/test/__mocks__/oclif-table.js"
+    },
     "collectCoverage": true,
     "coverageThreshold": {
       "global": {
