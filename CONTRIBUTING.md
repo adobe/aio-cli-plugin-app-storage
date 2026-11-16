@@ -12,6 +12,13 @@ This project adheres to the Adobe [code of conduct](CODE_OF_CONDUCT.md). By part
 
 All third-party contributions to this project must be accompanied by a signed contributor license agreement. This gives Adobe permission to redistribute your contributions as part of the project. [Sign our CLA](http://opensource.adobe.com/cla.html). You only need to submit an Adobe CLA one time, so if you have submitted one previously, you are good to go!
 
+## Development
+
+Use a Node.js version supported by `package.json`. Run `npm ci` to install the
+dependencies recorded in `package-lock.json`, then `npm test` to run the unit
+tests and lint checks. When changing dependencies, use `npm install` and commit
+the updated `package-lock.json` alongside `package.json`.
+
 ## Code Reviews
 
 All submissions should come in the form of pull requests and need to be reviewed by project committers. Read [GitHub's pull request documentation](https://help.github.com/articles/about-pull-requests/) for more information on sending pull requests.
